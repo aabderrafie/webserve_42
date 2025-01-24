@@ -4,7 +4,7 @@ RED = \033[0;31m
 NC = \033[0m 
 
 CC  = c++
-CFLAGS = -Wall -Wextra -Werror -std=c++98 
+CFLAGS = -Wall -Wextra -Werror -std=c++98  -I/usr/include/boost
 NAME = webserv
 HEADER = $(wildcard *.hpp)
 SRCS = $(shell find src -name '*.cpp')

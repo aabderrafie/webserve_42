@@ -1,0 +1,19 @@
+- socket : 
+ a socket in the context of system calls in C/C++ is a way for programs to communicate with each other over a 
+network (like the internet) or even between processes on the same computer. It's a fundamental building block 
+for network communication, such as web browsers talking to servers or different parts of a program exchanging data.
+?     int socket(int domain, int type, int protocol);
+- 1 domain: Specifies the communication domain (family of protocols). Common options:
+
+! AF_INET for IPv4 (most common for internet communication).
+! AF_INET6 for IPv6.
+! AF_UNIX for local communication between processes on the same machine.
+
+- 2 type: Defines the type of communication:
+
+! SOCK_STREAM: For TCP (connection-oriented, reliable communication).
+! SOCK_DGRAM: For UDP (connectionless, unreliable but faster communication).
+! SOCK_RAW: For raw network packets (usually used for network utilities like ping).
+
+- 3 protocol: Usually set to 0 to automatically choose the correct protocol for the specified domain and type. However, you 
+could specify a custom protocol number if needed.

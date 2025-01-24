@@ -1,6 +1,5 @@
 
 #include <iostream>
-#include <thread>
 #include "server/Server.hpp"
 #include "client/Client.hpp"
 
