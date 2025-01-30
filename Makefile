@@ -1,36 +1,41 @@
+CC = c++
+CFLAGS =  -Wall -Wextra -Werror -fsanitize=address -g
+NAME = webserver
+
 GREEN = \033[0;32m
 YELLOW = \033[0;33m
+BLUE = \033[0;34m
 RED = \033[0;31m
-NC = \033[0m 
+RESET = \033[0m
 
-CC  = c++
-CFLAGS = -Wall -Wextra -Werror -std=c++98  -I/usr/include/boost
-NAME = webserv
-HEADER = $(wildcard *.hpp)
-SRCS = $(shell find src -name '*.cpp')
-OBJS = $(SRCS:.cpp=.o)
+src =  $(wildcard src/*.cpp) #$(filter-out src/Request.cpp,
+obj = $(src:.cpp=.o)
+
 
 all: $(NAME)
 
-$(NAME): $(OBJS)
-	@echo  "$(YELLOW)Linking...$(NC)"
-	@$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
-	@echo  "$(GREEN)Build complete: $(NAME)$(NC)"
+$(NAME): $(obj)
+	@echo "$(GREEN)Linking $@...$(RESET)"
+	@$(CC) $(CFLAGS) -o $@ $^
+	@echo "$(BLUE)✔ Compilation complete!$(RESET)"
 
-%.o: %.cpp $(HEADER)
-	@echo  "$(YELLOW)Compiling $<...$(NC)"
+%.o: %.cpp
 	@$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	@echo  "$(RED)Cleaning object files...$(NC)"
-	@rm -f $(OBJS)
+	@echo "$(YELLOW)Removing object files...$(RESET)"
+	@rm -f $(obj)
+	@echo "$(RED)✔ Object files removed!$(RESET)"
 
 fclean: clean
-	@echo  "$(RED)Cleaning all files...$(NC)"
+	@echo "$(YELLOW)Removing executable...$(RESET)"
 	@rm -f $(NAME)
+	@echo "$(RED)✔ Executable removed!$(RESET)"
 
 re: fclean all
 
 42: all clean
+	@echo "$(GREEN)Running the program...$(RESET)"
+	@./$(NAME)
 
-.PHONY: all clean fclean re
+.PHONY: all clean fclean re 42
