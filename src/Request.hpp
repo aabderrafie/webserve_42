@@ -16,8 +16,6 @@ class Request {
         map<string, string> formData;
         bool isMultipart = false;
         bool isUrlEncoded = false;
-        bool isFormData = false;
-        bool isBinary = false;
         string boundary;
         string filename;
         string fileContent;
@@ -41,8 +39,7 @@ class Request {
         const bool& getIsMultipart() const { return isMultipart; }
         const string& getFilename() const { return filename; }
         const string& getFileContent() const { return fileContent; }
-        const bool& getIsBinary() const { return isBinary; }
         const bool& getIsUrlEncoded() const { return isUrlEncoded; }
-        const bool& getIsFormData() const { return isFormData; }
+
 
 };

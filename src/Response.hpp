@@ -40,7 +40,6 @@ class Response {
         void send_error_response(int status, const std::string& content_type, const std::string& error_page_path);
         void handle_post_request(const std::string& uri, const std::string& body, const Config& config);
         void create_user(const std::map<std::string, std::string>& data, const std::string& uploads);
-        void handle_binary_file(const std::string& uri);
 
         ~Response();
 

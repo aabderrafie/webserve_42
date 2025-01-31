@@ -116,10 +116,8 @@ void Response::create_user(const std::map<std::string, std::string>& data, const
     auto username_it = data.find("username");
     auto password_it = data.find("password");
     auto fullname_it = data.find("fullname");
-
-    if (username_it == data.end() || password_it == data.end() || fullname_it == data.end()) {
+    if (username_it == data.end() || password_it == data.end() || fullname_it == data.end())
         throw std::runtime_error("Missing required user data");
-    }
 
     std::string username = username_it->second;
     std::string password = password_it->second;
@@ -127,69 +125,36 @@ void Response::create_user(const std::map<std::string, std::string>& data, const
 
     std::ofstream user_file(uploads + "/" + username + ".txt");
     if (user_file.is_open()) {
-        user_file << "Username: " << username << std::endl;
-        user_file << "Password: " << password << std::endl;
-        user_file << "Fullname: " << fullname << std::endl;
-        user_file.close();
-    } else {
-        throw std::runtime_error("Unable to open file of users");
-    }
-}
-
-void Response::handle_post_request(const std::string &uri, const std::string &body, const Config& config) {
-    std::cout << body << std::endl;
-    (void) uri;
-    std::string uploads = config.uploads_location.root;
-    std::string root = config.root_location.root;
-    std::string post_path = root + "/post-success.html";
-
-    Request request(body);
-
-    if (!request.getIsMultipart() && request.getFormData().size() == 3)
-        create_user(request.getFormData(), uploads);
-    else if (request.getIsMultipart())
-         request.parseMultipartFormData(body);
-   
-    set_status(200);
-    set_content_type("text/html");
-    set_body(read_html_file(post_path));
-    send_response();
-
-}
-/*
-
-void Response::handle_post_request(const std::string &uri, const std::string &body, const Config& config) {
-    (void) uri;
-    std::string uploads = config.uploads_location.root;
-    std::string root = config.root_location.root;
-    std::cout << body << std::endl;
-    std::map<std::string, std::string> data = parse_post_data(body);
-
-    // Extract user information
-    std::string username = data["username"];
-    std::string password = data["password"];
-    std::string fullname = data["fullname"];
-
-    std::ofstream user_file(uploads + "/" + username + ".txt");
-    if (user_file.is_open()) {
+        user_file << "User Information" << std::endl;
+        user_file << "-----------------" << std::endl;
         user_file << "Username: " << username << std::endl;
         user_file << "Password: " << password << std::endl;
         user_file << "Fullname: " << fullname << std::endl;
         user_file.close();
     } 
     else 
-        throw std::runtime_error("Unable to open file of users ");
+        throw std::runtime_error("Unable to open file of users");
+}
 
-    std::map<std::string, std::string>::iterator it = data.begin();
-    std::map<std::string, std::string>::iterator end = data.end();
 
-    for(; it != end; ++it)
-        std::cout << it->first << "=====>> \t" << it->second  <<std::endl;
-
+void Response::handle_post_request(const std::string &uri, const std::string &body, const Config& config) {
+    (void) uri;
+    std::string uploads = config.uploads_location.root;
+    std::string root = config.root_location.root;
     std::string post_path = root + "/post-success.html";
+
+    Request request(body);
+    std::cout << "guess what" << std::endl;
+
+    if (!request.getIsMultipart())
+        create_user(request.getFormData(), uploads);
+    else if (request.getIsMultipart())
+         request.parseMultipartFormData(body);
+
+
     set_status(200);
     set_content_type("text/html");
     set_body(read_html_file(post_path));
     send_response();
+
 }
-*/

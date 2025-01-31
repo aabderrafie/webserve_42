@@ -6,7 +6,8 @@
 
 class Config {
 public:
-    int listen_port;
+        std::vector<int> listen_ports;
+
     std::string server_name;
     std::vector<std::pair<int, std::string>> error_pages;
 
@@ -22,7 +23,7 @@ public:
 
     Config() {
         // Default initialization
-        listen_port =80;
+        listen_ports = {8080,80,4242,1337};
         server_name = "localhost";
 // 301.html  400.html  403.html  404.html  405.html  409.html  413.html  414.html  500.html  501.html
         error_pages = {
@@ -46,28 +47,28 @@ public:
         };
     }
 
-    void print_config() const {
-        std::cout << "Server Configuration:" << std::endl;
-        std::cout << "Listen on port: " << listen_port << std::endl;
-        std::cout << "Server name: " << server_name << std::endl;
+    // void print_config() const {
+    //     std::cout << "Server Configuration:" << std::endl;
+    //     std::cout << "Listen on port: " << listen_port << std::endl;
+    //     std::cout << "Server name: " << server_name << std::endl;
 
-        std::cout << "Error pages:" << std::endl;
-        for (const auto& error_page : error_pages) {
-            std::cout << "  Error " << error_page.first << ": " << error_page.second << std::endl;
-        }
+    //     std::cout << "Error pages:" << std::endl;
+    //     for (const auto& error_page : error_pages) {
+    //         std::cout << "  Error " << error_page.first << ": " << error_page.second << std::endl;
+    //     }
 
-        std::cout << "Root location:" << std::endl;
-        std::cout << "  Path: " << root_location.path << std::endl;
-        std::cout << "  Root: " << root_location.root << std::endl;
-        std::cout << "  Allowed methods: ";
-        for (const auto& method : root_location.allow_methods) {
-            std::cout << method << " ";
-        }
-        std::cout << "\n  Autoindex: " << (root_location.autoindex ? "on" : "off") << std::endl;
+    //     std::cout << "Root location:" << std::endl;
+    //     std::cout << "  Path: " << root_location.path << std::endl;
+    //     std::cout << "  Root: " << root_location.root << std::endl;
+    //     std::cout << "  Allowed methods: ";
+    //     for (const auto& method : root_location.allow_methods) {
+    //         std::cout << method << " ";
+    //     }
+    //     std::cout << "\n  Autoindex: " << (root_location.autoindex ? "on" : "off") << std::endl;
 
-        std::cout << "Uploads location:" << std::endl;
-        std::cout << "  Path: " << uploads_location.path << std::endl;
-        std::cout << "  Root: " << uploads_location.root << std::endl;
-    }
+    //     std::cout << "Uploads location:" << std::endl;
+    //     std::cout << "  Path: " << uploads_location.path << std::endl;
+    //     std::cout << "  Root: " << uploads_location.root << std::endl;
+    // }
 };
 

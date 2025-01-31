@@ -1,7 +1,14 @@
 #include "Request.hpp"
 
 Request::Request(const string &body) {
+    if(body.find("Content-Type: application/x-www-form-urlencoded") != std::string::npos)
+        isUrlEncoded = true;
+
+    else if (body.find("Content-Type: multipart/form-data") != std::string::npos)
+        isMultipart = true;
+     
     std::istringstream stream(body);
+    
     std::string line;
     bool isBody = false;
     bool isFirstLine = true;
@@ -21,6 +28,8 @@ Request::Request(const string &body) {
             else if (line.find(": ") != std::string::npos) 
                  parseHeader(line);
         }
+        else if(isUrlEncoded) 
+            parseUrlEncodedData(line);
     }
 
 }
@@ -41,10 +50,7 @@ void Request::parseRequestLine(const string& line) {
 void Request::parseHeader(const string& line) {
     if(line.find("multipart/form-data") != std::string::npos) 
         isMultipart = true;
-    else if(line.find("application/x-www-form-urlencoded") != std::string::npos) 
-        isUrlEncoded = true;
-    else if(line.find("Content-Disposition") != std::string::npos) 
-        isFormData = true;
+    std::cout << "multipart: " << isMultipart << std::endl;
     size_t colonPos = line.find(':');
     if (colonPos != std::string::npos) {
         std::string key = trim(line.substr(0, colonPos));
@@ -70,7 +76,6 @@ void Request::parseUrlEncodedData(const string& body) {
 
 
 void Request::parseMultipartFormData(const std::string& body) {
-    
     std::string body_copy;
     size_t startPos = body.find("filename=\"");
     size_t endPos = std::string::npos; 
@@ -99,6 +104,7 @@ while(std::getline(iss, line)){
     fileContent += line;
     fileContent += "\n";
 }
+
 size_t boundaryEnd = fileContent.find("WebKitFormBoundary") - 8;
 fileContent = fileContent.substr(0, boundaryEnd);
     std::ofstream file(filename, std::ios::binary);

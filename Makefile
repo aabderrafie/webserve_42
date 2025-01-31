@@ -1,5 +1,5 @@
 CC = c++
-CFLAGS =  -Wall -Wextra -Werror -fsanitize=address -g
+CFLAGS =  -Wall -Wextra -Werror -fsanitize=address -g3
 NAME = webserver
 
 GREEN = \033[0;32m
