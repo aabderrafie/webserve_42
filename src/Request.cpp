@@ -50,7 +50,6 @@ void Request::parseRequestLine(const string& line) {
 void Request::parseHeader(const string& line) {
     if(line.find("multipart/form-data") != std::string::npos) 
         isMultipart = true;
-    std::cout << "multipart: " << isMultipart << std::endl;
     size_t colonPos = line.find(':');
     if (colonPos != std::string::npos) {
         std::string key = trim(line.substr(0, colonPos));

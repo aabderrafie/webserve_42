@@ -1,11 +1,6 @@
 #pragma once
-#include "Response.hpp"
+#include "../includes/include.hpp"
 using namespace std;
-#include <string>
-#include <map>
-#include <sstream>
-#include <iostream>
- #include <string.h>
 
 class Request {
     private:

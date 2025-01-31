@@ -1,22 +1,28 @@
 #include "server.hpp"
+#include <ctime>
+
+
+std::string current_time() {
+    std::time_t now = std::time(nullptr);
+    char buf[100];
+    std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
+    return std::string(buf);
+}
 
 Server::Server(const Config& config) : config(config) {
     for (size_t i = 0; i < config.listen_ports.size(); ++i) {
         int server_socket = socket(AF_INET, SOCK_STREAM, 0);
         if (server_socket < 0)
             throw std::runtime_error("Error creating socket");
-
         struct sockaddr_in server_addr;
         server_addr.sin_family = AF_INET;
         server_addr.sin_port = htons(config.listen_ports[i]);
         server_addr.sin_addr.s_addr = INADDR_ANY;
         memset(&(server_addr.sin_zero), 0, 8);
-
         struct pollfd server_poll_fd;
         server_poll_fd.fd = server_socket;
         server_poll_fd.events = POLLIN;
         poll_fds.push_back(server_poll_fd);
-
         server_sockets.push_back(server_socket);
         server_addrs.push_back(server_addr);
     }
@@ -24,9 +30,8 @@ Server::Server(const Config& config) : config(config) {
 
 Server::~Server() {
     std::cout << "Closing server sockets" << std::endl;
-    for (int server_socket : server_sockets) {
+    for (int server_socket : server_sockets)
         close(server_socket);
-    }
 }
 
 void Server::bind_and_listen() {
@@ -40,6 +45,8 @@ void Server::bind_and_listen() {
 
         if (listen(server_sockets[i], BACKLOG) < 0)
             throw std::runtime_error("Error listening on port " + std::to_string(ntohs(server_addrs[i].sin_port)));
+
+        std::cout << GREEN << "[" << current_time() << "] New server connected on port " << ntohs(server_addrs[i].sin_port) << RESET << std::endl;
     }
 }
 
@@ -54,6 +61,8 @@ void Server::new_connection(int server_socket) {
     client_poll_fd.fd = client_socket;
     client_poll_fd.events = POLLIN;
     poll_fds.push_back(client_poll_fd);
+
+    std::cout << BLUE << "[" << current_time() << "] New client connected on socket " << client_socket << RESET << std::endl;
 }
 
 void Server::handle_client(int client_socket) {
@@ -78,10 +87,14 @@ void Server::handle_client(int client_socket) {
     std::string method, uri, version;
     request >> method >> uri >> version;
 
+    std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << RESET << std::endl;
+
     if (method == "GET")
         response.handle_get_request(uri, config);
     else if (method == "POST")
         response.handle_post_request(uri, body, config);
+    else if(method == "DELETE")
+        response.handle_delete_request(uri, body, config);
     else
         response.send_error_response(405, "text/html", config.root_location.root + config.error_pages[1].second);
 
@@ -89,14 +102,8 @@ void Server::handle_client(int client_socket) {
 }
 
 void Server::start_server() {
+  std::cout << RED << "           ----- webserve 1337 -----         " << RESET << std::endl;
     bind_and_listen();
-
-    std::cout << "Server is running on ports ";
-    for (const auto& addr : server_addrs) {
-        std::cout << ntohs(addr.sin_port) << " ";
-    }
-    std::cout << std::endl;
-
     while (true) {
         int poll_count = poll(poll_fds.data(), poll_fds.size(), -1);
         if (poll_count < 0)
@@ -113,9 +120,5 @@ void Server::start_server() {
                 }
             }
         }
-    }
-
-    for (int server_socket : server_sockets) {
-        close(server_socket);
     }
 }

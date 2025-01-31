@@ -34,10 +34,8 @@ bool Response::is_directory(const std::string &url) {
 
 std::string Response::read_html_file(const std::string& file_path) {
     std::ifstream file(file_path.c_str());
-    if (!file.is_open()) {
-        std::cerr << "Error: Could not open file " << file_path << std::endl;
-        return "";
-    }
+    if (!file.is_open()) 
+        throw std::runtime_error("Unable to open file: " + file_path);
     std::stringstream buffer;
     buffer << file.rdbuf();
     return buffer.str();
@@ -79,7 +77,6 @@ void Response::handle_get_request(const std::string &uri, const Config& config) 
     if (!file.is_open()) 
        return send_error_response(404, "text/html", root + config.error_pages[0].second), void();
 
-    std::cout << "Path: " << path << std::endl;
     path += (path.back() == '/') ? "index.html" : "";
     set_status(200);
     set_content_type(mime_types.get_mime_type(path));
@@ -144,12 +141,13 @@ void Response::handle_post_request(const std::string &uri, const std::string &bo
     std::string post_path = root + "/post-success.html";
 
     Request request(body);
-    std::cout << "guess what" << std::endl;
 
     if (!request.getIsMultipart())
         create_user(request.getFormData(), uploads);
     else if (request.getIsMultipart())
          request.parseMultipartFormData(body);
+    else 
+        return send_error_response(400, "text/html", root + config.error_pages[5].second), void();
 
 
     set_status(200);
@@ -157,4 +155,28 @@ void Response::handle_post_request(const std::string &uri, const std::string &bo
     set_body(read_html_file(post_path));
     send_response();
 
+}
+
+
+
+void Response::handle_delete_request(const std::string& uri, const std::string& body, const Config& config) {
+    (void) body;
+    std::string root = config.root_location.root;
+
+    std::string uploads = config.uploads_location.root;
+
+    std::string delete_path = root + "/delete-success.html";
+    std::string delete_error = root + "/delete-failure.html";
+
+    std::string path = uploads + uri;
+    if (!std::filesystem::exists(path))
+        return send_error_response(404, "text/html", delete_error), void();
+
+    if (remove(path.c_str()) != 0) 
+        return send_error_response(500, "text/html", delete_error), void();
+    
+    set_status(200);
+    set_content_type("text/html");
+    set_body(read_html_file(delete_path));
+    send_response();
 }
