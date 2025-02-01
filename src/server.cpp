@@ -65,9 +65,8 @@ void Server::new_connection(int server_socket) {
     std::cout << BLUE << "[" << current_time() << "] New client connected on socket " << client_socket << RESET << std::endl;
 }
 
-void Server::handle_client(int client_socket) {
-    Response response(client_socket, config);
 
+std::string  read_request(int client_socket){
     char buffer[BUFFER_SIZE];
     std::string body;
     int bytes_received;
@@ -82,24 +81,33 @@ void Server::handle_client(int client_socket) {
         if (bytes_received < BUFFER_SIZE - 1)
             break;
     }
+    return body;
 
+}
+
+void Server::handle_client(int client_socket) {
+    Response response(client_socket, config);
+    std::string body = read_request(client_socket);
+
+    std::cout << body << std::endl;
     std::istringstream request(body);
     std::string method, uri, version;
     request >> method >> uri >> version;
 
     std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << RESET << std::endl;
-
     if (method == "GET")
         response.handle_get_request(uri, config);
     else if (method == "POST")
         response.handle_post_request(uri, body, config);
     else if(method == "DELETE")
         response.handle_delete_request(uri, body, config);
+    else if(method == "HEAD")
+        response.handle_head_request(uri, config);
     else
         response.send_error_response(405, "text/html", config.root_location.root + config.error_pages[1].second);
-
     close(client_socket);
 }
+
 
 void Server::start_server() {
   std::cout << RED << "           ----- webserve 1337 -----         " << RESET << std::endl;

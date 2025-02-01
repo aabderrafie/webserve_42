@@ -1,13 +1,22 @@
 # pragma once
-
-#include "server.hpp"   
-#include "mime_types.hpp"
-#include "Request.hpp"
+#include <string>
+#include <map>
+#include <sstream>
+#include <unistd.h>
 #include "config.hpp"
-#include <filesystem>
+#include "mime_types.hpp"
+#include <fstream>
 #include <iostream>
-
-#include <cstdio>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <poll.h>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <ctime>
+#include <iomanip>
+#include <cctype>
+#include "Request.hpp"
 
 class Response {
     private:
@@ -30,12 +39,11 @@ class Response {
         bool is_directory(const std::string& url);
         void send_error_response(int status, const std::string& content_type, const std::string& error_page_path);
         void handle_post_request(const std::string& uri, const std::string& body, const Config& config);
-        void handle_delete_request(const std::string& uri, const std::string& body, const Config& config);
-        void handle_head_request(const std::string &uri, const Config& config);
-
         void create_user(const std::map<std::string, std::string>& data, const std::string& uploads);
 
         ~Response();
 
 };
 
+
+----------------------------758431107269151238456040--

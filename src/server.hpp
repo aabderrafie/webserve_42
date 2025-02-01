@@ -56,4 +56,5 @@ class Server {
         void new_connection(int server_socket);
         void bind_and_listen();
         void handle_client(int client_socket);
+        std::string read_request(int client_socket);
 };

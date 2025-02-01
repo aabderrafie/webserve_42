@@ -23,9 +23,7 @@ class Request {
         void parseMultipartFormData(const string& body);
         string trim(string str);
 
-        
 
-        // Getters
         const string& getMethod() const { return method; }
         const string& getPath() const { return path; }
         const string& getHttpVersion() const { return httpVersion; }

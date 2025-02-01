@@ -16,7 +16,7 @@ bool Response::is_valid_url(const std::string& url) {
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         "abcdefghijklmnopqrstuvwxyz"
         "0123456789"
-        "@:%.+~#-_/";
+        "@:%.+~#-_/=?";
     for (size_t i = 0; i < url.length(); ++i) {
         char c = url[i];
         if (valid_chars.find(c) == std::string::npos)
@@ -54,12 +54,18 @@ void Response::send_response() {
              << "Content-Type: " << content_type << "\r\n"
              << "Content-Length: " << body.size() << "\r\n"
              << "Connection: close\r\n"
-             << "\r\n"
-             << body;
-    std::string response_str = response.str();
-    send(client_socket, response_str.c_str(), response_str.size(), 0);
-}
+             << "\r\n";
+    std::string headers = response.str();
+    send(client_socket, headers.c_str(), headers.size(), 0);
 
+    const size_t chunk_size = 1024; 
+    size_t sent = 0;
+    while (sent < body.size()) {
+        size_t to_send = std::min(chunk_size, body.size() - sent);
+        send(client_socket, body.c_str() + sent, to_send, 0);
+        sent += to_send;
+    }
+}
 void Response::handle_get_request(const std::string &uri, const Config& config) {
     std::string root = config.root_location.root;
     
@@ -74,7 +80,7 @@ void Response::handle_get_request(const std::string &uri, const Config& config) 
 
     std::string path = root + uri;
     std::ifstream file(path.c_str(), std::ios::binary);
-    if (!file.is_open()) 
+    if (!file.is_open() ) 
        return send_error_response(404, "text/html", root + config.error_pages[0].second), void();
 
     path += (path.back() == '/') ? "index.html" : "";
@@ -142,13 +148,12 @@ void Response::handle_post_request(const std::string &uri, const std::string &bo
 
     Request request(body);
 
-    if (!request.getIsMultipart())
+    if (request.getIsUrlEncoded())
         create_user(request.getFormData(), uploads);
     else if (request.getIsMultipart())
          request.parseMultipartFormData(body);
-    else 
+    else
         return send_error_response(400, "text/html", root + config.error_pages[5].second), void();
-
 
     set_status(200);
     set_content_type("text/html");
@@ -178,5 +183,15 @@ void Response::handle_delete_request(const std::string& uri, const std::string& 
     set_status(200);
     set_content_type("text/html");
     set_body(read_html_file(delete_path));
+    send_response();
+}
+
+void Response::handle_head_request(const std::string &uri, const Config& config) {
+    std::string root = config.root_location.root;
+    std::string path = root + uri;
+    if (!std::filesystem::exists(path))
+        return send_error_response(404, "text/html", root + config.error_pages[4].second), void();
+    set_status(200);
+    set_content_type("text/html");
     send_response();
 }

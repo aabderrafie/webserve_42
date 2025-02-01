@@ -23,7 +23,7 @@ public:
 
     Config() {
         // Default initialization
-        listen_ports = {8080,80,4242,1337};
+        listen_ports = {8080,4242,1337};
         server_name = "localhost";
 // 301.html  400.html  403.html  404.html  405.html  409.html  413.html  414.html  500.html  501.html
         error_pages = {
