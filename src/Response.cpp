@@ -1,7 +1,7 @@
 
 #include "Response.hpp"
 
-Response::Response(int client_socket, const Config& config) : client_socket(client_socket), config(config) {}
+Response::Response(int client_socket, const Server& server) : client_socket(client_socket), mime_types(),Server(server) {}
 
 Response::~Response() {}
 
@@ -66,22 +66,23 @@ void Response::send_response() {
         sent += to_send;
     }
 }
-void Response::handle_get_request(const std::string &uri, const Config& config) {
-    std::string root = config.root_location.root;
+void Response::handle_get_request(const std::string &body) {
+    std::string root = server.root_location.root;
+    std::string uri = request.getPath();
     
     if (!is_valid_url(uri))
-       return  send_error_response(400, "text/html", root + config.error_pages[5].second), void();
+       return  send_error_response(400, "text/html", root +server.error_pages[400]), void();
 
     if (uri.find("..") != std::string::npos)
-        return send_error_response(403, "text/html", root + config.error_pages[2].second), void();
+        return send_error_response(403, "text/html", root +server.error_pages[403]), void();
     
     if (uri.length() > 2048)
-        return send_error_response(414, "text/html", root + config.error_pages[8].second), void();
+        return send_error_response(414, "text/html", root +server.error_pages[414]), void();
 
     std::string path = root + uri;
     std::ifstream file(path.c_str(), std::ios::binary);
     if (!file.is_open() ) 
-       return send_error_response(404, "text/html", root + config.error_pages[0].second), void();
+       return send_error_response(404, "text/html", root +server.error_pages[404]), void();
 
     path += (path.back() == '/') ? "index.html" : "";
     set_status(200);
@@ -140,20 +141,17 @@ void Response::create_user(const std::map<std::string, std::string>& data, const
 }
 
 
-void Response::handle_post_request(const std::string &uri, const std::string &body, const Config& config) {
-    (void) uri;
-    std::string uploads = config.uploads_location.root;
-    std::string root = config.root_location.root;
+void Response::handle_post_request( const std::string &body) {
+    std::string uploads = server.upload_location.root;
+    std::string root = server.root_location.root;
     std::string post_path = root + "/post-success.html";
 
     Request request(body);
 
-    if (request.getIsUrlEncoded())
-        create_user(request.getFormData(), uploads);
-    else if (request.getIsMultipart())
+    if(request.getIsMultipart())
          request.parseMultipartFormData(body);
     else
-        return send_error_response(400, "text/html", root + config.error_pages[5].second), void();
+        return send_error_response(400, "text/html", root + server.error_pages[400]), void();
 
     set_status(200);
     set_content_type("text/html");
@@ -164,16 +162,16 @@ void Response::handle_post_request(const std::string &uri, const std::string &bo
 
 
 
-void Response::handle_delete_request(const std::string& uri, const std::string& body, const Config& config) {
+void Response::handle_delete_request(const std::string& body) {
     (void) body;
-    std::string root = config.root_location.root;
+    std::string root = server.root_location.root;
 
-    std::string uploads = config.uploads_location.root;
+    std::string uploads = server.upload_location.root;
 
     std::string delete_path = root + "/delete-success.html";
     std::string delete_error = root + "/delete-failure.html";
 
-    std::string path = uploads + uri;
+    std::string path = uploads;
     if (!std::filesystem::exists(path))
         return send_error_response(404, "text/html", delete_error), void();
 
@@ -186,12 +184,3 @@ void Response::handle_delete_request(const std::string& uri, const std::string& 
     send_response();
 }
 
-void Response::handle_head_request(const std::string &uri, const Config& config) {
-    std::string root = config.root_location.root;
-    std::string path = root + uri;
-    if (!std::filesystem::exists(path))
-        return send_error_response(404, "text/html", root + config.error_pages[4].second), void();
-    set_status(200);
-    set_content_type("text/html");
-    send_response();
-}

@@ -1,74 +1,63 @@
-#pragma once 
-
-#include <iostream>
 #include <string>
+#include <map>
 #include <vector>
+#include "../includes/include.hpp"
+#include "server.hpp"
+class Location {
+public:
+    std::string root; //default is /files/html
+    std::vector<std::string> allowed_methods; //default is GET POST
+    bool directory_listing; // default is false
+    std::vector<std::string> cgi_extensions; //default is .py .php
+    std::string default_file; //default is index.html
+    Location() : root("/files/html"), allowed_methods({"GET", "POST"}), directory_listing(false), cgi_extensions({".py", ".php"}) {}
+};
+
 
 class Config {
 public:
-        std::vector<int> listen_ports;
-
-    std::string server_name;
-    std::vector<std::pair<int, std::string>> error_pages;
-
-    struct Location {
-        std::string path;
-        std::string root;
-        std::vector<std::string> allow_methods;
-        bool autoindex;
-    };
-
-    Location root_location;
-    Location uploads_location;
+    std::vector<Server> servers;
+    size_t _size;
 
     Config() {
-        // Default initialization
-        listen_ports = {8080,4242,1337};
-        server_name = "localhost";
-// 301.html  400.html  403.html  404.html  405.html  409.html  413.html  414.html  500.html  501.html
-        error_pages = {
-            {404, "/error_pages/404.html"},
-            {405, "/error_pages/405.html"},
-            {403, "/error_pages/403.html"},
-            {500, "/error_pages/500.html"},
-            {501, "/error_pages/501.html"},
-            {400, "/error_pages/400.html"},
-            {409, "/error_pages/409.html"},
-            {413, "/error_pages/413.html"},
-            {414, "/error_pages/414.html"}
-        };
+        // Example server configuration
+        Server server1;
+        server1.host = "127.0.0.1";
+        server1.ports.push_back(8080);
+        server1.ports.push_back(4242);
+        server1.ports.push_back(1337);
+        server1.ports.push_back(80);
+        server1.server_name = "localhost webserver.com";
+        server1.error_pages[301] = "/files/error_pages/301.html";
+        server1.error_pages[400] = "/files/error_pages/400.html";
+        server1.error_pages[403] = "/files/error_pages/403.html";
+        server1.error_pages[404] = "/files/error_pages/404.html";
+        server1.error_pages[405] = "/files/error_pages/405.html";
+        server1.error_pages[409] = "/files/error_pages/409.html";
+        server1.error_pages[413] = "/files/error_pages/413.html";
+        server1.error_pages[414] = "/files/error_pages/414.html";
+        server1.error_pages[500] = "/files/error_pages/500.html";
+        server1.error_pages[501] = "/files/error_pages/501.html";
 
-        root_location = {
-            "/", "/var/www/html", {"GET", "POST", "DELETE"}, false
-        };
+        servers.push_back(server1);
 
-        uploads_location = {
-            "/uploads", "/var/www/html/uploads", {"POST"}, false
-        };
+        // Example second server configuration
+        Server server2;
+        server2.host = "127.0.0.1";
+        server2.ports.push_back(1234);
+        server2.ports.push_back(4321);
+        server2.server_name = "localhost";
+        server2.error_pages[301] = "/files/error_pages/301.html";
+        server2.error_pages[400] = "/files/error_pages/400.html";
+        server2.error_pages[403] = "/files/error_pages/403.html";
+        server2.error_pages[404] = "/files/error_pages/404.html";
+        server2.error_pages[405] = "/files/error_pages/405.html";
+        server2.error_pages[409] = "/files/error_pages/409.html";
+        server2.error_pages[413] = "/files/error_pages/413.html";
+        server2.error_pages[414] = "/files/error_pages/414.html";
+        server2.error_pages[500] = "/files/error_pages/500.html";
+        server2.error_pages[501] = "/files/error_pages/501.html";
+
+        servers.push_back(server2);
     }
-
-    // void print_config() const {
-    //     std::cout << "Server Configuration:" << std::endl;
-    //     std::cout << "Listen on port: " << listen_port << std::endl;
-    //     std::cout << "Server name: " << server_name << std::endl;
-
-    //     std::cout << "Error pages:" << std::endl;
-    //     for (const auto& error_page : error_pages) {
-    //         std::cout << "  Error " << error_page.first << ": " << error_page.second << std::endl;
-    //     }
-
-    //     std::cout << "Root location:" << std::endl;
-    //     std::cout << "  Path: " << root_location.path << std::endl;
-    //     std::cout << "  Root: " << root_location.root << std::endl;
-    //     std::cout << "  Allowed methods: ";
-    //     for (const auto& method : root_location.allow_methods) {
-    //         std::cout << method << " ";
-    //     }
-    //     std::cout << "\n  Autoindex: " << (root_location.autoindex ? "on" : "off") << std::endl;
-
-    //     std::cout << "Uploads location:" << std::endl;
-    //     std::cout << "  Path: " << uploads_location.path << std::endl;
-    //     std::cout << "  Root: " << uploads_location.root << std::endl;
-    // }
 };
-

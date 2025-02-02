@@ -1,7 +1,6 @@
 #include "Request.hpp"
 
 Request::Request(const string &body) {
-    std::cout << body << std::endl;
     if(body.find("Content-Type: application/x-www-form-urlencoded") != std::string::npos)
         isUrlEncoded = true;
 

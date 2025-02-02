@@ -9,14 +9,18 @@ std::string current_time() {
     return std::string(buf);
 }
 
-Server::Server(const Config& config) : config(config) {
-    for (size_t i = 0; i < config.listen_ports.size(); ++i) {
+Server::Server()  {
+    server_init();
+}
+void Server::server_init( ) {
+
+    for (size_t i = 0; i < ports.size(); ++i) {
         int server_socket = socket(AF_INET, SOCK_STREAM, 0);
         if (server_socket < 0)
             throw std::runtime_error("Error creating socket");
         struct sockaddr_in server_addr;
         server_addr.sin_family = AF_INET;
-        server_addr.sin_port = htons(config.listen_ports[i]);
+        server_addr.sin_port = htons(ports[i]);
         server_addr.sin_addr.s_addr = INADDR_ANY;
         memset(&(server_addr.sin_zero), 0, 8);
         struct pollfd server_poll_fd;
@@ -66,57 +70,54 @@ void Server::new_connection(int server_socket) {
 }
 
 
-std::string  read_request(int client_socket){
+std::string Server::read_request(int client_socket) {
     char buffer[BUFFER_SIZE];
     std::string body;
     int bytes_received;
+
     while (true) {
         bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, 0);
-        if (bytes_received < 0)
+        if (bytes_received < 0) {
             throw std::runtime_error("Error receiving data");
-        else if (bytes_received == 0)
+        } else if (bytes_received == 0) {
             break;
+        }
         buffer[bytes_received] = '\0';
         body += std::string(buffer, bytes_received);
-        if (bytes_received < BUFFER_SIZE - 1)
+        if (bytes_received < BUFFER_SIZE - 1) {
             break;
+        }
     }
+
     return body;
-
 }
-
 void Server::handle_client(int client_socket) {
-    Response response(client_socket, config);
+
+    Response response(client_socket, *this);
+    response.request = Request(read_request(client_socket));
     std::string body = read_request(client_socket);
+    std::string method = response.request.getMethod();
 
-    std::cout << body << std::endl;
-    std::istringstream request(body);
-    std::string method, uri, version;
-    request >> method >> uri >> version;
-
+// still wating for the request parsing will done by zouhir 
     std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << RESET << std::endl;
     if (method == "GET")
-        response.handle_get_request(uri, config);
+        response.handle_get_request(body);
     else if (method == "POST")
-        response.handle_post_request(uri, body, config);
+        response.handle_post_request( body);
     else if(method == "DELETE")
-        response.handle_delete_request(uri, body, config);
-    else if(method == "HEAD")
-        response.handle_head_request(uri, config);
+        response.handle_delete_request(body);
     else
-        response.send_error_response(405, "text/html", config.root_location.root + config.error_pages[1].second);
+        response.send_error_response(405, "text/html", root_location.root + error_pages[405]);
     close(client_socket);
 }
 
 
 void Server::start_server() {
-  std::cout << RED << "           ----- webserve 1337 -----         " << RESET << std::endl;
     bind_and_listen();
     while (true) {
         int poll_count = poll(poll_fds.data(), poll_fds.size(), -1);
         if (poll_count < 0)
             throw std::runtime_error("Error polling for events");
-
         for (size_t i = 0; i < poll_fds.size(); ++i) {
             if (poll_fds[i].revents & POLLIN) {
                 if (std::find(server_sockets.begin(), server_sockets.end(), poll_fds[i].fd) != server_sockets.end())
