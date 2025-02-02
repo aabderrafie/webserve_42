@@ -14,8 +14,10 @@ class Request {
         string boundary;
         string filename;
         string fileContent;
+        
 
     public:
+        Request(){};
         Request(const string &body);
         void parseRequestLine(const string& line);
         void parseHeader(const string& line);

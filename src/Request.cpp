@@ -31,7 +31,6 @@ Request::Request(const string &body) {
         else if(isUrlEncoded) 
             parseUrlEncodedData(line);
     }
-
 }
 
 std::string Request::trim(std::string str) {

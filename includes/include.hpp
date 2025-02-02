@@ -24,11 +24,6 @@
 #define BUFFER_SIZE 1024
 #define clinet_max 1000000000
 
-#include "../src/Response.hpp"
-#include "../src/Request.hpp"
-#include "../src/MultiServer.hpp"
-#include "../src/server.hpp"
-#include "../src/config.hpp"
 
 #include <ctime>
 #define RESET   "\033[0m"

@@ -1,7 +1,7 @@
 
 #include "Response.hpp"
 
-Response::Response(int client_socket, const Server& server) : client_socket(client_socket), mime_types(),Server(server) {}
+Response::Response(int client_socket, const Server& server) : client_socket(client_socket), mime_types(),server(server) {}
 
 Response::~Response() {}
 
@@ -67,22 +67,23 @@ void Response::send_response() {
     }
 }
 void Response::handle_get_request(const std::string &body) {
+    (void) body;
     std::string root = server.root_location.root;
+    std::cout << "Root: " << root << std::endl;
     std::string uri = request.getPath();
-    
     if (!is_valid_url(uri))
-       return  send_error_response(400, "text/html", root +server.error_pages[400]), void();
+       return  send_error_response(400, "text/html", server.error_pages[400]), void();
 
     if (uri.find("..") != std::string::npos)
-        return send_error_response(403, "text/html", root +server.error_pages[403]), void();
+        return send_error_response(403, "text/html", server.error_pages[403]), void();
     
     if (uri.length() > 2048)
-        return send_error_response(414, "text/html", root +server.error_pages[414]), void();
+        return send_error_response(414, "text/html", server.error_pages[414]), void();
 
     std::string path = root + uri;
     std::ifstream file(path.c_str(), std::ios::binary);
     if (!file.is_open() ) 
-       return send_error_response(404, "text/html", root +server.error_pages[404]), void();
+       return send_error_response(404, "text/html", server.error_pages[404]), void();
 
     path += (path.back() == '/') ? "index.html" : "";
     set_status(200);
