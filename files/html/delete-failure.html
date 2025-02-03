@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>File Not Found</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: white;
+        }
+        .container {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            backdrop-filter: blur(10px);
+            text-align: center;
+        }
+        .error-icon {
+            font-size: 5em;
+            color: #ff6a00;
+            margin-bottom: 20px;
+        }
+        .back-button {
+            background: linear-gradient(45deg, #11998e, #38ef7d);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="error-icon">⚠️</div>
+        <h2>File Not Found</h2>
+        <p>The file you tried to delete does not exist.</p>
+        <a href="delete.html" class="back-button">Try Again</a>
+    </div>
+</body>
+</html>

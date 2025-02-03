@@ -4,13 +4,13 @@
 #include <vector>
 #include <stdexcept>
 
-class Server; // Forward declaration to prevent cyclic dependency
+class Server; 
 
 class MultiServer {
     private:
         const Config& config;
         std::vector<Server> servers; 
-        std::vector<struct pollfd> poll_fds; // Global poll list
+        std::vector<struct pollfd> poll_fds; 
         size_t _size;
         
     public:

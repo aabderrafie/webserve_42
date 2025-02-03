@@ -23,9 +23,6 @@ class Server {
         Location cgi_location;
         Server();
         ~Server();
-        bool is_client_socket(int fd);
-        bool is_server_socket(int fd) ;
-        // Server(const Server& server);
         void server_init();
         void start_server();
         void new_connection(int server_socket);

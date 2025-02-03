@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Success - WebServer 1337</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .success-container {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        h2 {
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .success-message {
+            color: white;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+
+        .back-button {
+            background: linear-gradient(45deg, #3494E6, #EC6EAD);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.3s;
+        }
+
+        .back-button:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <h2>Success!</h2>
+        <div class="success-message">Your content has been saved successfully.</div>
+        <a href="index.html" class="back-button">Back to Home</a>
+    </div>
+</body>
+</html>

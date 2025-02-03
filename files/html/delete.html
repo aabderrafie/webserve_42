@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Delete File</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: white;
+        }
+        .container {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            backdrop-filter: blur(10px);
+            text-align: center;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: none;
+        }
+        .delete-button {
+            background: linear-gradient(45deg, #ee0979, #ff6a00);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .toggle {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        .toggle label {
+            margin: 0 10px;
+        }
+        .response-message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .response-message.success {
+            background: rgba(0, 255, 0, 0.1);
+            color: green;
+        }
+        .response-message.error {
+            background: rgba(255, 0, 0, 0.1);
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Delete File</h2>
+        <form id="deleteForm">
+            <div class="toggle">
+                <label>
+                    <input type="radio" name="fileType" value="withExtension" checked> With Extension
+                </label>
+                <label>
+                    <input type="radio" name="fileType" value="withoutExtension"> Without Extension
+                </label>
+            </div>
+            <input type="text" id="fileName" placeholder="Enter file name" required>
+            <select id="fileExtension" style="display:block;">
+                <option value=".txt">txt</option>
+                <option value=".pdf">pdf</option>
+                <option value=".docx">docx</option>
+                <option value=".jpg">jpg</option>
+                <option value=".png">png</option>
+            </select>
+            <button type="submit" class="delete-button">Delete File</button>
+        </form>
+        <div id="responseMessage" class="response-message"></div>
+    </div>
+
+    <script>
+        const fileExtensionSelect = document.getElementById('fileExtension');
+        const fileTypeRadios = document.querySelectorAll('input[name="fileType"]');
+        const deleteForm = document.getElementById('deleteForm');
+        const responseMessage = document.getElementById('responseMessage');
+
+        fileTypeRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                fileExtensionSelect.style.display = 
+                    this.value === 'withExtension' ? 'block' : 'none';
+            });
+        });
+
+        deleteForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const fileName = document.getElementById('fileName').value;
+            const fileType = document.querySelector('input[name="fileType"]:checked').value;
+            
+            let fullFileName;
+            if (fileType === 'withExtension') {
+                const fileExtension = document.getElementById('fileExtension').value;
+                fullFileName = fileName + fileExtension;
+            } else {
+                fullFileName = fileName;
+            }
+
+            fetch(`${fullFileName}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.text();
+                } else {
+                    throw new Error('Failed to delete file.');
+                }
+            })
+            .then(html => {
+                document.body.innerHTML = html;
+            })
+            .catch(error => {
+                window.location.href = 'delete-failure.html';
+            });
+        });
+    </script>
+</body>
+</html>

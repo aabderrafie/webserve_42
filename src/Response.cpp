@@ -69,7 +69,6 @@ void Response::send_response() {
 void Response::handle_get_request(const std::string &body) {
     (void) body;
     std::string root = server.root_location.root;
-    std::cout << "Root: " << root << std::endl;
     std::string uri = request.getPath();
     if (!is_valid_url(uri))
        return  send_error_response(400, "text/html", server.error_pages[400]), void();
@@ -85,7 +84,7 @@ void Response::handle_get_request(const std::string &body) {
     if (!file.is_open() ) 
        return send_error_response(404, "text/html", server.error_pages[404]), void();
 
-    path += (path.back() == '/') ? "index.html" : "";
+    path += (path.back() == '/') ? server.root_location.default_file : "";
     set_status(200);
     set_content_type(mime_types.get_mime_type(path));
     set_body(read_html_file(path));

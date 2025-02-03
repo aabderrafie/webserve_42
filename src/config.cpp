@@ -11,16 +11,19 @@
         server1.ports.push_back(1337);
         server1.ports.push_back(80);
         server1.server_name = "localhost webserver.com";
-        server1.error_pages[301] = "/files/error_pages/301.html";
-        server1.error_pages[400] = "/files/error_pages/400.html";
-        server1.error_pages[403] = "/files/error_pages/403.html";
-        server1.error_pages[404] = "/files/error_pages/404.html";
-        server1.error_pages[405] = "/files/error_pages/405.html";
-        server1.error_pages[409] = "/files/error_pages/409.html";
-        server1.error_pages[413] = "/files/error_pages/413.html";
-        server1.error_pages[414] = "/files/error_pages/414.html";
-        server1.error_pages[500] = "/files/error_pages/500.html";
-        server1.error_pages[501] = "/files/error_pages/501.html";
+        server1.error_pages[301] = "./files/error_pages/301.html";
+        server1.error_pages[400] = "./files/error_pages/400.html";
+        server1.error_pages[403] = "./files/error_pages/403.html";
+        server1.error_pages[404] = "./files/error_pages/404.html";
+        server1.error_pages[405] = "./files/error_pages/405.html";
+        server1.error_pages[409] = "./files/error_pages/409.html";
+        server1.error_pages[413] = "./files/error_pages/413.html";
+        server1.error_pages[414] = "./files/error_pages/414.html";
+        server1.error_pages[500] = "./files/error_pages/500.html";
+        server1.error_pages[501] = "./files/error_pages/501.html";
+        server1.root_location.root = "./files/html";
+        server1.upload_location.root = "./files/uploads";
+        server1.root_location.default_file = "index.html";
 
         servers.push_back(server1);
 
@@ -30,16 +33,19 @@
         server2.ports.push_back(1234);
         server2.ports.push_back(4321);
         server2.server_name = "localhost";
-        server2.error_pages[301] = "/files/error_pages/301.html";
-        server2.error_pages[400] = "/files/error_pages/400.html";
-        server2.error_pages[403] = "/files/error_pages/403.html";
-        server2.error_pages[404] = "/files/error_pages/404.html";
-        server2.error_pages[405] = "/files/error_pages/405.html";
-        server2.error_pages[409] = "/files/error_pages/409.html";
-        server2.error_pages[413] = "/files/error_pages/413.html";
-        server2.error_pages[414] = "/files/error_pages/414.html";
-        server2.error_pages[500] = "/files/error_pages/500.html";
-        server2.error_pages[501] = "/files/error_pages/501.html";
+        server2.error_pages[301] = "./files/error_pages/301.html";
+        server2.error_pages[400] = "./files/error_pages/400.html";
+        server2.error_pages[403] = "./files/error_pages/403.html";
+        server2.error_pages[404] = "./files/error_pages/404.html";
+        server2.error_pages[405] = "./files/error_pages/405.html";
+        server2.error_pages[409] = "./files/error_pages/409.html";
+        server2.error_pages[413] = "./files/error_pages/413.html";
+        server2.error_pages[414] = "./files/error_pages/414.html";
+        server2.error_pages[500] = "./files/error_pages/500.html";
+        server2.error_pages[501] = "./files/error_pages/501.html";
+         server1.root_location.root = "./files/html";
+        server1.upload_location.root = "./files/uploads";
+        server1.root_location.default_file = "index.html";
 
         servers.push_back(server2);
     }
