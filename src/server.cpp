@@ -59,12 +59,14 @@ void Server::bind_and_listen() {
 }
 
 void Server::new_connection(int server_socket) {
+    std::cout << "client connected------: " <<server_socket << std::endl;
     struct sockaddr_in client_addr;
     socklen_t sin_size = sizeof(client_addr);
+    std::cout << "finding error 1" << std::endl;
     int client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &sin_size);
     if (client_socket < 0)
         throw std::runtime_error("Error accepting connection");
-
+    std::cout << "finding error 2" << std::endl;
     struct pollfd client_poll_fd;
     client_poll_fd.fd = client_socket;
     client_poll_fd.events = POLLIN;
@@ -81,27 +83,26 @@ std::string Server::read_request(int client_socket) {
 
     while (true) {
         bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, 0);
-        if (bytes_received < 0) {
+        if (bytes_received < 0) 
             throw std::runtime_error("Error receiving data");
-        } else if (bytes_received == 0) {
+        else if (bytes_received == 0) 
             break;
-        }
         buffer[bytes_received] = '\0';
         body += std::string(buffer, bytes_received);
-        if (bytes_received < BUFFER_SIZE - 1) {
+        if (bytes_received < BUFFER_SIZE - 1) 
             break;
-        }
     }
 
     return body;
 }
 void Server::handle_client(int client_socket) {
 
+    std::cout << "Handling client" << std::endl;
     Response response(client_socket, *this);
     std::string body = read_request(client_socket);
     response.request = Request(body);
     std::string method = response.request.getMethod();
-    std::cout << "Request body: " << body << std::endl;
+
 // still wating for the request parsing will done by zouhir 
     std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << RESET << std::endl;
     if (method == "GET")
@@ -111,7 +112,7 @@ void Server::handle_client(int client_socket) {
     else if(method == "DELETE")
         response.handle_delete_request(body);
     else
-        response.send_error_response(405, "text/html", root_location.root + error_pages[405]);
+        response.send_error_response(405, "text/html",  error_pages[405]);
     close(client_socket);
 }
 
@@ -122,18 +123,14 @@ void Server::handle_client(int client_socket) {
 //     std::cout << GREEN << "[" << current_time() << "] Server is ready to accept connections." << RESET << std::endl;
 // }
 
-
+// 
 
 void Server::start_server() {
     server_init();
     bind_and_listen();
-
     while (true) {
-        std::cout << "Polling for events" << std::endl;
-        std::cout << "Poll fds size: " << poll_fds.size() << std::endl; 
         int poll_count = poll(poll_fds.data(), poll_fds.size(), -1);
         if (poll_count < 0)
-
             throw std::runtime_error("Error polling for events");
         std::cout << "Poll count: " << poll_count << std::endl;
         for (size_t i = 0; i < poll_fds.size(); ++i) {

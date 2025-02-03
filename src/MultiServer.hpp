@@ -1,20 +1,21 @@
 #pragma once
 
-#include "server.hpp"
 #include <vector>
-#include <stdexcept>
-
-class Server; 
+#include <poll.h>
+#include "config.hpp"
+#include "server.hpp"
 
 class MultiServer {
-    private:
-        const Config& config;
-        std::vector<Server> servers; 
-        std::vector<struct pollfd> poll_fds; 
-        size_t _size;
-        
-    public:
-        MultiServer(const Config& config);
-        ~MultiServer();
-        void start_servers();
+private:
+    const Config& config;
+    std::vector<Server> servers; 
+    std::vector<struct pollfd> fds;
+    size_t _size;
+    
+public:
+    MultiServer(const Config& config);
+    ~MultiServer();
+    void start_servers();
+    void initialize_servers();
+    void setup_poll_fds();
 };

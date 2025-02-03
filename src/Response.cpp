@@ -69,7 +69,9 @@ void Response::send_response() {
 void Response::handle_get_request(const std::string &body) {
     (void) body;
     std::string root = server.root_location.root;
+    std::cout << "Root: " << root << std::endl;
     std::string uri = request.getPath();
+    std::cout << "URI: " << uri << std::endl;
     if (!is_valid_url(uri))
        return  send_error_response(400, "text/html", server.error_pages[400]), void();
 
@@ -167,13 +169,16 @@ void Response::handle_delete_request(const std::string& body) {
     std::string root = server.root_location.root;
 
     std::string uploads = server.upload_location.root;
+    std::cout << "uploads -----: " << uploads << std::endl;
 
     std::string delete_path = root + "/delete-success.html";
     std::string delete_error = root + "/delete-failure.html";
 
     std::string path = uploads;
-    if (!std::filesystem::exists(path))
+    if (!std::filesystem::exists(path)){
+        std::cout << "Path does not exist" << std::endl;
         return send_error_response(404, "text/html", delete_error), void();
+    }
 
     if (remove(path.c_str()) != 0) 
         return send_error_response(500, "text/html", delete_error), void();

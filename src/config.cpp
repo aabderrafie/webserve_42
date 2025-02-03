@@ -10,6 +10,7 @@
         server1.ports.push_back(4242);
         server1.ports.push_back(1337);
         server1.ports.push_back(80);
+        server1.ports.push_back(8080);
         server1.server_name = "localhost webserver.com";
         server1.error_pages[301] = "./files/error_pages/301.html";
         server1.error_pages[400] = "./files/error_pages/400.html";
@@ -27,7 +28,6 @@
 
         servers.push_back(server1);
 
-        // Example second server configuration
         Server server2;
         server2.host = "127.0.0.1";
         server2.ports.push_back(1234);
@@ -43,11 +43,12 @@
         server2.error_pages[414] = "./files/error_pages/414.html";
         server2.error_pages[500] = "./files/error_pages/500.html";
         server2.error_pages[501] = "./files/error_pages/501.html";
-         server1.root_location.root = "./files/html";
-        server1.upload_location.root = "./files/uploads";
-        server1.root_location.default_file = "index.html";
+         server2.root_location.root = "/var/www/html";
+        server2.upload_location.root = "/var/www/html/uploads";
+        server2.root_location.default_file = "success.html";
 
         servers.push_back(server2);
+        // Example second server configuration
     }
 #include <iostream>
 
