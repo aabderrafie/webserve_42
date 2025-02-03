@@ -12,6 +12,7 @@ std::string current_time() {
 Server::Server()  {}
 
 void Server::server_init() {
+
     std::cout << "Server init" << std::endl;
     for (size_t i = 0; i < ports.size(); ++i) {
         std::cout << "Creating server socket for port " << ports[i] << std::endl;
@@ -32,7 +33,6 @@ void Server::server_init() {
         poll_fds.push_back(server_poll_fd);
         server_sockets.push_back(server_socket);
         server_addrs.push_back(server_addr);
-
         std::cout << "Added server socket " << server_socket << " for port " << ports[i] << " to poll_fds" << std::endl;
     }
 }
