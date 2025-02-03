@@ -117,32 +117,32 @@ void Server::handle_client(int client_socket) {
 }
 
 
-// void Server::start_server() {
-//     server_init();
-//     bind_and_listen();
-//     std::cout << GREEN << "[" << current_time() << "] Server is ready to accept connections." << RESET << std::endl;
-// }
-
-// 
-
 void Server::start_server() {
     server_init();
     bind_and_listen();
-    while (true) {
-        int poll_count = poll(poll_fds.data(), poll_fds.size(), -1);
-        if (poll_count < 0)
-            throw std::runtime_error("Error polling for events");
-        std::cout << "Poll count: " << poll_count << std::endl;
-        for (size_t i = 0; i < poll_fds.size(); ++i) {
-            if (poll_fds[i].revents & POLLIN) {
-                if (std::find(server_sockets.begin(), server_sockets.end(), poll_fds[i].fd) != server_sockets.end())
-                    new_connection(poll_fds[i].fd);
-                else {
-                    handle_client(poll_fds[i].fd);
-                    poll_fds.erase(poll_fds.begin() + i);
-                    --i;
-                }
-            }
-        }
-    }
+    std::cout << GREEN << "[" << current_time() << "] Server is ready to accept connections." << RESET << std::endl;
 }
+
+
+
+// void Server::start_server() {
+//     server_init();
+//     bind_and_listen();
+//     while (true) {
+//         int poll_count = poll(poll_fds.data(), poll_fds.size(), -1);
+//         if (poll_count < 0)
+//             throw std::runtime_error("Error polling for events");
+//         std::cout << "Poll count: " << poll_count << std::endl;
+//         for (size_t i = 0; i < poll_fds.size(); ++i) {
+//             if (poll_fds[i].revents & POLLIN) {
+//                 if (std::find(server_sockets.begin(), server_sockets.end(), poll_fds[i].fd) != server_sockets.end())
+//                     new_connection(poll_fds[i].fd);
+//                 else {
+//                     handle_client(poll_fds[i].fd);
+//                     poll_fds.erase(poll_fds.begin() + i);
+//                     --i;
+//                 }
+//             }
+//         }
+//     }
+// }
