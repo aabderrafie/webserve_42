@@ -12,10 +12,7 @@ std::string current_time() {
 Server::Server()  {}
 
 void Server::server_init() {
-
-    std::cout << "Server init" << std::endl;
     for (size_t i = 0; i < ports.size(); ++i) {
-        std::cout << "Creating server socket for port " << ports[i] << std::endl;
         int server_socket = socket(AF_INET, SOCK_STREAM, 0);
         if (server_socket < 0)
             throw std::runtime_error("Error creating socket");
@@ -33,14 +30,10 @@ void Server::server_init() {
         poll_fds.push_back(server_poll_fd);
         server_sockets.push_back(server_socket);
         server_addrs.push_back(server_addr);
-        std::cout << "Added server socket " << server_socket << " for port " << ports[i] << " to poll_fds" << std::endl;
     }
 }
-Server::~Server() {
-    // std::cout << "Closing server sockets" << std::endl;
-    // for (int server_socket : server_sockets)
-    //     close(server_socket);
-}
+Server::~Server() {}
+
 
 void Server::bind_and_listen() {
     for (size_t i = 0; i < server_sockets.size(); ++i) {
@@ -53,20 +46,16 @@ void Server::bind_and_listen() {
 
         if (listen(server_sockets[i], BACKLOG) < 0)
             throw std::runtime_error("Error listening on port " + std::to_string(ntohs(server_addrs[i].sin_port)));
-
-        std::cout << GREEN << "[" << current_time() << "] New server connected on port " << ntohs(server_addrs[i].sin_port) << RESET << std::endl;
     }
 }
 
+
 void Server::new_connection(int server_socket) {
-    std::cout << "client connected------: " <<server_socket << std::endl;
     struct sockaddr_in client_addr;
     socklen_t sin_size = sizeof(client_addr);
-    std::cout << "finding error 1" << std::endl;
     int client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &sin_size);
     if (client_socket < 0)
         throw std::runtime_error("Error accepting connection");
-    std::cout << "finding error 2" << std::endl;
     struct pollfd client_poll_fd;
     client_poll_fd.fd = client_socket;
     client_poll_fd.events = POLLIN;
@@ -97,7 +86,6 @@ std::string Server::read_request(int client_socket) {
 }
 void Server::handle_client(int client_socket) {
 
-    std::cout << "Handling client" << std::endl;
     Response response(client_socket, *this);
     std::string body = read_request(client_socket);
     response.request = Request(body);
@@ -117,32 +105,21 @@ void Server::handle_client(int client_socket) {
 }
 
 
+
 void Server::start_server() {
-    server_init();
-    bind_and_listen();
-    std::cout << GREEN << "[" << current_time() << "] Server is ready to accept connections." << RESET << std::endl;
+
+        int poll_count = poll(poll_fds.data(), poll_fds.size(), 100);
+        if (poll_count < 0)
+            throw std::runtime_error("Error polling for events");
+        for (size_t i = 0; i < poll_fds.size(); ++i) {
+            if (poll_fds[i].revents & POLLIN) {
+                if (std::find(server_sockets.begin(), server_sockets.end(), poll_fds[i].fd) != server_sockets.end())
+                    new_connection(poll_fds[i].fd);
+                else {
+                    handle_client(poll_fds[i].fd);
+                    poll_fds.erase(poll_fds.begin() + i);
+                    --i;
+                }
+            }
+        }
 }
-
-
-
-// void Server::start_server() {
-//     server_init();
-//     bind_and_listen();
-//     while (true) {
-//         int poll_count = poll(poll_fds.data(), poll_fds.size(), -1);
-//         if (poll_count < 0)
-//             throw std::runtime_error("Error polling for events");
-//         std::cout << "Poll count: " << poll_count << std::endl;
-//         for (size_t i = 0; i < poll_fds.size(); ++i) {
-//             if (poll_fds[i].revents & POLLIN) {
-//                 if (std::find(server_sockets.begin(), server_sockets.end(), poll_fds[i].fd) != server_sockets.end())
-//                     new_connection(poll_fds[i].fd);
-//                 else {
-//                     handle_client(poll_fds[i].fd);
-//                     poll_fds.erase(poll_fds.begin() + i);
-//                     --i;
-//                 }
-//             }
-//         }
-//     }
-// }

@@ -1,13 +1,13 @@
 #include "MultiServer.hpp"
-MultiServer::~MultiServer() {}
-bool compare_pollfd(const pollfd& lhs, const pollfd& rhs) {
-    return lhs.fd == rhs.fd && lhs.events == rhs.events;
-}
+#include "colors.hpp"
 
-
-void ports_print(std::vector<int> ports){
-    for(auto port : ports)
-        std::cout << port << " ";
+void ports_tostring(const std::vector<int>& ports, std::string& ports_str) {
+    for (size_t i = 0; i < ports.size(); ++i) {
+        ports_str += std::to_string(ports[i]);
+        std::cout << ports[i] << std::endl;
+        if (i < ports.size() - 1)
+            ports_str += ", ";
+    }
 }
 MultiServer::MultiServer(const Config& config) : config(config), _size(config.servers.size()) {
     for (size_t i = 0; i < _size; ++i) 
@@ -15,54 +15,42 @@ MultiServer::MultiServer(const Config& config) : config(config), _size(config.se
 
 }
 
+void MultiServer::start_servers() {
+    Draw::drawBox("SERVER INITIALIZATION");
 
-
-void MultiServer::start_servers(){
-    std::cout << RED << "           ----- webserve 1337 -----         " << RESET << std::endl;
-    
-    for (size_t i = 0; i < _size; ++i) {
-        std::cout << GREEN << "           ----- Server " << i << " is running -----         " << RESET <<  "with ports{";
-        ports_print(servers[i].ports);
-        std::cout << "}" << std::endl;
-    }
-    for(size_t i = 0; i < _size; i++)
-        servers[i].start_server();
-
-    for(size_t i =0; i < _size ;++i){
-        for (size_t j = 0; j < servers[i].poll_fds.size(); ++j)
-            fds.push_back(servers[i].poll_fds[j]);
+    size_t server_count = 1;
+    for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it) {
+        std::string ports_str;
+        ports_tostring((*it).ports, ports_str);
+        
+        it->server_init();
+        it->bind_and_listen();
+        Draw::serverStart(server_count++, ports_str);
     }
 
+    Draw::drawBox("SERVERS NOW RUNNING");
 
-    while (true) {
-        poll(fds.data(), fds.size(), -1);
-
-        for (size_t i = 0; i < fds.size(); ++i) {
-            for (size_t j = 0; j < servers.size(); ++j) {
-                if (fds[i].revents & POLLIN) {
-                    std::cout << "Debug: 111111" << std::endl;
-
-                    if (i < servers.size() && (std::find(servers[i].server_sockets.begin(), servers[i].server_sockets.end(), fds[i].fd) != servers[i].server_sockets.end())) {
-                        std::cout << "Debug: 2222222" << std::endl;
-                        servers[i].new_connection(fds[i].fd);
-                        std::cout << "Debug: 333333" << std::endl;
-                    } else {
-                        std::cout << "Debug: 444444" << std::endl;
-                        if (i < servers.size()) {
-                            servers[i].handle_client(fds[i].fd);
-                        }
-                        std::cout << "Debug: 555555" << std::endl;
-                        fds.erase(fds.begin() + i);
-                        --i;
-                        break; 
-                    }
-                }
-            }
+    for (std::vector<Server>::iterator it = servers.begin(); true; ++it) {
+        if (it == servers.end())
+            it = servers.begin();
+        try {
+            (*it).start_server();
+        } catch (const std::exception& e) {
+            Draw::error(e.what());
         }
     }
-
 }
 
+MultiServer::~MultiServer() {
+    Draw::drawBox("SHUTTING DOWN SERVERS");
+    
+    int server_count = 1;
+    for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it) {
+        Draw::serverClose(server_count++);
+        for(size_t i = 0; i < it->server_sockets.size(); ++i) {
+            close(it->server_sockets[i]);
+        }
 
-
-
+    }
+    Draw::success("All servers shut down successfully");
+}

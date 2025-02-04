@@ -30,6 +30,8 @@ class Server {
         void handle_client(int client_socket);
         std::string read_request(int client_socket);
 };
+
+
 std::string current_time();
 #include "Response.hpp"
 #include "Request.hpp"

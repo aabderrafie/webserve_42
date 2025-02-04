@@ -26,11 +26,23 @@
 
 
 #include <ctime>
-#define RESET   "\033[0m"
-#define RED     "\033[31m"
-#define GREEN   "\033[32m"
-#define YELLOW  "\033[33m"
-#define BLUE    "\033[34m"
-#define MAGENTA "\033[35m"
-#define CYAN    "\033[36m"
-#define WHITE   "\033[37m"
+#define RESET         "\033[0m"
+#define RED          "\033[1;31m"      // Bold bright red
+#define GREEN        "\033[1;32m"      // Bold bright green
+#define YELLOW       "\033[1;33m"      // Bold bright yellow
+#define BLUE         "\033[1;34m"      // Bold bright blue
+#define MAGENTA      "\033[1;35m"      // Bold bright magenta
+#define CYAN         "\033[1;36m"      // Bold bright cyan
+#define WHITE        "\033[1;37m"      // Bold bright white
+#define ORANGE       "\033[1;38;5;214m" // Bold vibrant orange
+#define PURPLE       "\033[1;38;5;135m" // Bold rich purple
+#define PINK         "\033[1;38;5;219m" // Bold hot pink
+#define LIME         "\033[1;38;5;154m" // Bold bright lime
+#define TEAL         "\033[1;38;5;44m"  // Bold bright teal
+#define GOLD         "\033[1;38;5;226m" // Bold bright gold
+#define CRIMSON      "\033[1;38;5;196m" // Bold deep red
+#define VIOLET       "\033[1;38;5;171m" // Bold bright violet
+#define TURQUOISE    "\033[1;38;5;45m"  // Bold bright turquoise
+#define CORAL        "\033[1;38;5;209m" // Bold coral
+#define LAVENDER     "\033[1;38;5;147m" // Bold lavender
+#define EMERALD      "\033[1;38;5;46m"  // Bold emerald green

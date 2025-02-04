@@ -5,13 +5,26 @@
 
 int main() {
     try {
+        std::cout << CYAN << R"(
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║          )" << PURPLE << "Welcome to the Webserver 42" << CYAN << R"(                     ║
+║                                                              ║
+║          )" << GREEN << "Status: " << YELLOW << "Initializing..." << CYAN << R"(                         ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+)" << RESET << std::endl;
+
         Config config;
-        std::cout << "Configuring servers..." << std::endl;
-        
+        std::cout << BLUE << "⚡ Loading configuration..." << RESET << std::endl;
         MultiServer server(config);
+        std::cout << GREEN << "✓ Configuration loaded successfully!" << RESET << std::endl;
+        std::cout << YELLOW << "🚀 Starting server..." << RESET << std::endl;
         server.start_servers();
-    } catch (const std::exception& e) {
-        std::cerr << e.what() << std::endl;
+        std::cout << PURPLE << "✨ Server is running!" << RESET << std::endl;
+    } 
+    catch (const std::exception& e) {
+        std::cerr << RED << "❌ Error: " << e.what() << RESET << std::endl;
     }
     return 0;
 }

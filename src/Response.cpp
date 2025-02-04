@@ -69,9 +69,8 @@ void Response::send_response() {
 void Response::handle_get_request(const std::string &body) {
     (void) body;
     std::string root = server.root_location.root;
-    std::cout << "Root: " << root << std::endl;
     std::string uri = request.getPath();
-    std::cout << "URI: " << uri << std::endl;
+    
     if (!is_valid_url(uri))
        return  send_error_response(400, "text/html", server.error_pages[400]), void();
 
