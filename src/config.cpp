@@ -9,7 +9,7 @@
         server1.host = "127.0.0.1";
         server1.ports.push_back(1337);
         server1.ports.push_back(8080);
-        server1.ports.push_back(80);
+        server1.ports.push_back(8081);
         server1.server_name = "webserver1234.com";
         server1.error_pages[301] = "./files/error_pages/301.html";
         server1.error_pages[400] = "./files/error_pages/400.html";
@@ -32,10 +32,7 @@
         Server server2;
         server2.host = "127.0.0.1";
         server2.ports.push_back(1234);
-        server2.ports.push_back(42);
-
-
-       
+        // server2.ports.push_back(42);
 
         server2.server_name = "webserver8080.com";
         server2.error_pages[301] = "./files/error_pages/301.html";
