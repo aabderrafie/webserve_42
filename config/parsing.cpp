@@ -310,7 +310,7 @@ static bool validateClientMaxBodySize( std::string ref ,int *digitCount) {
 	return true;
 }
 
-void configureServer( block& ref ) {
+Server configureServer( block& ref ) {
 	Server serv;
 	serv.host = "127.0.0.1";
 	serv.server_name = "localhost";
@@ -381,12 +381,15 @@ void configureServer( block& ref ) {
 			configureLocation(*it2, serv.cgi_location);
 		}
 	}
+	return serv;
 }
 
-void initConfig( std::vector<block> blocks ) {
+std::vector<Server> initConfig( std::vector<block> blocks ) {
+	std::vector<Server> servers;
 	for (std::vector<block>::iterator it = blocks.begin(); it != blocks.end(); ++it) {
 		Server serv;
-		configureServer(*it);
+		servers.push_back(configureServer(*it));
 	}
+	return servers;
 }
 

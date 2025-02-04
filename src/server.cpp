@@ -16,17 +16,14 @@ void Server::server_init() {
         int server_socket = socket(AF_INET, SOCK_STREAM, 0);
         if (server_socket < 0)
             throw std::runtime_error("Error creating socket");
-
         struct sockaddr_in server_addr;
         server_addr.sin_family = AF_INET;
         server_addr.sin_port = htons(ports[i]);
         server_addr.sin_addr.s_addr = INADDR_ANY;
         memset(&(server_addr.sin_zero), 0, 8);
-
         struct pollfd server_poll_fd;
         server_poll_fd.fd = server_socket;
         server_poll_fd.events = POLLIN;
-
         poll_fds.push_back(server_poll_fd);
         server_sockets.push_back(server_socket);
         server_addrs.push_back(server_addr);
@@ -61,7 +58,6 @@ void Server::new_connection(int server_socket) {
     client_poll_fd.fd = client_socket;
     client_poll_fd.events = POLLIN;
     poll_fds.push_back(client_poll_fd);
-
     std::cout << BLUE << "[" << current_time() << "] New client connected on socket " << client_socket << RESET << std::endl;
 }
 
@@ -70,7 +66,6 @@ std::string Server::read_request(int client_socket) {
     char buffer[BUFFER_SIZE];
     std::string body;
     int bytes_received;
-
     while (true) {
         bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, 0);
         if (bytes_received < 0) 
@@ -82,17 +77,14 @@ std::string Server::read_request(int client_socket) {
         if (bytes_received < BUFFER_SIZE - 1) 
             break;
     }
-
     return body;
 }
-void Server::handle_client(int client_socket) {
 
+void Server::handle_client(int client_socket) {
     Response response(client_socket, *this);
     std::string body = read_request(client_socket);
     response.request = Request(body);
     std::string method = response.request.getMethod();
-
-// still wating for the request parsing will done by zouhir 
     std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << RESET << std::endl;
     if (method == "GET")
         response.handle_get_request(body);

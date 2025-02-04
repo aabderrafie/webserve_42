@@ -8,9 +8,9 @@ int main() {
         std::cout << CYAN << R"(
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
-║          )" << PURPLE << "Welcome to the Webserver 42" << CYAN << R"(                     ║
+║          )" << PURPLE << "Welcome to the Webserver 42" << CYAN << R"(                         ║
 ║                                                              ║
-║          )" << GREEN << "Status: " << YELLOW << "Initializing..." << CYAN << R"(                         ║
+║          )" << GREEN << "Status: " << YELLOW << "Initializing..." << CYAN << R"(                             ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 )" << RESET << std::endl;
