@@ -32,7 +32,8 @@ void Server::server_init() {
         server_addrs.push_back(server_addr);
     }
 }
-Server::~Server() {}
+Server::~Server() {
+}
 
 
 void Server::bind_and_listen() {

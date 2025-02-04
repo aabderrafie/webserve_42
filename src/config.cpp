@@ -1,5 +1,6 @@
 
 #include "config.hpp"
+#include "../config/parsing.hpp"
 
     Config::Config(){
         // Example server configuration
@@ -23,12 +24,17 @@
         server1.root_location.root = "./files/html";
         server1.upload_location.root = "./files/uploads";
         server1.root_location.default_file = "index.html";
+        server1.upload_location.allowed_methods.push_back("POST");
+        
 
         servers.push_back(server1);
 
         Server server2;
         server2.host = "127.0.0.1";
         server2.ports.push_back(1234);
+        server2.ports.push_back(42);
+
+
        
 
         server2.server_name = "webserver8080.com";
@@ -47,6 +53,9 @@
         server2.root_location.default_file = "success.html";
 
         servers.push_back(server2);
+        // parser p;
+        // p.parse("/home/abderrafie/Desktop/Webserv/config/full.conf");
+        // initConfig(p.getConfig());
     }
 
 

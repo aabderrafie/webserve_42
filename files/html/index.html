@@ -20,9 +20,10 @@
             align-items: center;
             position: relative;
             overflow: hidden;
+            color: white;
+            padding: 20px;
         }
 
-        /* Animated background circles */
         .background-animation {
             position: fixed;
             width: 100vw;
@@ -30,11 +31,16 @@
             z-index: 0;
         }
 
+        @keyframes subtle-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
         .circle {
             position: absolute;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.1);
-            animation: float 15s infinite;
+            animation: subtle-float 8s ease-in-out infinite alternate;
             backdrop-filter: blur(5px);
         }
 
@@ -43,7 +49,7 @@
             height: 150px;
             top: 10%;
             left: 10%;
-            animation-delay: 0s;
+            animation-delay: -2s;
         }
 
         .circle:nth-child(2) {
@@ -51,7 +57,7 @@
             height: 100px;
             top: 20%;
             right: 15%;
-            animation-delay: -5s;
+            animation-delay: -4s;
         }
 
         .circle:nth-child(3) {
@@ -59,159 +65,120 @@
             height: 200px;
             bottom: 15%;
             right: 25%;
-            animation-delay: -10s;
-        }
-
-        @keyframes float {
-            0%, 100% {
-                transform: translate(0, 0) rotate(0deg);
-            }
-            25% {
-                transform: translate(50px, 50px) rotate(90deg);
-            }
-            50% {
-                transform: translate(0, 100px) rotate(180deg);
-            }
-            75% {
-                transform: translate(-50px, 50px) rotate(270deg);
-            }
+            animation-delay: -6s;
         }
 
         .container {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 40px;
-            width: 100%;
-            max-width: 600px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            text-align: center;
             position: relative;
-            z-index: 1;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            animation: fadeIn 1s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            z-index: 10;
+            text-align: center;
+            width: 90%;
+            max-width: 1200px;
+            padding: 60px 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
         }
 
         h1 {
-            color: white;
-            font-size: 3em;
-            margin-bottom: 40px;
+            font-size: 4em;
+            margin-bottom: 30px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            position: relative;
-            display: inline-block;
-        }
-
-        h1::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, #fff, transparent);
+            transition: transform 0.3s ease;
         }
 
         .creator {
-            color: white;
             font-size: 1.5em;
-            margin-bottom: 30px;
-            opacity: 0.9;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+            margin-bottom: 40px;
+            opacity: 0.8;
+        }
+
+        .team-members {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            margin-top: 40px;
+        }
+
+        .team-member {
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .team-member:hover {
+            transform: translateY(-10px);
+        }
+
+        .team-member-circle {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+            border: 6px solid rgba(255,255,255,0.7);
+            margin-bottom: 20px;
+            box-shadow: 0 12px 25px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .team-member:hover .team-member-circle {
+            transform: rotate(5deg);
+        }
+
+        .team-member-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
         }
 
         .button-container {
             display: flex;
             justify-content: center;
-            gap: 20px;
             flex-wrap: wrap;
-            margin-top: 40px;
+            gap: 25px;
+            margin-top: 50px;
         }
 
         .method-button {
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
             text-decoration: none;
-            font-size: 1.2em;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
+            padding: 15px 30px;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: inline-block;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            font-size: 1.1em;
         }
 
         .method-button::before {
             content: '';
             position: absolute;
             top: 0;
-            left: 0;
+            left: -100%;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateX(-100%);
-            transition: transform 0.3s ease;
+            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: all 0.3s ease;
         }
 
         .method-button:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
         .method-button:hover::before {
-            transform: translateX(0);
+            left: 100%;
         }
 
-        .get-button {
-            background: linear-gradient(45deg, #4158D0, #C850C0);
-        }
-
-        .post-button {
-            background: linear-gradient(45deg, #FF8008, #FFC837);
-        }
-
-        .delete-button {
-            background: linear-gradient(45deg, #ee0979, #ff6a00);
-        }
-
-        .upload-button {
-            background: linear-gradient(45deg, #11998e, #38ef7d);
-        }
-
-        #file-input {
-            display: none;
-        }
-
-        /* Success message styling */
-        .upload-success {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            background: rgba(46, 213, 115, 0.9);
-            color: white;
-            border-radius: 8px;
-            backdrop-filter: blur(5px);
-            transform: translateX(200%);
-            animation: slideIn 0.5s forwards;
-        }
-
-        @keyframes slideIn {
-            to {
-                transform: translateX(0);
-            }
-        }
+        .get-button { background: linear-gradient(45deg, #4CAF50, #2ECC71); }
+        .post-button { background: linear-gradient(45deg, #2196F3, #3F51B5); }
+        .delete-button { background: linear-gradient(45deg, #FF5722, #F44336); }
+        .upload-button { background: linear-gradient(45deg, #FFC107, #FF9800); }
+        .cgi-button { background: linear-gradient(45deg, #4CAF50, #2196F3); }
+        .php-button { background: linear-gradient(45deg, #9C27B0, #673AB7); }
     </style>
 </head>
 <body>
@@ -223,17 +190,33 @@
     </div>
 
     <div class="container">
-        <h1>Welcome to WebServer 1337</h1>
-        <div class="creator">By Abdeerfaie Askal</div>
+        <h1>WebServer 1337</h1>
+        <div class="creator">Created By</div>
+        
+        <!-- Team Members Section -->
+        <div class="team-members">
+            <div class="team-member">
+                <div class="team-member-circle" style="background-image: url('https://cdn.intra.42.fr/users/db27e31f9927ca8116093c00fcdaba9b/aaskal.jpg')"></div>
+                <div class="team-member-name">Abderrafia Askal</div>
+            </div>
+            <div class="team-member">
+                <div class="team-member-circle" style="background-image: url('https://cdn.intra.42.fr/users/c0aa88e9d1588ac8d3e57791392b4bb9/tlasfar.jpg')"></div>
+                <div class="team-member-name">Taha Lasfar</div>
+            </div>
+            <div class="team-member">
+                <div class="team-member-circle" style="background-image: url('https://cdn.intra.42.fr/users/6d030343555caf95ee7b42b49513b614/zbakkas.jpg')"></div>
+                <div class="team-member-name">Zouhir Bakkas</div>
+            </div>
+        </div>
+
         <div class="button-container">
             <a href="success.html" class="method-button get-button">Try GET</a>
             <a href="post-form.html" class="method-button post-button">Try POST</a>
             <a href="delete.html" class="method-button delete-button">Try DELETE</a>
             <a href="upload.html" class="method-button upload-button">Try UPLOAD</a>
-            <input type="file" id="file-input" onchange="handleFileUpload(event)">
+            <a href="test.py" class="method-button cgi-button">Try CGI</a>
+            <a href="test.php" class="method-button php-button">Try PHP</a>
         </div>
     </div>
-
-
 </body>
 </html>

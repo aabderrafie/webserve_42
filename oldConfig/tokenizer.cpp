@@ -13,7 +13,7 @@ void Tokenizer::tokenize(const std::string& configContent) {
             it--;
         }
     }
-    //print lines
+    //print
     // for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it) //debug
     //     std::cout << *it << std::endl;   //debug
     std::vector<std::string> splited_words;
@@ -42,17 +42,10 @@ void Tokenizer::tokenize(const std::string& configContent) {
         token.value = *it;
         if (*it == "{" || *it == "}" || *it == ";") {
             token.type = "symbol";
-        } else if (*it == "server" || (*it == "location" && (*(it+1) == "/" || *(it+1) == "/upload" || *(it+1) == "/cgi-bin"))) {
-            if (*(it+1) == "/")
-                token.type = "block/";
-            else if (*(it+1) == "/upload")
-                token.type = "block/upload";
-            else if (*(it+1) == "/cgi-bin")
-                token.type = "block/cgi-bin";
-            else 
-                token.type = "block";
+        } else if (*it == "server" || *it == "location") {
+            token.type = "block";
         } else if (delayed == "symbol" && (*it == "listen"
-                || *it == "host"
+                ||*it == "host"
                 || *it == "port" 
                 || *it == "server_name"
                 || *it == "is_default_server" 
@@ -70,10 +63,12 @@ void Tokenizer::tokenize(const std::string& configContent) {
             token.type = "value";
         if (delayed == "symbol" && token.type == "value") throw std::runtime_error("Error: unexpected value");
         if (delayed == "value" && token.type == "directive") throw std::runtime_error("Error: missign semicolon");
-        if (delayed == "directive" && token.value == ";") throw std::runtime_error("Error: missign value");
         tokens.push_back(token);
         delayed = token.type;
     }
-    // for (std::vector<Token>::iterator it = tokens.begin(); it != tokens.end(); ++it) //debug
-    //     std::cout << "value: " << it->value << " \t\t\ttype:\t\t" << it->type << std::endl;   //debug
+    for (std::vector<Token>::iterator it = tokens.begin(); it != tokens.end(); ++it) //debug
+        std::cout << "value: " << it->value << " \t\t\ttype:\t\t" << it->type << std::endl;   //debug
+    std::cout << std::endl;
+    std::cout << std::endl;
+    std::cout << std::endl;
 }

@@ -138,21 +138,21 @@ void Response::create_user(const std::map<std::string, std::string>& data, const
         user_file.close();
     } 
     else 
-        throw std::runtime_error("Unable to open file of users");
+       std::cerr << RED << "Unable to create user file" << RESET << std::endl;
 }
 
 
 void Response::handle_post_request( const std::string &body) {
+    (void) body;
     std::string uploads = server.upload_location.root;
     std::string root = server.root_location.root;
-    std::string post_path = root + "/post-success.html";
+    std::string post_path = root + request.getPath();
 
-    Request request(body);
 
-    if(request.getIsMultipart())
-         request.parseMultipartFormData(body);
-    else
-        return send_error_response(400, "text/html", root + server.error_pages[400]), void();
+    // if(request.getIsMultipart())
+    //      request.parseMultipartFormData(body);
+    // else
+    //     return send_error_response(400, "text/html",  server.error_pages[400]), void();
 
     set_status(200);
     set_content_type("text/html");
@@ -166,22 +166,16 @@ void Response::handle_post_request( const std::string &body) {
 void Response::handle_delete_request(const std::string& body) {
     (void) body;
     std::string root = server.root_location.root;
-
-    std::string uploads = server.upload_location.root;
-    std::cout << "uploads -----: " << uploads << std::endl;
-
+    std::string uploads = server.upload_location.root  + request.getPath();
     std::string delete_path = root + "/delete-success.html";
     std::string delete_error = root + "/delete-failure.html";
 
-    std::string path = uploads;
-    if (!std::filesystem::exists(path)){
-        std::cout << "Path does not exist" << std::endl;
+    if (!std::filesystem::exists(uploads))
         return send_error_response(404, "text/html", delete_error), void();
-    }
 
-    if (remove(path.c_str()) != 0) 
+    if (remove(uploads.c_str()) != 0) 
         return send_error_response(500, "text/html", delete_error), void();
-    
+
     set_status(200);
     set_content_type("text/html");
     set_body(read_html_file(delete_path));

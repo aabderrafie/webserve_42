@@ -33,7 +33,7 @@ $(RESET)
 endef
 export HEADER
 
-src = $(wildcard src/*.cpp) #$(filter-out src/Request.cpp,
+src = $(wildcard src/*.cpp) $(wildcard config/*.cpp) #$(filter-out src/Request.cpp,
 obj = $(src:.cpp=.o)
 
 all: header $(NAME)

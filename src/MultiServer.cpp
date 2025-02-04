@@ -4,7 +4,6 @@
 void ports_tostring(const std::vector<int>& ports, std::string& ports_str) {
     for (size_t i = 0; i < ports.size(); ++i) {
         ports_str += std::to_string(ports[i]);
-        std::cout << ports[i] << std::endl;
         if (i < ports.size() - 1)
             ports_str += ", ";
     }

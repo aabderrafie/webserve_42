@@ -5,19 +5,31 @@ parser::parser() {}
 parser::~parser() {}
 
 static void handleDirective(block& ret, std::vector<Token>::iterator& current) {
-	std::string tmp = current->value;
-	if ((current + 2)->value == ";")
-		ret.directives[tmp] += (current + 1)->value;
-	else {
-		while ((current + 1)->type != "symbol") {
-			ret.directives[tmp] += (current + 1)->value;
-			ret.directives[tmp] += ":";
-			current++;
-		}
-		if ((current + 1)->type != "symbol")
-			throw std::runtime_error("Error: expected semicolon " + current->value);
+	std::string currentDirective = current->value;
+	while ((++current)->type != "symbol") {
+		if (current->type == "value") {
+			ret.directives[currentDirective].push_back(current->value);
+		} else if (current->type == "directive") {
+				throw std::runtime_error("Error: expected semicolon " + current->value);
+		} else if ((current+1)->value == ";")
+			break;
 	}
 }
+
+// static void handleDirective(block& ret, std::vector<Token>::iterator& current) {
+// 	std::string tmp = current->value;
+// 	if ((current + 2)->value == ";")
+// 		ret.directives[tmp] += (current + 1)->value;
+// 	else {
+// 		while ((current + 1)->type != "symbol") {
+// 			ret.directives[tmp] += (current + 1)->value;
+// 			ret.directives[tmp] += ":";
+// 			current++;
+// 		}
+// 		if ((current + 1)->type != "symbol")
+// 			throw std::runtime_error("Error: expected semicolon " + current->value);
+// 	}
+// }
 
 block parser::parseBlock(std::vector<Token>::iterator& current, std::vector<Token>::iterator end) {
 	block	ret;
@@ -26,11 +38,14 @@ block parser::parseBlock(std::vector<Token>::iterator& current, std::vector<Toke
 	i = 0;
 	if (current->value == "server")
 		ret.block_name = current->value;
-	else
+	else {
 		ret.block_name = (++current)->value;
+		if (current->value == "{")
+			throw std::runtime_error("Error: expected location name");
+	}
 	++current;
 	if (current->value != "{")
-		throw std::runtime_error("Error: expected opening bracket");
+		throw std::runtime_error("Error: missing opening bracket");
 	while (current < end) {
 		if (current->value == "{")
 			i++;
@@ -40,7 +55,7 @@ block parser::parseBlock(std::vector<Token>::iterator& current, std::vector<Toke
 			break;
 		if (current->type == "directive") {
 			handleDirective(ret, current);
-		} else if (current->type == "block") {
+		} else if (current->type == "block" || current->type == "block/" || current->type == "block/upload" || current->type == "block/cgi-bin") {
 			if (current->value == "location" && ret.block_name == "server") {
 				ret.recursive_blocks.push_back(parseBlock(current, end));
 			} else {
@@ -54,36 +69,43 @@ block parser::parseBlock(std::vector<Token>::iterator& current, std::vector<Toke
 	} return (ret);
 }
 
-WebServerConfig parser::parse(const std::string &configContent) {
-	Tokenizer	tok;
-
-	tok.tokenize(configContent);
-	std::vector<Token> tokens = tok.getTokens();
-	std::vector<Token>::iterator it = tokens.begin();
-	while (it < tokens.end()) {
-		if (it->type == "block" && it->value == "server")
-			blocks.push_back(parseBlock(it, tokens.end()));
-		else throw std::runtime_error("Error: unautorized token: " + it->value);
-		it++;
-	}
-	std::vector<block> ret = getConfig(); 
-	return WebServerConfig(ret);
-}
-
-void parser::printConfig() {
-	int block_id = 0;
-	for (std::vector<block>::iterator it = blocks.begin(); it != blocks.end(); ++it) {
-		std::cout << "block id " << block_id++ << ":" << std::endl;
-		for (std::map<std::string, std::string>::iterator it2 = it->directives.begin(); it2 != it->directives.end(); ++it2) {
-			std::cout << "   -" << it2->first << " = " << it2->second << std::endl;
-		} for (std::vector<block>::iterator it2 = it->recursive_blocks.begin(); it2 != it->recursive_blocks.end(); ++it2) {
-			std::cout << "   -recursive block name: " << it2->block_name << std::endl;
-			for (std::map<std::string, std::string>::iterator it3 = it2->directives.begin(); it3 != it2->directives.end(); ++it3) {
-				std::cout << "\t" << it3->first << " = " << it3->second << std::endl;
+void printBlock(block& ret) {
+	std::cout << "block name: " << ret.block_name << std::endl;
+	for (std::map<std::string, std::vector<std::string> >::iterator it = ret.directives.begin(); it != ret.directives.end(); ++it) {
+		std::cout << "   -" << it->first << " ";
+		std::cout << "number of argument " << it->second.size() << ": \n";
+		for (std::vector<std::string>::iterator it2 = it->second.begin(); it2 < it->second.end(); ++it2) {
+			std::cout << "\tvalue: " << *it2 << std::endl;
+		}
+	} for (std::vector<block>::iterator it = ret.recursive_blocks.begin(); it != ret.recursive_blocks.end(); ++it) {
+		std::cout << "\n-recursive block name: " << it->block_name << std::endl;
+		for (std::map<std::string, std::vector<std::string> >::iterator it2 = it->directives.begin(); it2 != it->directives.end(); ++it2) {
+			std::cout << "    " << it2->first << std::endl;
+			for (std::vector<std::string>::iterator it3 = it2->second.begin(); it3 < it2->second.end(); ++it3) {
+				std::cout << "\tvalue: " << *it3 << std::endl;
 			}
 		}
 	}
 }
+
+void parser::parse(const std::string &path) {
+	std::string configContent = readFile(path);
+	Tokenizer	tok;
+	tok.tokenize(configContent);
+	std::vector<Token> tokens = tok.getTokens();
+	std::vector<Token>::iterator it = tokens.begin();
+	while (it < tokens.end()) {
+		if (it->type == "block" && it->value == "server") {
+			block tmp = parseBlock(it, tokens.end());
+			blocks.push_back(tmp);
+		}
+
+		else throw std::runtime_error("Error: unautorized token: " + it->value);
+		it++;
+	}
+	std::vector<block> ret = getConfig();
+}
+
 
 static bool validateAllowedMethods(std::vector<std::string> ref) {
 	for (std::vector<std::string>::iterator it = ref.begin(); it != ref.end(); ++it) {
@@ -91,7 +113,7 @@ static bool validateAllowedMethods(std::vector<std::string> ref) {
 			return false;
 	}
 	return true;
-}	
+}
 
 static bool isValidPath(const std::string& path) {
     if (path.empty()) return false;
@@ -113,7 +135,7 @@ static bool isValidPath(const std::string& path) {
     if (path.back() == '/' && hasDot)
 		return false;
     return true;
-} 
+}
 
 static bool isValidExt(std::string ref) {
 	std::vector<std::string> ext = split(ref, ':');
@@ -126,84 +148,75 @@ static bool isValidExt(std::string ref) {
 	return true;
 }
 
-static bool isValidLink(std::string ref) {
-	if (ref.empty())
-		return false;
-	return true;
-}
+// static bool isValidLink(std::string url) {
+// 	if (url.empty())
+// 		return false;
+// 	if (url.find("http://") != 0 && url.find("https://") != 0)
+// 		return false;
+// 	size_t domainStart = url.find("://") + 3;
+//     size_t domainEnd = url.find('/', domainStart);
+// 	std::string domain = url.substr(domainStart, domainEnd - domainStart);
+// 	if (domain.empty())
+// 		return false;
+// 	for (size_t i = 0; i < domain.size(); i++) {
+//         char c = domain[i];
+//         if (!(std::isalnum(c) || c == '.' || c == '-'))
+// 			return false;
+//         if ((c == '.' || c == '-') && (i == 0 || i == domain.size() - 1))
+// 			return false;
+//     }
+// 	size_t lastDot = domain.rfind('.');
+//     if (lastDot == std::string::npos || domain.size() - lastDot - 1 < 2)
+// 		return false;
+// 	return true;
+// }
 
-WebServerConfig::Server::Route::Route( block& ref ): directory_listing(false) {
-	this->path = ref.block_name;
-	for (std::map<std::string, std::string>::iterator it2 = ref.directives.begin(); it2 != ref.directives.end(); ++it2) {
+void configureLocation( block& ref, Location& loc ) {
+	// loc.root = "/files/html";
+	// loc.default_file = "index.html";
+	// loc.directory_listing = false;
+	// loc.allowed_methods.push_back("GET");
+	// loc.allowed_methods.push_back("POST");
+	// loc.cgi_extensions.push_back(".py");
+	// loc.cgi_extensions.push_back(".php");
+	for (std::map<std::string, std::vector<std::string> >::iterator it2 = ref.directives.begin(); it2 != ref.directives.end(); ++it2) {
 		if (it2->first == "allowed_methods") {
-			std::vector<std::string> tmp = split(it2->second, ':');
-			if (!validateAllowedMethods(tmp))
+			if (!validateAllowedMethods(it2->second))
 				throw std::runtime_error("Error: allowed_methods: invalid argument");
-			this->allowed_methods = tmp;
-		} else if (it2->first == "redirect") {
-			if (!isValidLink(it2->second))
-				throw std::runtime_error("Error: redirect: invalid argument");
-			this->redirect = it2->second;
+			loc.allowed_methods.erase(loc.allowed_methods.begin(), loc.allowed_methods.end());
+			loc.allowed_methods = it2->second;
 		} else if (it2->first == "root_directory") {
-			if (!isValidPath(it2->second))
+			if (it2->second.size() > 1 || !isValidPath(*it2->second.begin()))
 				throw std::runtime_error("Error: root_directory: invalid argument");
-			this->root_directory = it2->second;
+			loc.root.erase(loc.root.begin(), loc.root.end());
+			loc.root = *it2->second.begin();
 		} else if (it2->first == "directory_listing") {
-			if (it2->second == "on") this->directory_listing = true;
-			else if (it2->second == "off") this->directory_listing = false;
+			if (it2->second.size() > 1)
+				throw std::runtime_error("Error: directory_listing: invalid argument");
+			if (*it2->second.begin() == "on") loc.directory_listing = true;
+			else if (*it2->second.begin() == "off") loc.directory_listing = false;
 			else throw std::runtime_error("Error: directory_listing: invalid argument");
-		} else if (it2->first == "default_file") {
-			if (!isValidPath(it2->second))
-				throw std::runtime_error("Error: default_file: invalid argument");
-			this->default_file = it2->second;
 		} else if (it2->first == "cgi_extensions") {
-			if (!isValidExt(it2->second))
-				throw std::runtime_error("Error: cgi_extensions: invalid argument");
-			this->cgi_extension = it2->second;
-		} else if (it2->first == "upload_path") {
-			if (!isValidPath(it2->second))
-				throw std::runtime_error("Error: upload_path: invalid argument");
-			this->upload_path = it2->second;
-		} else throw std::runtime_error("Error: unautorized directive: " + it2->first);
+			for (std::vector<std::string>::iterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3) {
+				if (!isValidExt(*it3))
+					throw std::runtime_error("Error: cgi_extensions: invalid argument");
+			}
+			loc.cgi_extensions.erase(loc.cgi_extensions.begin(), loc.cgi_extensions.end());
+			loc.cgi_extensions = it2->second;
+ 		} else if (it2->first == "default_file") {
+			if (it2->second.size() > 1 || !isValidPath(*it2->second.begin()))
+				throw std::runtime_error("Error: default_file: invalid argument");
+			loc.default_file.erase(loc.default_file.begin(), loc.default_file.end());
+			loc.default_file = *it2->second.begin();
+		}
 	}
 }
 
-// WebServerConfig::Server::Route::Route( block& ref ): directory_listing(false) {
-// 	for (std::map<std::string, std::string>::iterator it2 = ref.directives.begin(); it2 != ref.directives.end(); ++it2) {
-// 		if (it2->first == "location") {
-// 			std::cout << "\t-location block name: " << it2->second << std::endl;//debug
-// 			this->path = it2->second;
-// 		} else if (it2->first == "allowed_methods") {
-// 			std::cout << "\t-allowed_methods: " << it2->second << std::endl;//debug
-// 			this->allowed_methods = split(it2->second, ':');
-// 		} else if (it2->first == "redirect") {
-// 			std::cout << "\t-redirect: " << it2->second << std::endl;//debug
-// 			this->redirect = it2->second;
-// 		} else if (it2->first == "root_directory") {
-// 			std::cout << "\t-root_directory: " << it2->second << std::endl;//debug
-// 			this->root_directory = it2->second;
-// 		} else if (it2->first == "directory_listing") {
-// 			if (it2->second == "on"){
-// 				std::cout << "\t-directory_listing: " << it2->second << std::endl;//debug	
-// 				this->directory_listing = true;
-// 			} else if (it2->second == "off"){
-// 				std::cout << "\t-directory_listing: " << it2->second << std::endl;//debug
-// 				this->directory_listing = false;
-// 			} else throw std::runtime_error("Error: directory_listing: invalid argument");
-// 		} else if (it2->first == "default_file") {
-// 			std::cout << "\t-default_file: " << it2->second << std::endl;//debug
-// 			this->default_file = it2->second;
-// 		} else if (it2->first == "cgi_extensions") {
-// 			std::cout << "\t-cgi_extensions: " << it2->second << std::endl;//debug
-// 			this->cgi_extension = it2->second;
-// 		} else if (it2->first == "upload_path") {
-// 			std::cout << "\t-upload_path: " << it2->second << std::endl;//debug
-// 			this->upload_path = it2->second;
-// 		} else throw std::runtime_error("Error: unautorized directive: " + it2->first);
-// 	}
-// }
-
 static bool validateHost(std::string input) {
+	if (input.find(":") != std::string::npos)
+		return false;
+	if (input == "localhost")
+		return true;
 	std::vector<std::string> host = split(input, '.');
 	if (host.size() != 4)
 		return false;
@@ -220,7 +233,7 @@ static bool validateHost(std::string input) {
 
 static bool validatePort(std::string input) {
 	try {
-		int digitCount = 0;
+		size_t digitCount = 0;
 		int tmp = std::stoi(input);
 		while (tmp != 0) {
 			tmp /= 10;
@@ -235,8 +248,6 @@ static bool validatePort(std::string input) {
 }
 
 static bool isValidServerName(const std::string& name) {
-    if (name.empty())
-		return false;
     for (size_t i = 0; i < name.size(); i++) {
         char c = name[i];
         if (!(std::isalnum(c) || c == '.' || c == '-'))
@@ -252,12 +263,12 @@ static bool isValidServerName(const std::string& name) {
     return true;
 }
 
-static bool validateServerNames(const std::vector<std::string>& serverNames) {
-	for (std::vector<std::string>::const_iterator it = serverNames.begin(); it != serverNames.end(); ++it) {
-		if (!isValidServerName(*it))
-			return false;
-	} return true;
-}
+// static bool validateServerNames(const std::vector<std::string>& serverNames) {
+// 	for (std::vector<std::string>::const_iterator it = serverNames.begin(); it != serverNames.end(); ++it) {
+// 		if (!isValidServerName(*it))
+// 			return false;
+// 	} return true;
+// }
 
 static bool validateErrorPages(std::vector<std::string> ref) {
 	if (ref.size() % 2 != 0){
@@ -279,15 +290,14 @@ static bool validateErrorPages(std::vector<std::string> ref) {
 	return true;	
 }
 
-static bool validateClientMaxBodySize(std::string ref /*10M*/) {
+static bool validateClientMaxBodySize( std::string ref ,int *digitCount) {
 	std::string size = ref.substr(0, ref.size() - 1);
-	int digitCount = 0;
 	int tmp = std::stoi(size);
 	while (tmp != 0) {
 		tmp /= 10;
-		digitCount++;
+		(*digitCount)++;
 	}
-	std::string unit = ref.substr(digitCount);
+	std::string unit = ref.substr(*digitCount);
 	if (unit != "M" && unit != "K")
 		return false;
 	try {
@@ -300,116 +310,83 @@ static bool validateClientMaxBodySize(std::string ref /*10M*/) {
 	return true;
 }
 
-WebServerConfig::Server::Server( block& ref ) : host("localhost"), port(8080), is_default_server(false), client_max_body_size("1M") {	
-	for (std::map<std::string, std::string>::iterator it2 = ref.directives.begin(); it2 != ref.directives.end(); ++it2) {
+void configureServer( block& ref ) {
+	Server serv;
+	serv.host = "127.0.0.1";
+	serv.server_name = "localhost";
+	serv.client_max_body_size = 1024 * 1024;
+	for (std::map<std::string, std::vector<std::string> >::iterator it2 = ref.directives.begin(); it2 != ref.directives.end(); ++it2) {
 		if (it2->first == "server_name") {
-			std::vector<std::string> server_names = split(it2->second, ':');
-			if (!validateServerNames(server_names)){
-				throw std::runtime_error("Error: server_name: invalid argument");
-			}
-			for (std::vector<std::string>::iterator it3 = server_names.begin(); it3 != server_names.end(); ++it3)
-				this->server_names.push_back(*it3);
+			if (it2->second.size() > 1)
+				throw std::runtime_error("Error: too many argument for server_name");
+			else if (isValidServerName(*it2->second.begin()))
+				serv.server_name = *it2->second.begin();
 		} else if (it2->first == "listen") {
-			std::vector<std::string> listen = split(it2->second, ':');
-			if (listen.size() == 2) {
-				if (!validateHost(listen[0]) || !validatePort(listen[1]))
-					throw std::runtime_error("Error: listen: invalid argument");
-				this->host = listen[0];
-				this->port = std::stoi(listen[1]);
-			} else if (listen.size() == 1) {
-				if (!validatePort(listen[0]))
-					throw std::runtime_error("Error: listen: invalid argument");
-				this->port = std::stoi(listen[0]);
-			} else throw std::runtime_error("Error: listen: invalid argument");
+			if (it2->second.size() == 1) {
+				if (it2->second[0].find(":")) {
+					std::vector<std::string> listen = split(*it2->second.begin(), ':');
+					if (it2->second.size() == 2) {
+						if (!validateHost(listen[0]) || !validatePort(listen[1]))
+							throw std::runtime_error("Error: listen: invalid argument");
+						serv.host = listen[0];
+						serv.ports.push_back(std::stoi(listen[1]));
+					} else if (!validateHost(*it2->second.begin())) {
+						serv.host = *it2->second.begin();
+					} else
+						throw std::runtime_error("Error: listen: invalid argument");
+				} else if (it2->second.size() == 2) {
+					if (!validateHost(*it2->second.begin()) || !validatePort(it2->second[1]))
+						throw std::runtime_error("Error: listen: invalid argument");
+					serv.host = *it2->second.begin();
+					serv.ports.push_back(std::stoi(it2->second[1]));
+				}
+			}
 		} else if (it2->first == "host") {
-			if (!validateHost(it2->second))
+			if (!validateHost(*it2->second.begin()))
 				throw std::runtime_error("Error: host: invalid argument");
-			this->host = it2->second;
+			serv.host = *it2->second.begin();
 		} else if (it2->first == "port") {
-			if (!validatePort(it2->second))
-				throw std::runtime_error("Error: port: invalid argument");
-			this->port = std::stoi(it2->second);
-		} else if (it2->first == "is_default_server") {
-			if (it2->second == "true")
-				this->is_default_server = true;
-			else if (it2->second == "false")
-				this->is_default_server = false;
-			else throw std::runtime_error("Error: default_server: invalid argument");
+			for (std::vector<std::string>::iterator port_it = it2->second.begin(); port_it < it2->second.end(); port_it++) {
+				if (!validatePort(*port_it))
+					throw std::runtime_error("Error: port: invalid argument");
+				serv.ports.push_back(std::stoi(*port_it));
+			}
 		} else if (it2->first == "error_page") { 
-			std::vector<std::string> error_page = split(it2->second, ':');
+			std::vector<std::string> error_page = it2->second;
 			if (!validateErrorPages(error_page))
 				throw std::runtime_error("Error: error_page: invalid argument");
-			int i = 0;
+			size_t i = 0;
 			while (i < error_page.size()) {
-				this->error_pages[std::stoi(error_page[i])] = error_page[(i+1)];
+				serv.error_pages[std::stoi(error_page[i])] = error_page[(i+1)];
 				i += 2;
 			}
 		} else if (it2->first == "client_max_body_size") {
-			if (!validateClientMaxBodySize(it2->second))
+			int digitCount = 0;
+			if (!validateClientMaxBodySize(*it2->second.begin(), &digitCount))
 				throw std::runtime_error("Error: client_max_body_size: invalid argument");
-			this->client_max_body_size = it2->second;
+			serv.client_max_body_size = std::stoi(*it2->second.begin());
+			std::string unit = it2->second[0].substr(digitCount);
+			if (unit == "K")
+				serv.client_max_body_size *= 1024;
+			else if (unit == "M")
+				serv.client_max_body_size *= 1024 * 1024;
 		}
 	}
-	 for (std::vector<block>::iterator it2 = ref.recursive_blocks.begin(); it2 != ref.recursive_blocks.end(); ++it2)
-		this->routes.push_back(Route(*it2));
-}
-
-// int server_id = 0;//debug
-// WebServerConfig::Server::Server( block& ref ) : host("localhost"), port(8080), is_default_server(false), client_max_body_size("1M") {
-// 	server_id++;//debug
-// 	std::cout << "server id " << server_id << ":" << std::endl; //debug	
-// 	for (std::map<std::string, std::string>::iterator it2 = ref.directives.begin(); it2 != ref.directives.end(); ++it2) {
-// 		// std::cout << "   -" << it2->first << " = " << it2->second << std::endl;//debug
-// 		if (it2->first == "server_name") {
-// 			std::vector<std::string> server_names = split(it2->second, ':');
-// 			for (std::vector<std::string>::iterator it3 = server_names.begin(); it3 != server_names.end(); ++it3) {
-// 				std::cout << "   -adding " << *it3 << " to server_names" << std::endl; //debug
-// 				this->server_names.push_back(*it3);
-// 			}
-// 			std::cout << std::endl; //debug
-// 		} else if (it2->first == "listen") {
-// 			std::vector<std::string> listen = split(it2->second, ':');
-// 			if (listen.size() == 2) {
-// 				std::cout << "   -setting host to " << listen[0] << " and port to " << listen[1] << std::endl; //debug
-// 				this->host = listen[0];
-// 				this->port = std::stoi(listen[1]);
-// 			} else if (listen.size() == 1) {
-// 				std::cout << "   -setting host to " << listen[0] << std::endl; //debug
-// 				this->port = std::stoi(listen[0]);
-// 			} else throw std::runtime_error("Error: listen: invalid argument");
-// 		} else if (it2->first == "is_default_server") {
-// 			if (it2->second == "true") {
-// 				std::cout << "   -is_default_server = " << it2->second << std::endl; //debug
-// 				this->is_default_server = true;
-// 			}
-// 			else if (it2->second == "false") {
-// 				std::cout << "   -is_default_server = " << it2->second << std::endl; //debug
-// 				this->is_default_server = false;
-// 			}
-// 			else throw std::runtime_error("Error: default_server: invalid argument");
-// 		} else if (it2->first == "error_page") {
-// 			std::vector<std::string> error_page = split(it2->second, ':');
-// 			int i = 0;
-// 			while (i < error_page.size()) {
-// 				std::cout << "   -assigning error page " << error_page[i] << " to " << error_page[(i+1)] << std::endl; //debug
-// 				this->error_pages[std::stoi(error_page[i])] = error_page[(i+1)];
-// 				i += 2;
-// 			}
-// 		} else if (it2->first == "client_max_body_size") {
-// 			std::cout << "   -client_max_body_size = " << it2->second << std::endl; //debug
-// 			this->client_max_body_size = it2->second;
-// 		} 
-// 	}  for (std::vector<block>::iterator it2 = ref.recursive_blocks.begin(); it2 != ref.recursive_blocks.end(); ++it2) {
-// 		std::cout << "   -recursive block name: " << it2->block_name << std::endl;//debug
-// 		this->routes.push_back(Route(*it2));
-// 	}
-// 	std::cout << std::endl; //debug
-// }
-
-WebServerConfig::WebServerConfig( std::vector<block> blocks ) {
-	for (std::vector<block>::iterator it = blocks.begin(); it != blocks.end(); ++it) {
-		servers.push_back(Server(*it));
+	for (std::vector<block>::iterator it2 = ref.recursive_blocks.begin(); it2 != ref.recursive_blocks.end(); ++it2) {
+		if (it2->block_name == "/") {
+			configureLocation(*it2, serv.root_location);
+		} if (it2->block_name == "/upload") {
+			configureLocation(*it2, serv.upload_location);
+		} if (it2->block_name == "/cgi-bin") {
+			configureLocation(*it2, serv.cgi_location);
+		}
 	}
-	size = servers.size();
 }
-		
+
+void initConfig( std::vector<block> blocks ) {
+	for (std::vector<block>::iterator it = blocks.begin(); it != blocks.end(); ++it) {
+		Server serv;
+		configureServer(*it);
+	}
+}
+

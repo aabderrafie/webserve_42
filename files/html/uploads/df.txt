@@ -1,5 +1,0 @@
-User Information
------------------
-Username: df
-Password: dsf
-Fullname: dsf

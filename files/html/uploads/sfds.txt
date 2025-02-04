@@ -1,5 +1,0 @@
-User Information
------------------
-Username: sfds
-Password: fdsfsdf
-Fullname: fdsfds
