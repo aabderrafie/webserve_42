@@ -54,6 +54,7 @@ std::string execute_cgi(const std::string& script_path, const std::string& inter
                         const std::string& post_data, const std::string& content_type,
                         const std::string& boundary ) 
 {
+
     std::cout << "Executing CGI script: " << script_path << std::endl;
 
     std::string uploaded_file;
@@ -308,6 +309,7 @@ std::string Server::read_request(int client_socket)
     }
 
     std::cout << "Request: ok " <<  std::endl;  
+    std::cout <<" body: \n" << body <<"|\n" <<std::endl;
     return body;
 }
 
@@ -315,6 +317,12 @@ void Server::handle_client(int client_socket) {
 
     Response response(client_socket, *this);
     std::string body = read_request(client_socket);
+    if(body.empty())
+    {
+        std::cout << RED<< "Empty request" << std::endl;
+        close(client_socket);
+        return;
+    }
     response.request = Request(body);
 
     std::string method = response.request.getMethod();

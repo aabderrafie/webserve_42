@@ -1,61 +1,83 @@
+#!/usr/bin/php-cgi
 <?php
-// PHP info page with WebServer 1337 styling
+header("Content-Type: text/html");
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PHP Test Page - WebServer 1337</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHP CGI Response</title>
     <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 20px;
             padding: 20px;
-        }
-        .container {
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 40px;
-            width: 80%;
-            max-width: 800px;
             text-align: center;
         }
-        h1 {
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        .php-info {
-            text-align: left;
-            background: rgba(0,0,0,0.1);
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
             padding: 20px;
             border-radius: 10px;
-            margin-top: 20px;
-            max-height: 400px;
-            overflow-y: auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        p {
+            font-size: 18px;
+            color: #555;
+        }
+        a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>WebServer 1337 PHP Test Page</h1>
-        
-        <div class="php-info">
-            <h2>Server Information</h2>
-            <p><strong>PHP Version:</strong> <?php echo phpversion(); ?></p>
-            <p><strong>Current Timestamp:</strong> <?php echo date('Y-m-d H:i:s'); ?></p>
+        <?php
+        if ($_SERVER["REQUEST_METHOD"] == "GET") {
+            $name = isset($_GET["name"]) ? htmlspecialchars($_GET["name"]) : "Unknown";
+            $age = isset($_GET["age"]) ? htmlspecialchars($_GET["age"]) : "Unknown";
+            echo "<h1>Received GET request</h1>";
+            echo "<p>Name: <strong>$name</strong></p>";
+            echo "<p>Age: <strong>$age</strong></p>";
+        }
+        elseif ($_SERVER["REQUEST_METHOD"] == "POST") {
+            $name = isset($_POST["name"]) ? htmlspecialchars($_POST["name"]) : "Unknown";
+            $age = isset($_POST["age"]) ? htmlspecialchars($_POST["age"]) : "Unknown";
+            echo "<h1>Received POST request</h1>";
+            echo "<p>Name: <strong>$name</strong></p>";
+            echo "<p>Age: <strong>$age</strong></p>";
             
-            <h2>Environment Variables</h2>
-            <pre><?php 
-                print_r($_SERVER);
-            ?></pre>
-        </div>
+            if (isset($_FILES["file"])) {
+                $upload_dir = "uploads/";
+                $filename = basename($_FILES["file"]["name"]);
+                $upload_path = $upload_dir . $filename;
+                
+                if (move_uploaded_file($_FILES["file"]["tmp_name"], $upload_path)) {
+                    echo "<p class='success'>File uploaded successfully: <a href='$upload_path'>$filename</a></p>";
+                } else {
+                    echo "<p class='error'>File upload failed!</p>";
+                }
+            }
+        }
+        ?>
     </div>
 </body>
 </html>

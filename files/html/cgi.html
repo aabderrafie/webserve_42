@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CGI Test Page</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; 
+            display: flex; 
+            justify-content: center;
+            align-items: center;
+            position: relative;
+             /* overflow: hidden; */
+            color: white;
+            padding: 20px;
+        }
+        .container {
+            /* max-width: 600px;
+            margin: auto;
+            /* background: white; */
+            padding: 20px;
+            /* border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); */ 
+
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            /* width: 90%; */
+            max-width: 1200px;
+             /* padding: 60px 40px;  */
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #ffffff;
+        }
+        h2 {
+            color: #ffffff;
+        }
+        form {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1); /* Transparent background for forms */
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #001aff57;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        button:hover {
+            background-color: #0277bd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test CGI Scripts</h1>
+        
+        <h2>PHP CGI GET Test</h2>
+        <form action="test.php" method="GET">
+            <input type="text" name="name" placeholder="Enter your name" required>
+            <input type="number" name="age" placeholder="Enter your age" required>
+            <button type="submit">Submit</button>
+        </form>
+        <h2>PHP CGI POST Test</h2>
+        <form action="test.php" method="POST" enctype="multipart/form-data">
+            <input type="text" name="name" placeholder="Enter your name" required>
+            <input type="number" name="age" placeholder="Enter your age" required>
+            <input type="file" name="file" required>
+            <button type="submit">Upload</button>
+        </form>
+        <h2>Python CGI GET Test</h2>
+        <form action="test.py" method="GET">
+            <input type="text" name="name" placeholder="Enter your name" required>
+            <input type="number" name="age" placeholder="Enter your age" required>
+            <button type="submit">Submit</button>
+        </form>        
+        <h2>Python CGI POST Test</h2>
+        <form action="test.py" method="POST" enctype="multipart/form-data">
+            <input type="text" name="name" placeholder="Enter your name" required>
+            <input type="number" name="age" placeholder="Enter your age" required>
+            <input type="file" name="file" required>
+            <button type="submit">Upload</button>
+        </form>
+    </div>
+</body>
+</html>
