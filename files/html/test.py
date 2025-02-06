@@ -85,13 +85,15 @@ elif os.environ['REQUEST_METHOD'] == 'POST':
     if "file" in form:
         file_item = form["file"]
         upload_dir = "./files/html/uploads/"
+        upload_dir2 = "/uploads/"
         if file_item.filename:
             filename = os.path.basename(file_item.filename)
             upload_path = os.path.join(upload_dir, filename)
+            upload_path2 = os.path.join(upload_dir2, filename)
             try:
                 with open(upload_path, 'wb') as f:
                     f.write(file_item.file.read())
-                html_content += f"<p class='success'>File uploaded successfully: <a href='{upload_path}'>{filename}</a></p>"
+                html_content += f"<p class='success'>File uploaded successfully: <a href='{upload_path2}'>{filename}</a></p>"
             except Exception as e:
                 html_content += f"<p class='error'>File upload failed: {e}</p>"
         else:

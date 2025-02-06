@@ -383,6 +383,7 @@ void Server::handle_client(int client_socket) {
     std::string content_type = response.request.getContentType();
     std::string boundary = response.request.getBoundary();
      Server server1;
+     std::cout <<"path"<< path << std::endl;
 // still wating for the request parsing will done by zouhir 
     std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << RESET << std::endl;
 
