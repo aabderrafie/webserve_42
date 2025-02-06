@@ -53,6 +53,21 @@ void Server::bind_and_listen() {
 }
 
 
+size_t Server::get_content_length(const std::string& headers) {
+    size_t content_length_pos = headers.find("Content-Length: ");
+    if (content_length_pos == std::string::npos) {
+        throw std::runtime_error("Content-Length header not found");
+    }
+
+    size_t content_length_end = headers.find("\r\n", content_length_pos);
+    if (content_length_end == std::string::npos) {
+        throw std::runtime_error("Malformed Content-Length header");
+    }
+
+    std::string content_length_str = headers.substr(content_length_pos + 16, content_length_end - (content_length_pos + 16));
+    return std::stoul(content_length_str);  // Convert string to size_t
+}
+
 void Server::new_connection(int server_socket) {
     struct sockaddr_in client_addr;
     socklen_t sin_size = sizeof(client_addr);
@@ -68,43 +83,69 @@ void Server::new_connection(int server_socket) {
 }
 
 
-std::unordered_map<int, std::string> partial_requests;  
-
+std::unordered_map<int, std::string> partial_requests;
 std::string Server::read_request(int client_socket) {
     char buffer[BUFFER_SIZE];
-    int bytes_received;
+    int bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, 0);
 
-    while (true) {
-        bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, MSG_DONTWAIT); 
-        if (bytes_received < 0) {
-            if (errno == EAGAIN)
-                return "";
-            throw std::runtime_error("Error receiving data");
-        } else if (bytes_received == 0) { 
-            std::string full_request = partial_requests[client_socket];
-            partial_requests.erase(client_socket); 
-            return full_request; 
-        }
-
-        buffer[bytes_received] = '\0';
-        partial_requests[client_socket] += std::string(buffer, bytes_received);
-
-        if (bytes_received < BUFFER_SIZE - 1) 
-            break;
+    if (bytes_received < 0) {
+        std::cout << "Error receiving data" << std::endl;
+        if (errno == EAGAIN || errno == EWOULDBLOCK) 
+            return ""; 
+        throw std::runtime_error("Error receiving data");
     }
-    return partial_requests[client_socket];
+
+    if (bytes_received == 0) {
+        std::string final_request = partial_requests[client_socket];
+        partial_requests.erase(client_socket);
+        std::cout << "Client disconnected" << std::endl;
+        return final_request;
+    }
+
+    buffer[bytes_received] = '\0';
+    partial_requests[client_socket] += std::string(buffer, bytes_received);
+
+    size_t header_end = partial_requests[client_socket].find("\r\n\r\n");
+    if (header_end == std::string::npos) {
+        std::cout << "Partial request received" << std::endl;
+        return ""; 
+    }
+
+    std::string headers = partial_requests[client_socket].substr(0, header_end + 4);
+    size_t content_length_pos = headers.find("Content-Length: ");
+    if (content_length_pos != std::string::npos) {
+        size_t content_length_end = headers.find("\r\n", content_length_pos);
+        int content_length = std::stoi(headers.substr(content_length_pos + 16, content_length_end - content_length_pos - 16));
+        size_t total_length = header_end + 4 + content_length;
+        if (partial_requests[client_socket].size() < total_length) {
+            std::cout << "Partial request received" << std::endl;
+            return "";
+        }
+    } else {
+        // No Content-Length header, assume no body
+        std::string full_request = partial_requests[client_socket];
+        partial_requests.erase(client_socket);
+        std::cout << "Full request received (no body)" << std::endl;
+        return full_request;
+    }
+
+    std::string full_request = partial_requests[client_socket];
+    partial_requests.erase(client_socket);
+    std::cout << "Full request received" << std::endl;
+    return full_request;
 }
-
-
 
 void Server::handle_client(int client_socket) {
     std::string body = read_request(client_socket);
-    if (body.empty()) return; 
+    if (body.empty()) {
+        std::cerr << "Error: Incomplete data received" << std::endl;
+        return;
+    }
 
     Response response(client_socket, *this);
     response.request = Request(body);
     std::string method = response.request.getMethod();
-    std::string path = response.request.getPath();  
+    std::string path = response.request.getPath();
 
     std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << ", Path: " << path << RESET << std::endl;
 
@@ -121,10 +162,6 @@ void Server::handle_client(int client_socket) {
 
     close(client_socket);
 }
-
-
-
-
 void Server::start_server() {
 
         int poll_count = poll(poll_fds.data(), poll_fds.size(), 0);
