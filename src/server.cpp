@@ -47,8 +47,50 @@ void parse_multipart_form_data(const std::string& post_data, const std::string& 
     }
 }
 
+// void parse_multipart_form_data(const std::string& post_data, const std::string& boundary, std::string& uploaded_file_path) {
+//     size_t pos = 0;
+//     while ((pos = post_data.find(boundary, pos)) != std::string::npos) {
+//         pos += boundary.length();
+//         size_t name_pos = post_data.find("name=\"", pos);
+//         if (name_pos == std::string::npos) break;
+
+//         size_t name_end = post_data.find("\"", name_pos + 6);
+//         std::string field_name = post_data.substr(name_pos + 6, name_end - name_pos - 6);
+
+//         size_t filename_pos = post_data.find("filename=\"", name_end);
+//         if (filename_pos != std::string::npos) {
+//             size_t filename_end = post_data.find("\"", filename_pos + 10);
+//             std::string filename = post_data.substr(filename_pos + 10, filename_end - filename_pos - 10);
+
+//             size_t file_start = post_data.find("\r\n\r\n", filename_end) + 4;
+//             size_t file_end = post_data.find(boundary, file_start) - 2;
+
+//             uploaded_file_path = "./files/html/uploads/" + filename;
+//             std::ofstream out_file(uploaded_file_path.c_str(), std::ios::binary);
+//             if (out_file) {
+//                 out_file.write(post_data.data() + file_start, file_end - file_start);
+//                 out_file.close();
+//                 std::cout << "Saved file: " << uploaded_file_path << std::endl;
+//             } else {
+//                 std::cerr << "Failed to save file: " << uploaded_file_path << std::endl;
+//             }
+//         }
+//     }
+// }
 
 
+// Set a file descriptor to non-blocking mode
+void set_non_blocking(int fd) {
+    int flags = fcntl(fd, F_GETFL, 0);
+    if (flags == -1) {
+        perror("fcntl(F_GETFL) failed");
+        exit(1);
+    }
+    if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
+        perror("fcntl(F_SETFL) failed");
+        exit(1);
+    }
+}
 std::string execute_cgi(const std::string& script_path, const std::string& interpreter,
                         const std::string& method, const std::string& query_string,
                         const std::string& post_data, const std::string& content_type,
@@ -74,9 +116,12 @@ std::string execute_cgi(const std::string& script_path, const std::string& inter
         perror("pipe failed");
         return "500 Internal Server Error\n";
     }
+        // Set pipes to non-blocking mode
+    set_non_blocking(input_pipe[1]);
+    set_non_blocking(pipefd[0]);
 
     pid_t pid = fork();
-    if (pid == 0) {  // Child process
+      if (pid == 0) {  // Child process
         close(pipefd[0]);  // Close unused read end
         std::vector<std::string> env_vars = {
             "REQUEST_METHOD=" + method,
@@ -119,23 +164,18 @@ std::string execute_cgi(const std::string& script_path, const std::string& inter
         execve(interpreter.c_str(), args.data(), envp.data());
         perror("execve failed");
         exit(1);
-    } 
-    else if (pid > 0) {  // Parent process
+    }  else if (pid > 0) {  // Parent process
         close(pipefd[1]);  // Close unused write end
-        std::cout << "Parent process" << std::endl;
-        if (method == "POST") 
-        {
-            close(input_pipe[0]);  // Close read end
 
+        if (method == "POST") {
+            close(input_pipe[0]);  // Close read end
             size_t remaining = post_data.length();
-            // std::cout << "Remaining: " << remaining << std::endl;
             const char* data_ptr = post_data.c_str();
             while (remaining > 0) {
-                ssize_t result = write(input_pipe[1], data_ptr, remaining);
+                ssize_t result = write(input_pipe[1], data_ptr, std::min(remaining, static_cast<size_t>(BUFFER_SIZE)));
                 if (result == -1) {
-                    if (errno == EINTR) continue;  // Retry if interrupted by a signal
                     if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                        usleep(1000);  // Small delay
+                        usleep(1000);
                         continue;
                     }
                     perror("write failed");
@@ -150,7 +190,18 @@ std::string execute_cgi(const std::string& script_path, const std::string& inter
         char buffer[BUFFER_SIZE];
         std::string output;
         ssize_t bytes_read;
-        while ((bytes_read = read(pipefd[0], buffer, BUFFER_SIZE - 1)) > 0) {
+        while (true) {
+            bytes_read = read(pipefd[0], buffer, BUFFER_SIZE - 1);
+            if (bytes_read == -1) {
+                if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                    usleep(1000);
+                    continue;
+                }
+                perror("read failed");
+                break;
+            } else if (bytes_read == 0) {
+                break;
+            }
             buffer[bytes_read] = '\0';
             output += buffer;
         }
@@ -160,8 +211,7 @@ std::string execute_cgi(const std::string& script_path, const std::string& inter
 
         size_t header_end = output.find("\r\n\r\n");
         return (header_end != std::string::npos) ? output.substr(header_end + 4) : output;
-    } 
-    else {  // fork() failed
+    } else {  // fork() failed
         std::cerr << "Fork failed" << std::endl;
         return "500 Internal Server Error\n";
     }
@@ -309,7 +359,7 @@ std::string Server::read_request(int client_socket)
     }
 
     std::cout << "Request: ok " <<  std::endl;  
-    std::cout <<" body: \n" << body <<"|\n" <<std::endl;
+    // std::cout <<" body: \n" << body <<"|\n" <<std::endl;
     return body;
 }
 

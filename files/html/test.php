@@ -1,6 +1,7 @@
 #!/usr/bin/php-cgi
 <?php
 header("Content-Type: text/html");
+// phpinfo();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -70,11 +71,23 @@ header("Content-Type: text/html");
                 $filename = basename($_FILES["file"]["name"]);
                 $upload_path = $upload_dir . $filename;
                 
-                if (move_uploaded_file($_FILES["file"]["tmp_name"], $upload_path)) {
-                    echo "<p class='success'>File uploaded successfully: <a href='$upload_path'>$filename</a></p>";
+                // Debugging information
+                // echo "<pre>";
+                // echo "File Info:\n";
+                // print_r($_FILES["file"]);
+                // echo "</pre>";
+
+                if ($_FILES["file"]["error"] == UPLOAD_ERR_OK) {
+                    if (move_uploaded_file($_FILES["file"]["tmp_name"], $upload_path)) {
+                        echo "<p class='success'>File uploaded successfully: <a href='$upload_path'>$filename</a></p>";
+                    } else {
+                        echo "<p class='error'>File upload failed! Could not move file.</p>";
+                    }
                 } else {
-                    echo "<p class='error'>File upload failed!</p>";
+                    echo "<p class='error'>File upload failed! Error code: " . $_FILES["file"]["error"] . "</p>";
                 }
+            } else {
+                echo "<p class='error'>No file uploaded!</p>";
             }
         }
         ?>
