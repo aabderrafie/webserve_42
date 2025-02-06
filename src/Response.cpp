@@ -149,10 +149,10 @@ void Response::handle_post_request( const std::string &body) {
     std::string post_path = root + request.getPath();
 
 
-    // if(request.getIsMultipart())
-    //      request.parseMultipartFormData(body);
-    // else
-    //     return send_error_response(400, "text/html",  server.error_pages[400]), void();
+    if(request.getIsMultipart())
+         request.parseMultipartFormData(body);
+    else
+        return send_error_response(400, "text/html",  server.error_pages[400]), void();
 
     set_status(200);
     set_content_type("text/html");

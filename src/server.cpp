@@ -33,6 +33,7 @@ void Server::server_init() {
     }
 }
 Server::~Server() {
+    // std::cout << RED << "[" << current_time() << "] Server shutting down..." << RESET << std::endl;
 }
 
 
@@ -66,50 +67,86 @@ void Server::new_connection(int server_socket) {
 }
 
 
+// std::string Server::read_request(int client_socket) {
+//     char buffer[BUFFER_SIZE];
+//     std::string body;
+//     int bytes_received;
+
+//     while (true) {
+//         bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, 0);
+//         if (bytes_received < 0) 
+//             throw std::runtime_error("Error receiving data");
+//         else if (bytes_received == 0) 
+//             break;
+//         buffer[bytes_received] = '\0';
+//         body += std::string(buffer, bytes_received);
+//         if (bytes_received < BUFFER_SIZE - 1) 
+//             break;
+//     }
+
+//     return body;
+// }
+std::unordered_map<int, std::string> partial_requests;  // Store ongoing requests per client
+
 std::string Server::read_request(int client_socket) {
     char buffer[BUFFER_SIZE];
-    std::string body;
     int bytes_received;
 
     while (true) {
-        bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, 0);
-        if (bytes_received < 0) 
+        bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, MSG_DONTWAIT); 
+        if (bytes_received < 0) {
+            if (errno == EWOULDBLOCK || errno == EAGAIN)
+                return "";
             throw std::runtime_error("Error receiving data");
-        else if (bytes_received == 0) 
-            break;
+        } else if (bytes_received == 0) { 
+            std::string full_request = partial_requests[client_socket];
+            partial_requests.erase(client_socket); 
+            return full_request; 
+        }
+
         buffer[bytes_received] = '\0';
-        body += std::string(buffer, bytes_received);
+        partial_requests[client_socket] += std::string(buffer, bytes_received);
+
         if (bytes_received < BUFFER_SIZE - 1) 
             break;
     }
 
-    return body;
+    return partial_requests[client_socket];
 }
+
+
+
 void Server::handle_client(int client_socket) {
+    std::string body = read_request(client_socket);
+    if (body.empty()) return; 
 
     Response response(client_socket, *this);
-    std::string body = read_request(client_socket);
     response.request = Request(body);
     std::string method = response.request.getMethod();
+    std::string path = response.request.getPath();  
 
-// still wating for the request parsing will done by zouhir 
-    std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << RESET << std::endl;
+    std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << ", Path: " << path << RESET << std::endl;
+
     if (method == "GET")
         response.handle_get_request(body);
     else if (method == "POST")
-        response.handle_post_request( body);
-    else if(method == "DELETE")
+        response.handle_post_request(body);
+    else if (method == "DELETE")
         response.handle_delete_request(body);
     else
-        response.send_error_response(405, "text/html",  error_pages[405]);
+        response.send_error_response(405, "text/html", error_pages[405]);
+
+    partial_requests.erase(client_socket);
+
     close(client_socket);
 }
 
 
 
+
 void Server::start_server() {
 
-        int poll_count = poll(poll_fds.data(), poll_fds.size(), 100);
+        int poll_count = poll(poll_fds.data(), poll_fds.size(), 0);
         if (poll_count < 0)
             throw std::runtime_error("Error polling for events");
         for (size_t i = 0; i < poll_fds.size(); ++i) {
