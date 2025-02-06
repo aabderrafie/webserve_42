@@ -6,8 +6,8 @@
       "type": "lldb",
       "request": "launch",
       "args": [],
-      "cwd": "/Users/aaskal/Desktop/Webserv",
-      "program": "/Users/aaskal/Desktop/Webserv/build/Debug/outDebug"
+      "cwd": "/home/abderrafie/Desktop/Webserv/client",
+      "program": "/home/abderrafie/Desktop/Webserv/client/build/Debug/outDebug"
     }
   ]
 }

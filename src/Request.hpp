@@ -8,12 +8,18 @@ class Request {
         string path;
         string httpVersion;
         map<string, string> headers;
+
         map<string, string> formData;
         bool isMultipart = false;
         bool isUrlEncoded = false;
         string boundary;
         string filename;
         string fileContent;
+
+        std::string content_type;
+        std::string post_data;
+        std::string query_string;
+        // std::string boundary;
         
 
     public:
@@ -29,6 +35,12 @@ class Request {
         const string& getMethod() const { return method; }
         const string& getPath() const { return path; }
         const string& getHttpVersion() const { return httpVersion; }
+        const string& getQueryString() const { return query_string; }
+        const string& getPostData() const { return post_data; }
+        const string& getContentType() const { return content_type; }
+        const string& getBoundary() const { return boundary; }
+        
+
         const map<string, string>& getHeaders() const { return headers; }
         const map<string, string>& getFormData() const { return formData; }
         const bool& getIsMultipart() const { return isMultipart; }

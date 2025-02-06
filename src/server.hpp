@@ -29,6 +29,8 @@ class Server {
         void bind_and_listen();
         void handle_client(int client_socket);
         std::string read_request(int client_socket);
+            size_t get_content_length(const std::string& request) const;
+
 };
 
 

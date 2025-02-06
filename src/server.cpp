@@ -2,6 +2,7 @@
 #include <ctime>
 
 
+
 std::string current_time() {
     std::time_t now = std::time(nullptr);
     char buf[100];
@@ -67,26 +68,7 @@ void Server::new_connection(int server_socket) {
 }
 
 
-// std::string Server::read_request(int client_socket) {
-//     char buffer[BUFFER_SIZE];
-//     std::string body;
-//     int bytes_received;
-
-//     while (true) {
-//         bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, 0);
-//         if (bytes_received < 0) 
-//             throw std::runtime_error("Error receiving data");
-//         else if (bytes_received == 0) 
-//             break;
-//         buffer[bytes_received] = '\0';
-//         body += std::string(buffer, bytes_received);
-//         if (bytes_received < BUFFER_SIZE - 1) 
-//             break;
-//     }
-
-//     return body;
-// }
-std::unordered_map<int, std::string> partial_requests;  // Store ongoing requests per client
+std::unordered_map<int, std::string> partial_requests;  
 
 std::string Server::read_request(int client_socket) {
     char buffer[BUFFER_SIZE];
@@ -95,7 +77,7 @@ std::string Server::read_request(int client_socket) {
     while (true) {
         bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, MSG_DONTWAIT); 
         if (bytes_received < 0) {
-            if (errno == EWOULDBLOCK || errno == EAGAIN)
+            if (errno == EAGAIN)
                 return "";
             throw std::runtime_error("Error receiving data");
         } else if (bytes_received == 0) { 
@@ -110,7 +92,6 @@ std::string Server::read_request(int client_socket) {
         if (bytes_received < BUFFER_SIZE - 1) 
             break;
     }
-
     return partial_requests[client_socket];
 }
 

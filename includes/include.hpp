@@ -21,7 +21,7 @@
 
 #define PORT 80
 #define BACKLOG 10
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 4096
 #define clinet_max 1000000000
 
 
