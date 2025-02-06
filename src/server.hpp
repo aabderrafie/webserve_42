@@ -8,7 +8,7 @@ class Request;   // Forward declaration
 
 class Server {
     private:
-
+    bool is_data_received = false;
     public:
         std::vector<int> server_sockets;
         std::vector<struct sockaddr_in> server_addrs;
@@ -21,6 +21,7 @@ class Server {
         Location root_location;
         Location upload_location;
         Location cgi_location;
+
         Server();
         ~Server();
         void server_init();
