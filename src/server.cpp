@@ -98,7 +98,6 @@ std::string Server::read_request(int client_socket) {
     if (bytes_received == 0) {
         std::string final_request = partial_requests[client_socket];
         partial_requests.erase(client_socket);
-        std::cout << "Client disconnected" << std::endl;
         return final_request;
     }
 
@@ -132,23 +131,31 @@ std::string Server::read_request(int client_socket) {
     return full_request;
 }
 
-void Server::handle_client(int client_socket) {
+bool Server::check_method(const std::string& method, const std::vector<std::string>& allowed_methods) {
+    return std::find(allowed_methods.begin(), allowed_methods.end(), method) != allowed_methods.end();
+}
+bool Server::handle_client(int client_socket) {
     std::string body = read_request(client_socket);
-    if (body.empty()) {
-        return;
-    }
+    if (body.empty()) 
+        return false;
 
     Response response(client_socket, *this);
     response.request = Request(body);
     std::string method = response.request.getMethod();
     std::string path = response.request.getPath();
+    if(!check_method(method, root_location.allowed_methods))
+        return response.send_error_response(405, "text/html", error_pages[405]) , true;
 
     std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << ", Path: " << path << RESET << std::endl;
 
     if (method == "GET")
         response.handle_get_request(body);
     else if (method == "POST")
+    {
+        if(!check_method(method, upload_location.allowed_methods))
+            return response.send_error_response(405, "text/html", error_pages[405]), true;
         response.handle_post_request(body);
+    }
     else if (method == "DELETE")
         response.handle_delete_request(body);
     else
@@ -157,10 +164,11 @@ void Server::handle_client(int client_socket) {
     partial_requests.erase(client_socket);
 
     close(client_socket);
+    return true;
 }
 void Server::start_server() {
 
-        int poll_count = poll(poll_fds.data(), poll_fds.size(),5);
+        int poll_count = poll(poll_fds.data(), poll_fds.size(),0);
         if (poll_count < 0)
             throw std::runtime_error("Error polling for events");
         for (size_t i = 0; i < poll_fds.size(); ++i) {
@@ -168,7 +176,12 @@ void Server::start_server() {
                 if (std::find(server_sockets.begin(), server_sockets.end(), poll_fds[i].fd) != server_sockets.end())
                     new_connection(poll_fds[i].fd);
                 else 
-                    handle_client(poll_fds[i].fd);
+                    {
+                        if(handle_client(poll_fds[i].fd))
+                            {poll_fds.erase(poll_fds.begin() + i);
+                            i--;
+                            }
+                    }
             }
         }
 }

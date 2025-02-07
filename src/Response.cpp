@@ -174,45 +174,58 @@ void parse_multipart_form_data(const std::string& post_data, const std::string& 
         }
     }
 }
-void Response::handle_post_request( const std::string &body) {
+
+void Response::handle_post_request(const std::string &body) {
     (void) body;
     std::string uploads = server.upload_location.root;
     std::string root = server.root_location.root;
     std::string post_path = root + request.getPath();
-    std::cout << "Post path: " << post_path << std::endl;   
 
+    if (!is_valid_url(request.getPath()))
+        return send_error_response(400, "text/html", server.error_pages[400]), void();
 
-    if(request.getIsMultipart())
+    if (request.getPath().find("..") != std::string::npos)
+        return send_error_response(403, "text/html", server.error_pages[403]), void();
+
+    if (request.getPath().length() > 2048)
+        return send_error_response(414, "text/html", server.error_pages[414]), void();
+
+    std::cout << "Post path: " << post_path << std::endl;
+
+    if (request.getIsMultipart())
         parse_multipart_form_data(body, request.getBoundary(), uploads);
     else
-        return send_error_response(400, "text/html",  server.error_pages[400]), void();
+        return send_error_response(400, "text/html", server.error_pages[400]), void();
 
     std::cout << "Uploaded file: " << uploads << std::endl;
     set_status(200);
     set_content_type("text/html");
     set_body(read_html_file(post_path));
     send_response();
-
 }
-
-
-
 void Response::handle_delete_request(const std::string& body) {
     (void) body;
     std::string root = server.root_location.root;
-    std::string uploads = server.upload_location.root  + request.getPath();
+    std::string uploads = server.upload_location.root + request.getPath();
     std::string delete_path = root + "/delete-success.html";
     std::string delete_error = root + "/delete-failure.html";
+
+    if (!is_valid_url(request.getPath()))
+        return send_error_response(400, "text/html", server.error_pages[400]), void();
+
+    if (request.getPath().find("..") != std::string::npos)
+        return send_error_response(403, "text/html", server.error_pages[403]), void();
+
+    if (request.getPath().length() > 2048)
+        return send_error_response(414, "text/html", server.error_pages[414]), void();
 
     if (!std::filesystem::exists(uploads))
         return send_error_response(404, "text/html", delete_error), void();
 
-    if (remove(uploads.c_str()) != 0) 
+    if (remove(uploads.c_str()) != 0)
         return send_error_response(500, "text/html", delete_error), void();
-
     set_status(200);
     set_content_type("text/html");
     set_body(read_html_file(delete_path));
     send_response();
 }
-

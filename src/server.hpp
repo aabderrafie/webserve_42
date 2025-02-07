@@ -28,9 +28,11 @@ class Server {
         void start_server();
         void new_connection(int server_socket);
         void bind_and_listen();
-        void handle_client(int client_socket);
+        bool handle_client(int client_socket);
         std::string read_request(int client_socket);
         size_t get_content_length(const std::string& request);
+        bool check_method(const std::string& method, const std::vector<std::string>& allowed_methods);
+        
 
 };
 
