@@ -5,16 +5,6 @@
 
 int main() {
     try {
-        std::cout << CYAN << R"(
-╔══════════════════════════════════════════════════════════════╗
-║                                                              ║
-║          )" << PURPLE << "Welcome to the Webserver 42" << CYAN << R"(                         ║
-║                                                              ║
-║          )" << GREEN << "Status: " << YELLOW << "Initializing..." << CYAN << R"(                             ║
-║                                                              ║
-╚══════════════════════════════════════════════════════════════╝
-)" << RESET << std::endl;
-
         Config config;
         std::cout << BLUE << "⚡ Loading configuration..." << RESET << std::endl;
         MultiServer server(config);
