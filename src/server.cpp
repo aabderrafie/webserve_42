@@ -123,11 +123,13 @@ bool Server::handle_client(int client_socket) {
     std::string body = read_request(client_socket);
     if (body.empty())
         return false;
+    std::cout << "Handling client request" << std::endl;
     Response response(client_socket, *this);
     response.request = Request(body);
     std::string method = response.request.getMethod();
     std::string path = response.request.getPath();
     if(!check_method(method, root_location.allowed_methods)) {
+        std::cout << "Method not allowed" << std::endl;
         response.send_error_response(405, "text/html", error_pages[405]);
         close(client_socket);
         return true;
