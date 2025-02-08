@@ -17,14 +17,17 @@ void Server::server_init() {
         int server_socket = socket(AF_INET, SOCK_STREAM, 0);
         if (server_socket < 0)
             throw std::runtime_error("Error creating socket");
+
         struct sockaddr_in server_addr;
         server_addr.sin_family = AF_INET;
         server_addr.sin_port = htons(ports[i]);
         server_addr.sin_addr.s_addr = INADDR_ANY;
         memset(&(server_addr.sin_zero), 0, 8);
+
         struct pollfd server_poll_fd;
         server_poll_fd.fd = server_socket;
         server_poll_fd.events = POLLIN;
+
         poll_fds.push_back(server_poll_fd);
         server_sockets.push_back(server_socket);
         server_addrs.push_back(server_addr);
@@ -75,6 +78,7 @@ void Server::new_connection(int server_socket) {
     client_poll_fd.fd = client_socket;
     client_poll_fd.events = POLLIN;
     poll_fds.push_back(client_poll_fd);
+
     std::cout << BLUE << "[" << current_time() << "] New client connected on socket " << client_socket << RESET << std::endl;
 }
 
@@ -83,10 +87,10 @@ std::unordered_map<int, std::string> partial_requests;
 
 std::string Server::read_request(int client_socket) {
     char buffer[BUFFER_SIZE];
-    int bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, MSG_DONTWAIT);
+    int bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, 0);
 
     if (bytes_received < 0)
-            return "";
+        return "";
 
     if (bytes_received == 0) {
         std::string final_request = partial_requests[client_socket];
@@ -107,8 +111,9 @@ std::string Server::read_request(int client_socket) {
         size_t content_length_end = headers.find("\r\n", content_length_pos);
         int content_length = std::stoi(headers.substr(content_length_pos + 16, content_length_end - content_length_pos - 16));
         size_t total_length = header_end + 4 + content_length;
-        if (partial_requests[client_socket].size() < total_length)
+        if (partial_requests[client_socket].size() < total_length) {
             return "";
+        }
     }
     std::string full_request = partial_requests[client_socket];
     partial_requests.erase(client_socket);
@@ -121,15 +126,16 @@ bool Server::check_method(const std::string& method, const std::vector<std::stri
 }
 bool Server::handle_client(int client_socket) {
     std::string body = read_request(client_socket);
-    if (body.empty())
+    if (body.empty()) {
+        // close(client_socket);
         return false;
-    std::cout << "Handling client request" << std::endl;
+    }
     Response response(client_socket, *this);
     response.request = Request(body);
     std::string method = response.request.getMethod();
     std::string path = response.request.getPath();
+
     if(!check_method(method, root_location.allowed_methods)) {
-        std::cout << "Method not allowed" << std::endl;
         response.send_error_response(405, "text/html", error_pages[405]);
         close(client_socket);
         return true;
@@ -149,10 +155,8 @@ bool Server::handle_client(int client_socket) {
     }
     else if (method == "DELETE")
         response.handle_delete_request(body);
-    else{
-        std::cout << "Method not allowed" << std::endl;
+    else
         response.send_error_response(405, "text/html", error_pages[405]);
-    }
 
     partial_requests.erase(client_socket);
     close(client_socket);

@@ -206,7 +206,9 @@ void Response::handle_post_request(const std::string &body) {
 void Response::handle_delete_request(const std::string& body) {
     (void) body;
     std::string root = server.root_location.root;
+    std::cout << "Root: " << root << std::endl;
     std::string uploads = server.upload_location.root + request.getPath();
+    std::cout << "Uploads: " << uploads << std::endl;
     std::string delete_path = root + "/delete-success.html";
     std::string delete_error = root + "/delete-failure.html";
 
