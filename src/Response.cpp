@@ -42,6 +42,7 @@ std::string Response::read_html_file(const std::string& file_path) {
 }
 
 void Response::send_error_response(int status, const std::string& content_type, const std::string& error_page_path) {
+
     set_status(status);
     set_content_type(content_type);
     set_body(read_html_file(error_page_path));
@@ -56,15 +57,10 @@ void Response::send_response() {
              << "Connection: close\r\n"
              << "\r\n";
     std::string headers = response.str();
-    send(client_socket, headers.c_str(), headers.size(), 0);
+    std::string full_response = headers + body;
 
-    const size_t chunk_size = 1024; 
-    size_t sent = 0;
-    while (sent < body.size()) {
-        size_t to_send = std::min(chunk_size, body.size() - sent);
-        send(client_socket, body.c_str() + sent, to_send, 0);
-        sent += to_send;
-    }
+    if(send(client_socket, full_response.c_str(), full_response.size(), 0) < 0)
+        throw std::runtime_error("Failed to send response");
 }
 void Response::handle_get_request(const std::string &body) {
     (void) body;
@@ -206,9 +202,7 @@ void Response::handle_post_request(const std::string &body) {
 void Response::handle_delete_request(const std::string& body) {
     (void) body;
     std::string root = server.root_location.root;
-    std::cout << "Root: " << root << std::endl;
     std::string uploads = server.upload_location.root + request.getPath();
-    std::cout << "Uploads: " << uploads << std::endl;
     std::string delete_path = root + "/delete-success.html";
     std::string delete_error = root + "/delete-failure.html";
 

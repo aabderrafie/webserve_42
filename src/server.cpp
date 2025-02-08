@@ -134,27 +134,22 @@ bool Server::handle_client(int client_socket) {
     response.request = Request(body);
     std::string method = response.request.getMethod();
     std::string path = response.request.getPath();
-
-    if(!check_method(method, root_location.allowed_methods)) {
-        response.send_error_response(405, "text/html", error_pages[405]);
-        close(client_socket);
-        return true;
-    }
-
     std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << ", Path: " << path << RESET << std::endl;
 
-    if (method == "GET")
+    if(!check_method(method, root_location.allowed_methods))
+     return response.send_error_response(405, "text/html", error_pages[405]) , true;
+    else if (method == "GET")
         response.handle_get_request(body);
     else if (method == "POST") {
-        if(!check_method(method, upload_location.allowed_methods)) {
-            response.send_error_response(405, "text/html", error_pages[405]);
-            close(client_socket);
-            return true;
-        }
+        if(!check_method(method, upload_location.allowed_methods))
+            return response.send_error_response(405, "text/html", error_pages[405]) , true;
         response.handle_post_request(body);
     }
-    else if (method == "DELETE")
+    else if (method == "DELETE"){
+       if(!check_method(method, upload_location.allowed_methods))
+            return response.send_error_response(405, "text/html", error_pages[405]) , true;
         response.handle_delete_request(body);
+    }
     else
         response.send_error_response(405, "text/html", error_pages[405]);
 

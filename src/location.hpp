@@ -12,9 +12,9 @@ public:
         root = "./files/html";
         default_file = "index.html";
         directory_listing = false;
-        allowed_methods.push_back("GET");
-        allowed_methods.push_back("POST");
-        cgi_extensions.push_back(".py");
-        cgi_extensions.push_back(".php");
+        // allowed_methods.push_back("GET");
+        // allowed_methods.push_back("POST");
+        // cgi_extensions.push_back(".py");
+        // cgi_extensions.push_back(".php");
     }
 };
