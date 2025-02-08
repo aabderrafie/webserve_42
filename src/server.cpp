@@ -80,23 +80,151 @@ void parse_multipart_form_data(const std::string& post_data, const std::string& 
 
 
 // Set a file descriptor to non-blocking mode
-void set_non_blocking(int fd) {
-    int flags = fcntl(fd, F_GETFL, 0);
-    if (flags == -1) {
-        perror("fcntl(F_GETFL) failed");
-        exit(1);
-    }
-    if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
-        perror("fcntl(F_SETFL) failed");
-        exit(1);
-    }
-}
+// void set_non_blocking(int fd) {
+//     int flags = fcntl(fd, F_GETFL, 0);
+//     if (flags == -1) {
+//         perror("fcntl(F_GETFL) failed");
+//         exit(1);
+//     }
+//     if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
+//         perror("fcntl(F_SETFL) failed");
+//         exit(1);
+//     }
+// }
+// std::string execute_cgi(const std::string& script_path, const std::string& interpreter,
+//                         const std::string& method, const std::string& query_string,
+//                         const std::string& post_data, const std::string& content_type,
+//                         const std::string& boundary ) 
+// {
+
+//     std::cout << "Executing CGI script: " << script_path << std::endl;
+
+//     std::string uploaded_file;
+//     if (content_type.find("multipart/form-data") != std::string::npos) {
+//         parse_multipart_form_data(post_data, boundary, uploaded_file);
+//     }
+//     std::cout << "Uploaded file: ok"  << std::endl;
+
+//     int pipefd[2];
+//     if (pipe(pipefd) == -1) {
+//         perror("pipe failed");
+//         return "500 Internal Server Error\n";
+//     }
+
+//     int input_pipe[2];  // Pipe for CGI input
+//     if (method == "POST" && pipe(input_pipe) == -1) {
+//         perror("pipe failed");
+//         return "500 Internal Server Error\n";
+//     }
+//         // Set pipes to non-blocking mode
+//     set_non_blocking(input_pipe[1]);
+//     set_non_blocking(pipefd[0]);
+
+//     pid_t pid = fork();
+//       if (pid == 0) {  // Child process
+//         close(pipefd[0]);  // Close unused read end
+//         std::vector<std::string> env_vars = {
+//             "REQUEST_METHOD=" + method,
+//             "QUERY_STRING=" + query_string,
+//             "CONTENT_TYPE=" + content_type,
+//             "CONTENT_LENGTH=" + std::to_string(post_data.length()),
+//             "SCRIPT_FILENAME=" +script_path,
+//             "REDIRECT_STATUS=200",  // Required for PHP-CGI
+//             "UPLOADED_FILE=" + uploaded_file
+//         };
+
+//         std::vector<char*> envp;
+//         for (size_t i = 0; i < env_vars.size(); ++i)
+//             envp.push_back(const_cast<char*>(env_vars[i].c_str()));
+//         envp.push_back(NULL);
+
+//         if (method == "POST") {
+//             close(input_pipe[1]);  // Close write end in child
+//             dup2(input_pipe[0], STDIN_FILENO);
+//             close(input_pipe[0]);  // Close after dup2
+//         }
+// //   std::cout << "body: \n<p>" <<  body <<"<p> <br>"  << std::endl;
+//         dup2(pipefd[1], STDOUT_FILENO);
+//         close(pipefd[1]);
+
+//         // std::cout << "post_data: <p>" << std::endl;
+//         // std::cout<< post_data << "<p> <br>"; 
+//         // std::cout << "body: \n<p>" <<  body <<"<p> <br>"  << std::endl;
+//         std::vector<char*> args;
+//         args.push_back(const_cast<char*>(interpreter.c_str()));
+        
+//         args.push_back(const_cast<char*>(script_path.c_str()));
+//         args.push_back(NULL);
+
+    
+   
+
+
+
+//         execve(interpreter.c_str(), args.data(), envp.data());
+//         perror("execve failed");
+//         exit(1);
+//     }  else if (pid > 0) {  // Parent process
+//         close(pipefd[1]);  // Close unused write end
+
+//         if (method == "POST") {
+//             close(input_pipe[0]);  // Close read end
+//             size_t remaining = post_data.length();
+//             const char* data_ptr = post_data.c_str();
+//             while (remaining > 0) {
+//                 ssize_t result = write(input_pipe[1], data_ptr, std::min(remaining, static_cast<size_t>(BUFFER_SIZE)));
+//                 if (result == -1) {
+//                     if (errno == EAGAIN || errno == EWOULDBLOCK) {
+//                         usleep(1000);
+//                         continue;
+//                     }
+//                     perror("write failed");
+//                     break;
+//                 }
+//                 remaining -= result;
+//                 data_ptr += result;
+//             }
+//             close(input_pipe[1]);  // Signal EOF to CGI
+//         }
+
+//         char buffer[BUFFER_SIZE];
+//         std::string output;
+//         ssize_t bytes_read;
+//         while (true) {
+//             bytes_read = read(pipefd[0], buffer, BUFFER_SIZE - 1);
+//             if (bytes_read == -1) {
+//                 if (errno == EAGAIN || errno == EWOULDBLOCK) {
+//                     usleep(1000);
+//                     continue;
+//                 }
+//                 perror("read failed");
+//                 break;
+//             } else if (bytes_read == 0) {
+//                 break;
+//             }
+//             buffer[bytes_read] = '\0';
+//             output += buffer;
+//         }
+//         close(pipefd[0]);
+
+//         waitpid(pid, NULL, 0);
+
+//         size_t header_end = output.find("\r\n\r\n");
+//         return (header_end != std::string::npos) ? output.substr(header_end + 4) : output;
+//     } else {  // fork() failed
+//         std::cerr << "Fork failed" << std::endl;
+//         return "500 Internal Server Error\n";
+//     }
+//     // return "500 Internal Server Error\n";
+// }
+
+
+
 std::string execute_cgi(const std::string& script_path, const std::string& interpreter,
                         const std::string& method, const std::string& query_string,
                         const std::string& post_data, const std::string& content_type,
                         const std::string& boundary ) 
 {
-
     std::cout << "Executing CGI script: " << script_path << std::endl;
 
     std::string uploaded_file;
@@ -116,12 +244,9 @@ std::string execute_cgi(const std::string& script_path, const std::string& inter
         perror("pipe failed");
         return "500 Internal Server Error\n";
     }
-        // Set pipes to non-blocking mode
-    set_non_blocking(input_pipe[1]);
-    set_non_blocking(pipefd[0]);
 
     pid_t pid = fork();
-      if (pid == 0) {  // Child process
+    if (pid == 0) {  // Child process
         close(pipefd[0]);  // Close unused read end
         std::vector<std::string> env_vars = {
             "REQUEST_METHOD=" + method,
@@ -164,18 +289,23 @@ std::string execute_cgi(const std::string& script_path, const std::string& inter
         execve(interpreter.c_str(), args.data(), envp.data());
         perror("execve failed");
         exit(1);
-    }  else if (pid > 0) {  // Parent process
+    } 
+    else if (pid > 0) {  // Parent process
         close(pipefd[1]);  // Close unused write end
-
-        if (method == "POST") {
+        std::cout << "Parent process" << std::endl;
+        if (method == "POST") 
+        {
             close(input_pipe[0]);  // Close read end
+
             size_t remaining = post_data.length();
+            // std::cout << "Remaining: " << remaining << std::endl;
             const char* data_ptr = post_data.c_str();
             while (remaining > 0) {
-                ssize_t result = write(input_pipe[1], data_ptr, std::min(remaining, static_cast<size_t>(BUFFER_SIZE)));
+                ssize_t result = write(input_pipe[1], data_ptr, remaining);
                 if (result == -1) {
+                    if (errno == EINTR) continue;  // Retry if interrupted by a signal
                     if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                        usleep(1000);
+                        usleep(1000);  // Small delay
                         continue;
                     }
                     perror("write failed");
@@ -190,18 +320,7 @@ std::string execute_cgi(const std::string& script_path, const std::string& inter
         char buffer[BUFFER_SIZE];
         std::string output;
         ssize_t bytes_read;
-        while (true) {
-            bytes_read = read(pipefd[0], buffer, BUFFER_SIZE - 1);
-            if (bytes_read == -1) {
-                if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                    usleep(1000);
-                    continue;
-                }
-                perror("read failed");
-                break;
-            } else if (bytes_read == 0) {
-                break;
-            }
+        while ((bytes_read = read(pipefd[0], buffer, BUFFER_SIZE - 1)) > 0) {
             buffer[bytes_read] = '\0';
             output += buffer;
         }
@@ -211,7 +330,8 @@ std::string execute_cgi(const std::string& script_path, const std::string& inter
 
         size_t header_end = output.find("\r\n\r\n");
         return (header_end != std::string::npos) ? output.substr(header_end + 4) : output;
-    } else {  // fork() failed
+    } 
+    else {  // fork() failed
         std::cerr << "Fork failed" << std::endl;
         return "500 Internal Server Error\n";
     }
@@ -383,7 +503,8 @@ void Server::handle_client(int client_socket) {
     std::string content_type = response.request.getContentType();
     std::string boundary = response.request.getBoundary();
      Server server1;
-     std::cout <<"path"<< path << std::endl;
+     std::cout <<"......path...........:"<< path << std::endl;
+    //  std::cout <<"......hd...........:"<< response.request.getHttpVersion() << std::endl;
 // still wating for the request parsing will done by zouhir 
     std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << RESET << std::endl;
 
@@ -396,10 +517,13 @@ void Server::handle_client(int client_socket) {
             // std::cout<< "\n\n"<< "dot_pos 2 "<<dot_pos<<"\n\n";
             std::string extension = path.substr(dot_pos);
             // std::cout<< "\n\n"<< "extension"<<extension<<"\n\n";
-            if (interpreters.find(extension) != interpreters.end())
+
+
+            std::ifstream file(root_location.root + path, std::ios::binary);
+            if (file.is_open()&&interpreters.find(extension) != interpreters.end())
             {       
                 std::string interpreter = interpreters[extension];
-                std::string script_path = "." + server1.root_location.root + path;
+                std::string script_path = root_location.root + path;
                 std::string cgi_output = execute_cgi(script_path, interpreter, method, query_string, post_data,content_type,boundary) ;
                 // Send the CGI output as the HTTP response
                 std::string response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " + std::to_string(cgi_output.length()) + "\r\n\r\n" + cgi_output;
