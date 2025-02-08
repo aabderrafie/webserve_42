@@ -2,63 +2,28 @@
 #include "config.hpp"
 #include "../config/parsing.hpp"
 
-    Config::Config(){
-        // Example server configuration
-        // Server server1;
+Config::Config(){
+    parser p;
+    p.parse("/home/taha/Documents/Webserv/config/full.conf");
+    servers = initConfig(p.getConfig());
+    printServerDetails();
+}
 
-        // server1.host = "127.0.0.1";
-        // server1.ports.push_back(1337);
-        // server1.ports.push_back(8080);
-        // server1.ports.push_back(80);
-        // server1.server_name = "webserver1234.com";
-        // server1.error_pages[301] = "./files/error_pages/301.html";
-        // server1.error_pages[400] = "./files/error_pages/400.html";
-        // server1.error_pages[403] = "./files/error_pages/403.html";
-        // server1.error_pages[404] = "./files/error_pages/404.html";
-        // server1.error_pages[405] = "./files/error_pages/405.html";
-        // server1.error_pages[409] = "./files/error_pages/409.html";
-        // server1.error_pages[413] = "./files/error_pages/413.html";
-        // server1.error_pages[414] = "./files/error_pages/414.html";
-        // server1.error_pages[500] = "./files/error_pages/500.html";
-        // server1.error_pages[501] = "./files/error_pages/501.html";
-        // server1.root_location.root = "./files/html";
-        // server1.upload_location.root = "./files/uploads";
-        // server1.root_location.default_file = "index.html";
-        // server1.upload_location.allowed_methods.push_back("POST");
-        
-
-        // servers.push_back(server1);
-
-        // Server server2;
-        // server2.host = "127.0.0.1";
-        // server2.ports.push_back(1234);
-        // server2.ports.push_back(42);
-
-
-       
-
-        // server2.server_name = "webserver8080.com";
-        // server2.error_pages[301] = "./files/error_pages/301.html";
-        // server2.error_pages[400] = "./files/error_pages/400.html";
-        // server2.error_pages[403] = "./files/error_pages/403.html";
-        // server2.error_pages[404] = "./files/error_pages/404.html";
-        // server2.error_pages[405] = "./files/error_pages/405.html";
-        // server2.error_pages[409] = "./files/error_pages/409.html";
-        // server2.error_pages[413] = "./files/error_pages/413.html";
-        // server2.error_pages[414] = "./files/error_pages/414.html";
-        // server2.error_pages[500] = "./files/error_pages/500.html";
-        // server2.error_pages[501] = "./files/error_pages/501.html";
-        //  server2.root_location.root = "/var/www/html";
-        // server2.upload_location.root = "/var/www/html/uploads";
-        // server2.root_location.default_file = "success.html";
-
-        // servers.push_back(server2);
-        parser p;
-        p.parse("/home/abderrafie/Desktop/Webserv/config/full.conf");
-        servers = initConfig(p.getConfig());
-        printServerDetails();
+static void printLocationDetails(const Location& location) {
+    std::cout << "    Root: " << location.root << std::endl;
+    std::cout << "    Default File: " << location.default_file << std::endl;
+    std::cout << "    Directory Listing: " << location.directory_listing << std::endl;
+    std::cout << "    Allowed Methods: ";
+    for (const auto& method : location.allowed_methods) {
+        std::cout << method << " ";
     }
-
+    std::cout << std::endl;
+    std::cout << "    CGI Extensions: ";
+    for (const auto& cgi_ext : location.cgi_extensions) {
+        std::cout << cgi_ext << " ";
+    }
+    std::cout << std::endl;
+}
 
 void Config::printServerDetails() const {
     for (const auto& server : servers) {
@@ -69,10 +34,22 @@ void Config::printServerDetails() const {
         }
         std::cout << std::endl;
         std::cout << "Server Name: " << server.server_name << std::endl;
+        std::cout << "Client Max Body Size: " << server.client_max_body_size << std::endl;
         std::cout << "Error Pages: " << std::endl;
-        for (const auto& error_page : server.error_pages) {
-            std::cout << "  " << error_page.first << ": " << error_page.second << std::endl;
+        if (server.error_pages.empty()) {
+            std::cout << "  None" << std::endl;
+        } else {
+            for (const auto& error_page : server.error_pages) {
+                std::cout << "  " << error_page.first << ": " << error_page.second << std::endl;
+            }
         }
+        std::cout << "Locations: " << std::endl;
+        std::cout << "  Root Location: " << std::endl;
+        printLocationDetails(server.root_location);
+        std::cout << "  Upload Location: " << std::endl;
+        printLocationDetails(server.upload_location);
+        std::cout << "  CGI Location: " << std::endl;
+        printLocationDetails(server.cgi_location);
         std::cout << std::endl;
     }
 }

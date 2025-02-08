@@ -94,7 +94,6 @@ std::string Server::read_request(int client_socket) {
     if (bytes_received == 0) {
         std::string final_request = partial_requests[client_socket];
         partial_requests.erase(client_socket);
-        std::cout << "Client disconnected" << std::endl;
         return final_request;
     }
 
