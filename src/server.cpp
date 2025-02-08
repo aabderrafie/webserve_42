@@ -89,15 +89,13 @@ std::string Server::read_request(int client_socket) {
     char buffer[BUFFER_SIZE];
     int bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, MSG_DONTWAIT);
 
-    if (bytes_received < 0) {
-        if (errno == EAGAIN || errno == EWOULDBLOCK) 
-            return ""; 
-        return "";
-    }
+    if (bytes_received < 0)
+            return "";
 
     if (bytes_received == 0) {
         std::string final_request = partial_requests[client_socket];
         partial_requests.erase(client_socket);
+        std::cout << "Connection closed by client" << std::endl;
         return final_request;
     }
 
@@ -105,9 +103,8 @@ std::string Server::read_request(int client_socket) {
     partial_requests[client_socket] += std::string(buffer, bytes_received);
 
     size_t header_end = partial_requests[client_socket].find("\r\n\r\n");
-    if (header_end == std::string::npos) {
+    if (header_end == std::string::npos) 
         return ""; 
-    }
 
     std::string headers = partial_requests[client_socket].substr(0, header_end + 4);
     size_t content_length_pos = headers.find("Content-Length: ");
@@ -115,16 +112,9 @@ std::string Server::read_request(int client_socket) {
         size_t content_length_end = headers.find("\r\n", content_length_pos);
         int content_length = std::stoi(headers.substr(content_length_pos + 16, content_length_end - content_length_pos - 16));
         size_t total_length = header_end + 4 + content_length;
-        if (partial_requests[client_socket].size() < total_length) {
+        if (partial_requests[client_socket].size() < total_length)
             return "";
-        }
-    } else {
-        std::string full_request = partial_requests[client_socket];
-        partial_requests.erase(client_socket);
-        std::cout << "Full request received (no body)" << std::endl;
-        return full_request;
     }
-
     std::string full_request = partial_requests[client_socket];
     partial_requests.erase(client_socket);
     std::cout << "Full request received" << std::endl;
@@ -136,33 +126,38 @@ bool Server::check_method(const std::string& method, const std::vector<std::stri
 }
 bool Server::handle_client(int client_socket) {
     std::string body = read_request(client_socket);
-    if (body.empty()) 
+    if (body.empty())
         return false;
-
     Response response(client_socket, *this);
     response.request = Request(body);
     std::string method = response.request.getMethod();
     std::string path = response.request.getPath();
-    if(!check_method(method, root_location.allowed_methods))
-        return response.send_error_response(405, "text/html", error_pages[405]) , true;
+    if(!check_method(method, root_location.allowed_methods)) {
+        response.send_error_response(405, "text/html", error_pages[405]);
+        close(client_socket);
+        return true;
+    }
 
     std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << ", Path: " << path << RESET << std::endl;
 
     if (method == "GET")
         response.handle_get_request(body);
-    else if (method == "POST")
-    {
-        if(!check_method(method, upload_location.allowed_methods))
-            return response.send_error_response(405, "text/html", error_pages[405]), true;
+    else if (method == "POST") {
+        if(!check_method(method, upload_location.allowed_methods)) {
+            response.send_error_response(405, "text/html", error_pages[405]);
+            close(client_socket);
+            return true;
+        }
         response.handle_post_request(body);
     }
     else if (method == "DELETE")
         response.handle_delete_request(body);
-    else
+    else{
+        std::cout << "Method not allowed" << std::endl;
         response.send_error_response(405, "text/html", error_pages[405]);
+    }
 
     partial_requests.erase(client_socket);
-
     close(client_socket);
     return true;
 }

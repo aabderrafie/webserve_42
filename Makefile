@@ -1,5 +1,5 @@
 CC = c++
-CFLAGS = -Wall -Wextra -Werror -fsanitize=address -g3
+CFLAGS = -Wall -Wextra -Werror  #-fsanitize=address -g3
 NAME = webserver
 
 # Colors and effects
