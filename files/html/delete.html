@@ -65,7 +65,7 @@
 <body>
     <div class="container">
         <h2>Delete File</h2>
-        <form id="deleteForm" action="/delete-file" method="POST">
+        <form id="deleteForm">
             <div class="toggle">
                 <label>
                     <input type="radio" name="fileType" value="withExtension" checked> With Extension
@@ -74,8 +74,8 @@
                     <input type="radio" name="fileType" value="withoutExtension"> Without Extension
                 </label>
             </div>
-            <input type="text" id="fileName" name="fileName" placeholder="Enter file name" required>
-            <select id="fileExtension" name="fileExtension" style="display:block;">
+            <input type="text" id="fileName" placeholder="Enter file name" required>
+            <select id="fileExtension" style="display:block;">
                 <option value=".txt">txt</option>
                 <option value=".pdf">pdf</option>
                 <option value=".docx">docx</option>
@@ -86,5 +86,50 @@
         </form>
         <div id="responseMessage" class="response-message"></div>
     </div>
+
+    <script>
+        const fileExtensionSelect = document.getElementById('fileExtension');
+        const fileTypeRadios = document.querySelectorAll('input[name="fileType"]');
+        const deleteForm = document.getElementById('deleteForm');
+        const responseMessage = document.getElementById('responseMessage');
+
+        fileTypeRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                fileExtensionSelect.style.display = 
+                    this.value === 'withExtension' ? 'block' : 'none';
+            });
+        });
+
+        deleteForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const fileName = document.getElementById('fileName').value;
+            const fileType = document.querySelector('input[name="fileType"]:checked').value;
+            
+            let fullFileName;
+            if (fileType === 'withExtension') {
+                const fileExtension = document.getElementById('fileExtension').value;
+                fullFileName = fileName + fileExtension;
+            } else {
+                fullFileName = fileName;
+            }
+
+            fetch(`${fullFileName}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.text();
+                } else {
+                    throw new Error('Failed to delete file.');
+                }
+            })
+            .then(html => {
+                document.body.innerHTML = html;
+            })
+            .catch(error => {
+                window.location.href = 'delete-failure.html';
+            });
+        });
+    </script>
 </body>
 </html>

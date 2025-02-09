@@ -152,27 +152,20 @@ bool Server::handle_client(int client_socket) {
     std::string body = read_request(client_socket);
     if (body.empty())
         return false;
-
     Response response(client_socket, *this);
     response.request = Request(body);
-
     std::string method = response.request.getMethod();
-
     std::string uri = response.request.getPath();
     std::string root_uri = locations[uri].root;
-std::cout << "Method: " << method << std::endl;
+    std::string path = root_uri + uri;
+
+std::cout << "PATH: " << path << std::endl;
 std::cout << "URI: " << uri << std::endl;
-std::cout << "Root URI: " << root_uri << std::endl;
-std::string path = root_uri + uri;
-std::cout << "PA   TH: " << path << std::endl;
     if (isDirectory(path)) {
-        std::cout << "Directory found" << std::endl;
         if (!check_method(method, locations[uri].allowed_methods)) 
             return response.send_error_response(405, "text/html", error_pages[405]), true;
-            
-
         if (locations[uri].directory_listing)
-            return response.list_directory_contents(root_uri), true;
+            return response.list_directory_contents(path), true;
         else {
             if (!path.empty() && path.back() != '/')
                 path += '/';
@@ -184,30 +177,19 @@ std::cout << "PA   TH: " << path << std::endl;
         if (path.empty() || path.back() == '/')
             path += locations[uri].default_file;
     }
- 
-
 
     std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << ", Path: " << uri << RESET << std::endl;
 
+    response.check_error(path);
 
-    // Check if the path is valid and if the file exists....
-    response.check_error();
-
-
-    std::cout << "Path: " << path << std::endl;
-    if (method == "GET") {
+    if (method == "GET")
         response.handle_get_request(path);
-    } else if (method == "POST") {
-        if (!check_method(method, locations[root_uri].allowed_methods))
-            return response.send_error_response(405, "text/html", error_pages[405]), true;
-        response.handle_post_request(body);
-    } else if (method == "DELETE") {
-        if (!check_method(method, locations[root_uri].allowed_methods))
-            return response.send_error_response(405, "text/html", error_pages[405]), true;
-        response.handle_delete_request(body);
-    } else {
+    else if (method == "POST")
+        response.handle_post_request(path);
+     else if (method == "DELETE") 
+        response.handle_delete_request(path);
+     else 
         response.send_error_response(405, "text/html", error_pages[405]);
-    }
     
     partial_requests.erase(client_socket);
     close(client_socket);
