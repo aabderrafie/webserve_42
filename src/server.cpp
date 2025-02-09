@@ -2,6 +2,143 @@
 #include <ctime>
 
 
+#include <limits.h>
+#include <sys/wait.h>
+
+std::map<std::string, std::string> interpreters =  {
+    {".php", "/usr/bin/php-cgi"},
+    {".py", "/usr/bin/python3"},
+    {".sh", "/bin/bash"}
+};
+
+
+
+
+
+
+
+
+std::string Request::execute_cgi(const std::string& interpreter ,Response& response, std::string root_cgi) 
+{
+    std::cout << "Executing CGI script: " << path << std::endl;
+
+    std::string uploaded_file;
+    if (isMultipart)
+    {
+        response.upload_file(uploaded_file);
+        std::cout << "Uploaded file: ok"  << std::endl;
+    }
+    // std::cout << "interpreter" <<interpreter << std::endl;
+  std::string path_ = root_cgi + this->path;
+        // std::cout << "path_: " << path_ << std::endl;
+
+    int pipefd[2];
+    if (pipe(pipefd) == -1) {
+        perror("pipe failed");
+        return "500 Internal Server Error\n";
+    }
+
+    int input_pipe[2];  // Pipe for CGI input
+    if (method == "POST" && pipe(input_pipe) == -1) {
+        perror("pipe failed");
+        return "500 Internal Server Error\n";
+    }
+
+    pid_t pid = fork();
+    if (pid == 0) {  // Child process
+        close(pipefd[0]);  // Close unused read end
+        std::vector<std::string> env_vars = {
+            "REQUEST_METHOD=" + method,
+            "QUERY_STRING=" + query_string,
+            "CONTENT_TYPE=" + content_type,
+            "CONTENT_LENGTH=" + std::to_string(post_data.length()),
+            "SCRIPT_FILENAME=" + path_,
+            "REDIRECT_STATUS=200",  // Required for PHP-CGI
+            "UPLOADED_FILE=" + uploaded_file
+        };
+
+        std::vector<char*> envp;
+        for (size_t i = 0; i < env_vars.size(); ++i)
+            envp.push_back(const_cast<char*>(env_vars[i].c_str()));
+        envp.push_back(NULL);
+
+        if (method == "POST") {
+            close(input_pipe[1]);  // Close write end in child
+            dup2(input_pipe[0], STDIN_FILENO);
+            close(input_pipe[0]);  // Close after dup2
+        }
+//   std::cout << "body: \n<p>" <<  body <<"<p> <br>"  << std::endl;
+        dup2(pipefd[1], STDOUT_FILENO);
+        close(pipefd[1]);
+
+        // std::cout << "post_data: <p>" << std::endl;
+        // std::cout<< post_data << "<p> <br>"; 
+        // std::cout << "body: \n<p>" <<  body <<"<p> <br>"  << std::endl;
+        std::vector<char*> args;
+        args.push_back(const_cast<char*>(interpreter.c_str()));
+        // std::string path_ = root_cgi + this->path;
+        // std::cout << "path_: " << path_ << std::endl;
+        args.push_back(const_cast<char*>(path_.c_str()));
+        args.push_back(NULL);
+
+    
+   
+
+        
+
+
+        execve(interpreter.c_str(), args.data(), envp.data());
+        perror("execve failed");
+        exit(1);
+    } 
+    else if (pid > 0) {  // Parent process
+        close(pipefd[1]);  // Close unused write end
+        std::cout << "Parent process" << std::endl;
+        if (method == "POST") 
+        {
+            close(input_pipe[0]);  // Close read end
+
+            size_t remaining = post_data.length();
+            // std::cout << "Remaining: " << remaining << std::endl;
+            const char* data_ptr = post_data.c_str();
+            while (remaining > 0) {
+                ssize_t result = write(input_pipe[1], data_ptr, remaining);
+                if (result == -1) {
+                    if (errno == EINTR) continue;  // Retry if interrupted by a signal
+                    if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                        usleep(1000);  // Small delay
+                        continue;
+                    }
+                    perror("write failed");
+                    break;
+                }
+                remaining -= result;
+                data_ptr += result;
+            }
+            close(input_pipe[1]);  // Signal EOF to CGI
+        }
+
+        char buffer[BUFFER_SIZE];
+        std::string output;
+        ssize_t bytes_read;
+        while ((bytes_read = read(pipefd[0], buffer, BUFFER_SIZE - 1)) > 0) {
+            buffer[bytes_read] = '\0';
+            output += buffer;
+        }
+        close(pipefd[0]);
+
+        waitpid(pid, NULL, 0);
+
+        size_t header_end = output.find("\r\n\r\n");
+        return (header_end != std::string::npos) ? output.substr(header_end + 4) : output;
+    } 
+    else {  // fork() failed
+        std::cerr << "Fork failed" << std::endl;
+        return "500 Internal Server Error\n";
+    }
+    // return "500 Internal Server Error\n";
+}
+
 
 std::string current_time() {
     std::time_t now = std::time(nullptr);
@@ -118,6 +255,34 @@ std::string Server::read_request(int client_socket) {
 bool Server::check_method(const std::string& method, const std::vector<std::string>& allowed_methods) {
     return std::find(allowed_methods.begin(), allowed_methods.end(), method) != allowed_methods.end();
 }
+
+//zouhir add this
+bool Server::is_cgi(std::string path,std::string &extension)
+{
+    size_t dot_pos = path.find_last_of('.');
+    // std::cout << "dot_pos: " << dot_pos << std::endl;
+    // std::cout << "path: " << path << std::endl;
+    if(dot_pos < path.length())
+    {
+        // std::string extension = path.substr(dot_pos);//<<
+        extension = path.substr(dot_pos);
+        std::ifstream file(this->locations["/cgi-bin"].root + path, std::ios::binary);
+        // std::cout << "cgi_location.root"<< cgi_location.root + path << std::endl;
+        return (file.is_open()&&interpreters.find(extension) != interpreters.end());
+    }
+    return false;
+}
+//zouhir add this
+void Server::send_cgi(std::string extension, std::string path, int client_socket, Response& response)
+{
+    std::string interpreter = interpreters[extension];
+    std::string script_path = this->locations["/cgi-bin"].root + path;
+    std::string cgi_output = response.request.execute_cgi(interpreter, response, this->locations["/cgi-bin"].root);
+    std::string response_ = response.request.getHttpVersion() + " 200 OK\r\nContent-Type: text/html\r\nContent-Length: " + std::to_string(cgi_output.length()) + "\r\n\r\n" + cgi_output;
+    send(client_socket, response_.c_str(), response_.length(), 0);
+}
+
+
 bool Server::handle_client(int client_socket) {
     std::string body = read_request(client_socket);
     if (body.empty())
@@ -134,23 +299,34 @@ bool Server::handle_client(int client_socket) {
     }
 
     std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << ", Path: " << path << RESET << std::endl;
-
-    if (method == "GET")
-        response.handle_get_request(body);
-    else if (method == "POST") {
-        if(!check_method(method, locations["/upload"].allowed_methods)) {
-            response.send_error_response(405, "text/html", error_pages[405]);
-            close(client_socket);
-            return true;
+//zouhir add this 
+    std::string extension;
+    if (is_cgi(path,extension))
+    {
+        std::cout << "CGI script detected" << std::endl;
+        send_cgi(extension, path, client_socket, response);
+    }
+    else
+    {
+        if (method == "GET")
+            response.handle_get_request(body);
+        else if (method == "POST") {
+            if(!check_method(method, this->locations["/upload"].allowed_methods)) {
+                response.send_error_response(405, "text/html", error_pages[405]);
+                close(client_socket);
+                return true;
+            }
+            response.handle_post_request(body);
         }
-        response.handle_post_request(body);
+        else if (method == "DELETE")
+            response.handle_delete_request(body);
+        else{
+            std::cout << "Method not allowed" << std::endl;
+            response.send_error_response(405, "text/html", error_pages[405]);
+        }
     }
-    else if (method == "DELETE")
-        response.handle_delete_request(body);
-    else{
-        std::cout << "Method not allowed" << std::endl;
-        response.send_error_response(405, "text/html", error_pages[405]);
-    }
+
+
 
     partial_requests.erase(client_socket);
     close(client_socket);
