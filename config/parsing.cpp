@@ -55,7 +55,7 @@ block parser::parseBlock(std::vector<Token>::iterator& current, std::vector<Toke
 			break;
 		if (current->type == "directive") {
 			handleDirective(ret, current);
-		} else if (current->type == "block" || current->type == "block/" || current->type == "block/upload" || current->type == "block/cgi-bin") {
+		} else if (current->type == "block") {
 			if (current->value == "location" && ret.block_name == "server") {
 				ret.recursive_blocks.push_back(parseBlock(current, end));
 			} else {
@@ -368,13 +368,7 @@ Server configureServer( block& ref ) {
 		}
 	}
 	for (std::vector<block>::iterator it2 = ref.recursive_blocks.begin(); it2 != ref.recursive_blocks.end(); ++it2) {
-		if (it2->block_name == "/") {
-			configureLocation(*it2, serv.root_location);
-		} if (it2->block_name == "/upload") {
-			configureLocation(*it2, serv.upload_location);
-		} if (it2->block_name == "/cgi-bin") {
-			configureLocation(*it2, serv.cgi_location);
-		}
+			configureLocation(*it2, serv.locations[it2->block_name]);
 	}
 	return serv;
 }
@@ -384,6 +378,29 @@ std::vector<Server> initConfig( std::vector<block> blocks ) {
 	for (std::vector<block>::iterator it = blocks.begin(); it != blocks.end(); ++it) {
 		Server serv;
 		servers.push_back(configureServer(*it));
+	}
+	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it) {
+		if (it->locations.find("/") == it->locations.end()) {
+			Location loc;
+			loc.root = "./file/html";
+			loc.default_file = "index.html";
+			loc.directory_listing = false;
+			it->locations["/"] = loc;
+		}
+		if (it->locations.find("/upload") == it->locations.end()) {
+			Location loc;
+			loc.root = "./file/html/upload";
+			loc.default_file = "index.html";
+			loc.directory_listing = false;
+			it->locations["/upload"] = loc;
+		}
+		if (it->locations.find("/cgi-bin") == it->locations.end()) {
+			Location loc;
+			loc.root = "./file/html/cgi-bin";
+			loc.default_file = "index.html";
+			loc.directory_listing = false;
+			it->locations["/cgi-bin"] = loc;
+		}
 	}
 	return servers;
 }

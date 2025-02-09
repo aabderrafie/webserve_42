@@ -112,7 +112,6 @@ std::string Server::read_request(int client_socket) {
     }
     std::string full_request = partial_requests[client_socket];
     partial_requests.erase(client_socket);
-    std::cout << "Full request received" << std::endl;
     return full_request;
 }
 
@@ -123,12 +122,11 @@ bool Server::handle_client(int client_socket) {
     std::string body = read_request(client_socket);
     if (body.empty())
         return false;
-    std::cout << "Handling client request" << std::endl;
     Response response(client_socket, *this);
     response.request = Request(body);
     std::string method = response.request.getMethod();
     std::string path = response.request.getPath();
-    if(!check_method(method, root_location.allowed_methods)) {
+    if(!check_method(method, locations["/"].allowed_methods)) {
         std::cout << "Method not allowed" << std::endl;
         response.send_error_response(405, "text/html", error_pages[405]);
         close(client_socket);
@@ -140,7 +138,7 @@ bool Server::handle_client(int client_socket) {
     if (method == "GET")
         response.handle_get_request(body);
     else if (method == "POST") {
-        if(!check_method(method, upload_location.allowed_methods)) {
+        if(!check_method(method, locations["/upload"].allowed_methods)) {
             response.send_error_response(405, "text/html", error_pages[405]);
             close(client_socket);
             return true;
