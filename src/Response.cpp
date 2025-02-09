@@ -141,8 +141,10 @@ void Response::create_user(const std::map<std::string, std::string>& data, const
        std::cerr << RED << "Unable to create user file" << RESET << std::endl;
 }
 
-void parse_multipart_form_data(const std::string& post_data, const std::string& boundary, std::string& uploaded_file_path) 
+void Response::upload_file(std::string& uploaded_file_path) 
 {
+    std::string post_data = request.getPostData();//body>>
+    std::string boundary = request.getBoundary();
 
     size_t pos = 0;
     while ((pos = post_data.find(boundary, pos)) != std::string::npos) {
@@ -193,7 +195,7 @@ void Response::handle_post_request(const std::string &body) {
     std::cout << "Post path: " << post_path << std::endl;
 
     if (request.getIsMultipart())
-        parse_multipart_form_data(body, request.getBoundary(), uploads);
+        upload_file(uploads);
     else
         return send_error_response(400, "text/html", server.error_pages[400]), void();
 

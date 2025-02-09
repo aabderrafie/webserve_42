@@ -10,6 +10,8 @@ class Server {
     private:
     bool is_data_received = false;
     public:
+        bool is_cgi(std::string path, std::string &extension);// zouhir add this
+        void send_cgi(std::string extension, std::string path, int client_socket, Response& response);//zouhir add this
         std::vector<int> server_sockets;
         std::vector<struct sockaddr_in> server_addrs;
         std::vector<struct pollfd> poll_fds;
