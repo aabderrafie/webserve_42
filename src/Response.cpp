@@ -32,6 +32,60 @@ bool Response::is_directory(const std::string &url) {
     return S_ISDIR(file_stat.st_mode);
 }
 
+
+#include <fstream>
+#include <sstream>
+
+void Response::list_directory_contents(const std::string& dir_path) {
+    DIR* dir;
+    struct dirent* ent;
+    std::string html_template;
+    std::ifstream template_file("./files/html/directory.html");
+
+    if (template_file.is_open()) {
+        std::stringstream buffer;
+        buffer << template_file.rdbuf();
+        html_template = buffer.str();
+        template_file.close();
+    } else {
+        send_error_response(500, "text/html", server.error_pages[500]);
+        return;
+    }
+
+    std::string directory_items;
+    if ((dir = opendir(dir_path.c_str())) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            std::string name = ent->d_name;
+    
+            if (name != "." && name != "..") {
+                directory_items += "<li><a href='";
+                directory_items += name;
+                directory_items += "'>";
+                directory_items += name;
+                directory_items += "</a></li>";
+            }
+        }
+        closedir(dir); 
+    } else {
+        send_error_response(500, "text/html", server.error_pages[500]);
+        return;
+    }
+
+    size_t pos;
+    while ((pos = html_template.find("{DIRECTORY_PATH}")) != std::string::npos) {
+        html_template.replace(pos, 15, dir_path);
+    }
+    while ((pos = html_template.find("{DIRECTORY_ITEMS}")) != std::string::npos) {
+        html_template.replace(pos, 16, directory_items);
+    }
+
+    set_status(200);
+    set_content_type("text/html");
+    set_body(html_template);
+    send_response();
+    std::cout << "Directory listing sent" << std::endl;
+}
+
 std::string Response::read_html_file(const std::string& file_path) {
     std::ifstream file(file_path.c_str());
     if (!file.is_open()) 

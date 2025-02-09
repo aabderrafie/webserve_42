@@ -161,14 +161,25 @@ bool Server::handle_client(int client_socket) {
     std::string path = response.request.getPath();
 
     std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << ", Path: " << path << RESET << std::endl;
-   std::string dir = root_location.root + path;
+    std::string dir = root_location.root + path;
 
-    if (isDirectory(dir) && path.compare(path.size() - 1, 1, "/") != 0) {
-        if (path.back() != '/')
-            path += '/';
-        path += "index.html";
-        }
-        
+    if (isDirectory(dir)) {
+        if (path.compare(path.size() - 1, 1, "/") != 0) 
+      {
+        if (root_location.directory_listing) 
+            return response.list_directory_contents(dir), true;
+      }
+
+
+        // if (!root_location.directory_listing) {
+        //     // If directory listing is off, append "index.html" to the path
+        //     path += "index.html";
+        // } else {
+        //     // If directory listing is on, list the directory contents
+            return response.list_directory_contents(dir), true;
+        // }
+    }
+
     if (!check_method(method, root_location.allowed_methods)) {
         return response.send_error_response(405, "text/html", error_pages[405]), true;
     }
@@ -184,8 +195,9 @@ bool Server::handle_client(int client_socket) {
         if (!check_method(method, upload_location.allowed_methods)) 
             return response.send_error_response(405, "text/html", error_pages[405]), true;
         response.handle_delete_request(body);
-    } else 
+    } else {
         response.send_error_response(405, "text/html", error_pages[405]);
+    }
     
     partial_requests.erase(client_socket);
     close(client_socket);
