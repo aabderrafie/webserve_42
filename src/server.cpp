@@ -37,6 +37,31 @@ Server::~Server() {
     // std::cout << RED << "[" << current_time() << "] Server shutting down..." << RESET << std::endl;
 }
 
+#include <dirent.h>
+#include <sys/stat.h>
+
+#include <sys/stat.h>
+#include <string>
+
+bool isDirectory(const std::string& path) {
+    struct stat statbuf;
+    if (stat(path.c_str(), &statbuf) != 0) 
+        return false;
+    
+    return S_ISDIR(statbuf.st_mode);
+}
+
+// Method to list files in a directory (optional, for debugging or listing purposes)
+std::vector<std::string> list_files(const std::string& directory) {
+    std::vector<std::string> files;
+    DIR* dirp = opendir(directory.c_str());
+    struct dirent* dp;
+    while ((dp = readdir(dirp)) != nullptr) {
+        files.push_back(dp->d_name);
+    }
+    closedir(dirp);
+    return files;
+}
 
 void Server::bind_and_listen() {
     for (size_t i = 0; i < server_sockets.size(); ++i) {
@@ -126,33 +151,42 @@ bool Server::check_method(const std::string& method, const std::vector<std::stri
 }
 bool Server::handle_client(int client_socket) {
     std::string body = read_request(client_socket);
-    if (body.empty()) {
-        // close(client_socket);
+    if (body.empty())
         return false;
-    }
+
     Response response(client_socket, *this);
     response.request = Request(body);
+
     std::string method = response.request.getMethod();
     std::string path = response.request.getPath();
+
     std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << ", Path: " << path << RESET << std::endl;
+   std::string dir = root_location.root + path;
 
-    if(!check_method(method, root_location.allowed_methods))
-     return response.send_error_response(405, "text/html", error_pages[405]) , true;
-    else if (method == "GET")
-        response.handle_get_request(body);
-    else if (method == "POST") {
-        if(!check_method(method, upload_location.allowed_methods))
-            return response.send_error_response(405, "text/html", error_pages[405]) , true;
+    if (isDirectory(dir) && path.compare(path.size() - 1, 1, "/") != 0) {
+        if (path.back() != '/')
+            path += '/';
+        path += "index.html";
+        }
+        
+    if (!check_method(method, root_location.allowed_methods)) {
+        return response.send_error_response(405, "text/html", error_pages[405]), true;
+    }
+
+    // Handle the request based on the method
+    if (method == "GET") {
+        response.handle_get_request(path);
+    } else if (method == "POST") {
+        if (!check_method(method, upload_location.allowed_methods)) 
+            return response.send_error_response(405, "text/html", error_pages[405]), true;
         response.handle_post_request(body);
-    }
-    else if (method == "DELETE"){
-       if(!check_method(method, upload_location.allowed_methods))
-            return response.send_error_response(405, "text/html", error_pages[405]) , true;
+    } else if (method == "DELETE") {
+        if (!check_method(method, upload_location.allowed_methods)) 
+            return response.send_error_response(405, "text/html", error_pages[405]), true;
         response.handle_delete_request(body);
-    }
-    else
+    } else 
         response.send_error_response(405, "text/html", error_pages[405]);
-
+    
     partial_requests.erase(client_socket);
     close(client_socket);
     return true;

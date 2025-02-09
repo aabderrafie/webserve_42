@@ -62,11 +62,10 @@ void Response::send_response() {
     if(send(client_socket, full_response.c_str(), full_response.size(), 0) < 0)
         throw std::runtime_error("Failed to send response");
 }
-void Response::handle_get_request(const std::string &body) {
-    (void) body;
+void Response::handle_get_request(const std::string &uri) {
+    std::cout << "URI: " << uri << std::endl;
     std::string root = server.root_location.root;
-    std::string uri = request.getPath();
-    
+        std::cout << "Root: " << root << std::endl;
     if (!is_valid_url(uri))
        return  send_error_response(400, "text/html", server.error_pages[400]), void();
 
