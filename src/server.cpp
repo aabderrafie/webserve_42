@@ -18,16 +18,16 @@
 
 
 
-std::string Request::execute_cgi(const std::string& interpreter ,Response& response, std::string root_cgi) 
+std::string Request::execute_cgi(const std::string& interpreter , std::string root_cgi) 
 {
     std::cout << "Executing CGI script: " << path << std::endl;
 
-    std::string uploaded_file;
-    if (isMultipart)
-    {
-        response.upload_file(uploaded_file);
-        std::cout << "Uploaded file: ok"  << std::endl;
-    }
+    // std::string uploaded_file;
+    // if (isMultipart)
+    // {
+    //     response.upload_file(uploaded_file);
+    //     std::cout << "Uploaded file: ok"  << std::endl;
+    // }
     // std::cout << "interpreter" <<interpreter << std::endl;
   std::string path_ = root_cgi + this->path;
         // std::cout << "path_: " << path_ << std::endl;
@@ -53,8 +53,8 @@ std::string Request::execute_cgi(const std::string& interpreter ,Response& respo
             "CONTENT_TYPE=" + content_type,
             "CONTENT_LENGTH=" + std::to_string(post_data.length()),
             "SCRIPT_FILENAME=" + path_,
-            "REDIRECT_STATUS=200",  // Required for PHP-CGI
-            "UPLOADED_FILE=" + uploaded_file
+            "REDIRECT_STATUS=200"  // Required for PHP-CGI
+            // "UPLOADED_FILE=" + uploaded_file
         };
 
         std::vector<char*> envp;
@@ -277,7 +277,7 @@ void Server::send_cgi(std::string extension, std::string path, int client_socket
 {
     std::string interpreter = this->locations["/cgi-bin"].cgi[extension];
     std::string script_path = this->locations["/cgi-bin"].root + path;
-    std::string cgi_output = response.request.execute_cgi(interpreter, response, this->locations["/cgi-bin"].root);
+    std::string cgi_output = response.request.execute_cgi(interpreter, this->locations["/cgi-bin"].root);
     std::string response_ = response.request.getHttpVersion() + " 200 OK\r\nContent-Type: text/html\r\nContent-Length: " + std::to_string(cgi_output.length()) + "\r\n\r\n" + cgi_output;
     send(client_socket, response_.c_str(), response_.length(), 0);
 }

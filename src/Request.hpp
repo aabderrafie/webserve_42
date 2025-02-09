@@ -23,7 +23,7 @@ class Request {
         
 
     public:
-        std::string execute_cgi(const std::string& interpreter ,Response& response, std::string root_cgi);//zouhir add this function
+        std::string execute_cgi(const std::string& interpreter , std::string root_cgi);//zouhir add this function
         Request(){};
         Request(const string &body);
         void parseRequestLine(const string& line);
