@@ -5,11 +5,11 @@
 #include <limits.h>
 #include <sys/wait.h>
 
-std::map<std::string, std::string> interpreters =  {
-    {".php", "/usr/bin/php-cgi"},
-    {".py", "/usr/bin/python3"},
-    {".sh", "/bin/bash"}
-};
+// std::map<std::string, std::string> interpreters =  {
+//     {".php", "/usr/bin/php-cgi"},
+//     {".py", "/usr/bin/python3"},
+//     {".sh", "/bin/bash"}
+// };
 
 
 
@@ -268,14 +268,14 @@ bool Server::is_cgi(std::string path,std::string &extension)
         extension = path.substr(dot_pos);
         std::ifstream file(this->locations["/cgi-bin"].root + path, std::ios::binary);
         // std::cout << "cgi_location.root"<< cgi_location.root + path << std::endl;
-        return (file.is_open()&&interpreters.find(extension) != interpreters.end());
+        return (file.is_open()&&this->locations["/cgi-bin"].cgi.find(extension) != this->locations["/cgi-bin"].cgi.end());
     }
     return false;
 }
 //zouhir add this
 void Server::send_cgi(std::string extension, std::string path, int client_socket, Response& response)
 {
-    std::string interpreter = interpreters[extension];
+    std::string interpreter = this->locations["/cgi-bin"].cgi[extension];
     std::string script_path = this->locations["/cgi-bin"].root + path;
     std::string cgi_output = response.request.execute_cgi(interpreter, response, this->locations["/cgi-bin"].root);
     std::string response_ = response.request.getHttpVersion() + " 200 OK\r\nContent-Type: text/html\r\nContent-Length: " + std::to_string(cgi_output.length()) + "\r\n\r\n" + cgi_output;
