@@ -104,8 +104,10 @@ void Response::send_error_response(int status, const std::string& content_type, 
 }
 
 void Response::send_response() {
+    std::cout << "sending response" << std::endl;
     std::ostringstream response;
     response << "HTTP/1.1 " << status << "\r\n"
+             << "Set-Cookie: session_id=1738862053; Path=/; HttpOnly" << "\r\n"
              << "Content-Type: " << content_type << "\r\n"
              << "Content-Length: " << body.size() << "\r\n"
              << "Connection: close\r\n"
@@ -116,28 +118,32 @@ void Response::send_response() {
     if(send(client_socket, full_response.c_str(), full_response.size(), 0) < 0)
         throw std::runtime_error("Failed to send response");
 }
-void Response::handle_get_request(const std::string &uri) {
-    std::cout << "URI: " << uri << std::endl;
-    std::string root = server.root_location.root;
-        std::cout << "Root: " << root << std::endl;
-    if (!is_valid_url(uri))
+
+void Response::check_error(){
+    std::string root = server.locations["/"].root;
+    std::string path = request.getPath();
+        if (!is_valid_url(path))
        return  send_error_response(400, "text/html", server.error_pages[400]), void();
 
-    if (uri.find("..") != std::string::npos)
+    if (path.find("..") != std::string::npos)
         return send_error_response(403, "text/html", server.error_pages[403]), void();
     
-    if (uri.length() > 2048)
+    if (path.length() > 2048)
         return send_error_response(414, "text/html", server.error_pages[414]), void();
-
-    std::string path = root + uri;
+     path = root + path;
     std::ifstream file(path.c_str(), std::ios::binary);
     if (!file.is_open() ) 
        return send_error_response(404, "text/html", server.error_pages[404]), void();
+    else    
+        return;
+}
 
-    path += (path.back() == '/') ? server.root_location.default_file : "";
+
+void Response::handle_get_request(const std::string &uri) {
     set_status(200);
-    set_content_type(mime_types.get_mime_type(path));
-    set_body(read_html_file(path));
+    set_content_type(mime_types.get_mime_type(uri));
+    set_body(read_html_file(uri));
+    std::cout << "recived request from session_id: " << std::endl;
     send_response();
  }
 
@@ -226,8 +232,8 @@ void parse_multipart_form_data(const std::string& post_data, const std::string& 
 
 void Response::handle_post_request(const std::string &body) {
     (void) body;
-    std::string uploads = server.upload_location.root;
-    std::string root = server.root_location.root;
+    std::string uploads = server.locations["/upload"].root;
+    std::string root = server.locations["/"].root;
     std::string post_path = root + request.getPath();
 
     if (!is_valid_url(request.getPath()))
@@ -238,8 +244,6 @@ void Response::handle_post_request(const std::string &body) {
 
     if (request.getPath().length() > 2048)
         return send_error_response(414, "text/html", server.error_pages[414]), void();
-
-    std::cout << "Post path: " << post_path << std::endl;
 
     if (request.getIsMultipart())
         parse_multipart_form_data(body, request.getBoundary(), uploads);
@@ -254,8 +258,8 @@ void Response::handle_post_request(const std::string &body) {
 }
 void Response::handle_delete_request(const std::string& body) {
     (void) body;
-    std::string root = server.root_location.root;
-    std::string uploads = server.upload_location.root + request.getPath();
+    std::string root = server.locations["/"].root;
+    std::string uploads = server.locations["/upload"].root + request.getPath();
     std::string delete_path = root + "/delete-success.html";
     std::string delete_error = root + "/delete-failure.html";
 

@@ -33,6 +33,7 @@ class Response {
         void handle_delete_request(const std::string& body);
         void create_user(const std::map<std::string, std::string>& data, const std::string& uploads);
         void list_directory_contents(const std::string& dir_path);
+        void check_error();
 
         ~Response();
 };

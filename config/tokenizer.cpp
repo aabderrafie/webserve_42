@@ -42,15 +42,9 @@ void Tokenizer::tokenize(const std::string& configContent) {
         token.value = *it;
         if (*it == "{" || *it == "}" || *it == ";") {
             token.type = "symbol";
-        } else if (*it == "server" || (*it == "location" && (*(it+1) == "/" || *(it+1) == "/upload" || *(it+1) == "/cgi-bin"))) {
-            if (*(it+1) == "/")
-                token.type = "block/";
-            else if (*(it+1) == "/upload")
-                token.type = "block/upload";
-            else if (*(it+1) == "/cgi-bin")
-                token.type = "block/cgi-bin";
-            else 
-                token.type = "block";
+        // } else if (*it == "server" || (*it == "location" && (*(it+1) == "/" || *(it+1) == "/upload" || *(it+1) == "/cgi-bin"))) {
+        } else if (*it == "server" || *it == "location") {
+            token.type = "block";
         } else if (delayed == "symbol" && (*it == "listen"
                 || *it == "host"
                 || *it == "port" 

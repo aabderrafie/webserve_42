@@ -142,7 +142,6 @@ std::string Server::read_request(int client_socket) {
     }
     std::string full_request = partial_requests[client_socket];
     partial_requests.erase(client_socket);
-    std::cout << "Full request received" << std::endl;
     return full_request;
 }
 
@@ -158,41 +157,52 @@ bool Server::handle_client(int client_socket) {
     response.request = Request(body);
 
     std::string method = response.request.getMethod();
-    std::string path = response.request.getPath();
 
-    std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << ", Path: " << path << RESET << std::endl;
-    std::string dir = root_location.root + path;
+    std::string uri = response.request.getPath();
+    std::string root_uri = locations[uri].root;
+std::cout << "Method: " << method << std::endl;
+std::cout << "URI: " << uri << std::endl;
+std::cout << "Root URI: " << root_uri << std::endl;
+std::string path = root_uri + uri;
+std::cout << "PA   TH: " << path << std::endl;
+    if (isDirectory(path)) {
+        std::cout << "Directory found" << std::endl;
+        if (!check_method(method, locations[uri].allowed_methods)) 
+            return response.send_error_response(405, "text/html", error_pages[405]), true;
+            
 
-    if (isDirectory(dir)) {
-        if (path.compare(path.size() - 1, 1, "/") != 0) 
-      {
-        if (root_location.directory_listing) 
-            return response.list_directory_contents(dir), true;
-      }
-
-
-        // if (!root_location.directory_listing) {
-        //     // If directory listing is off, append "index.html" to the path
-        //     path += "index.html";
-        // } else {
-        //     // If directory listing is on, list the directory contents
-            return response.list_directory_contents(dir), true;
-        // }
+        if (locations[uri].directory_listing)
+            return response.list_directory_contents(root_uri), true;
+        else {
+            if (!path.empty() && path.back() != '/')
+                path += '/';
+            path += locations[uri].default_file;
+        }
+      
     }
-
-    if (!check_method(method, root_location.allowed_methods)) {
-        return response.send_error_response(405, "text/html", error_pages[405]), true;
+    else {
+        if (path.empty() || path.back() == '/')
+            path += locations[uri].default_file;
     }
+ 
 
-    // Handle the request based on the method
+
+    std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << ", Path: " << uri << RESET << std::endl;
+
+
+    // Check if the path is valid and if the file exists....
+    response.check_error();
+
+
+    std::cout << "Path: " << path << std::endl;
     if (method == "GET") {
         response.handle_get_request(path);
     } else if (method == "POST") {
-        if (!check_method(method, upload_location.allowed_methods)) 
+        if (!check_method(method, locations[root_uri].allowed_methods))
             return response.send_error_response(405, "text/html", error_pages[405]), true;
         response.handle_post_request(body);
     } else if (method == "DELETE") {
-        if (!check_method(method, upload_location.allowed_methods)) 
+        if (!check_method(method, locations[root_uri].allowed_methods))
             return response.send_error_response(405, "text/html", error_pages[405]), true;
         response.handle_delete_request(body);
     } else {
@@ -203,6 +213,18 @@ bool Server::handle_client(int client_socket) {
     close(client_socket);
     return true;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 void Server::start_server() {
 
         int poll_count = poll(poll_fds.data(), poll_fds.size(),0);
