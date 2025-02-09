@@ -16,21 +16,6 @@ static void handleDirective(block& ret, std::vector<Token>::iterator& current) {
 	}
 }
 
-// static void handleDirective(block& ret, std::vector<Token>::iterator& current) {
-// 	std::string tmp = current->value;
-// 	if ((current + 2)->value == ";")
-// 		ret.directives[tmp] += (current + 1)->value;
-// 	else {
-// 		while ((current + 1)->type != "symbol") {
-// 			ret.directives[tmp] += (current + 1)->value;
-// 			ret.directives[tmp] += ":";
-// 			current++;
-// 		}
-// 		if ((current + 1)->type != "symbol")
-// 			throw std::runtime_error("Error: expected semicolon " + current->value);
-// 	}
-// }
-
 block parser::parseBlock(std::vector<Token>::iterator& current, std::vector<Token>::iterator end) {
 	block	ret;
 	int		i;
@@ -106,7 +91,6 @@ void parser::parse(const std::string &path) {
 	std::vector<block> ret = getConfig();
 }
 
-
 static bool validateAllowedMethods(std::vector<std::string> ref) {
 	for (std::vector<std::string>::iterator it = ref.begin(); it != ref.end(); ++it) {
 		if (*it != "GET" && *it != "POST" && *it != "DELETE" && *it != "PUT" && *it != "HEAD")
@@ -137,39 +121,16 @@ static bool isValidPath(const std::string& path) {
     return true;
 }
 
-static bool isValidExt(std::string ref) {
-	std::vector<std::string> ext = split(ref, ':');
-	for (std::vector<std::string>::iterator it = ext.begin(); it != ext.end(); ++it) {
-		if (it->empty())
+static bool isValidExt(std::string ref, int &i) {
+	if (i % 2 == 0) {
+		if (ref[0] != '.')
 			return false;
-		if (it->front() != '.')
+	} else {
+		if (!isValidPath(ref))
 			return false;
 	}
 	return true;
 }
-
-// static bool isValidLink(std::string url) {
-// 	if (url.empty())
-// 		return false;
-// 	if (url.find("http://") != 0 && url.find("https://") != 0)
-// 		return false;
-// 	size_t domainStart = url.find("://") + 3;
-//     size_t domainEnd = url.find('/', domainStart);
-// 	std::string domain = url.substr(domainStart, domainEnd - domainStart);
-// 	if (domain.empty())
-// 		return false;
-// 	for (size_t i = 0; i < domain.size(); i++) {
-//         char c = domain[i];
-//         if (!(std::isalnum(c) || c == '.' || c == '-'))
-// 			return false;
-//         if ((c == '.' || c == '-') && (i == 0 || i == domain.size() - 1))
-// 			return false;
-//     }
-// 	size_t lastDot = domain.rfind('.');
-//     if (lastDot == std::string::npos || domain.size() - lastDot - 1 < 2)
-// 		return false;
-// 	return true;
-// }
 
 void configureLocation( block& ref, Location& loc ) {
 	for (std::map<std::string, std::vector<std::string> >::iterator it2 = ref.directives.begin(); it2 != ref.directives.end(); ++it2) {
@@ -189,13 +150,21 @@ void configureLocation( block& ref, Location& loc ) {
 			if (*it2->second.begin() == "on") loc.directory_listing = true;
 			else if (*it2->second.begin() == "off") loc.directory_listing = false;
 			else throw std::runtime_error("Error: directory_listing: invalid argument");
-		} else if (it2->first == "cgi_extensions") {
+		} else if (it2->first == "cgi") {
+			int i = 0;
+			std::string save;
 			for (std::vector<std::string>::iterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3) {
-				if (!isValidExt(*it3))
+				if (!isValidExt(*it3, i))
 					throw std::runtime_error("Error: cgi_extensions: invalid argument");
+				if (i % 2 == 0)
+					loc.cgi[*it3] = "";
+				else
+					loc.cgi[save] = *it3;
+				save = *it3;
+				i++;
 			}
-			loc.cgi_extensions.erase(loc.cgi_extensions.begin(), loc.cgi_extensions.end());
-			loc.cgi_extensions = it2->second;
+			if (i % 2 != 0)
+				throw std::runtime_error("Error: cgi: invalid argument");
  		} else if (it2->first == "default_file") {
 			if (it2->second.size() > 1 || !isValidPath(*it2->second.begin()))
 				throw std::runtime_error("Error: default_file: invalid argument");
@@ -382,24 +351,49 @@ std::vector<Server> initConfig( std::vector<block> blocks ) {
 	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it) {
 		if (it->locations.find("/") == it->locations.end()) {
 			Location loc;
-			loc.root = "./file/html";
-			loc.default_file = "index.html";
 			loc.directory_listing = false;
 			it->locations["/"] = loc;
+		} 
+		if (it->locations["/"].root.empty()) {
+			it->locations["/"].root = "./file/html";
+		} if (it->locations["/"].default_file.empty()) {
+			it->locations["/"].default_file = "index.html";
+		} if (it->locations["/"].allowed_methods.empty()) {
+			it->locations["/"].allowed_methods.push_back("GET");
+		} if (it->locations["/"].cgi.empty()) {
+			it->locations["/"].cgi[".php"] = "/usr/bin/php";
 		}
 		if (it->locations.find("/upload") == it->locations.end()) {
 			Location loc;
-			loc.root = "./file/html/upload";
-			loc.default_file = "index.html";
 			loc.directory_listing = false;
 			it->locations["/upload"] = loc;
 		}
+		if (it->locations["/upload"].root.empty()) {
+			it->locations["/upload"].root = "./file/html/upload";
+		} if (it->locations["/upload"].default_file.empty()) {
+			it->locations["/upload"].default_file = "index.html";
+		} if (it->locations["/upload"].allowed_methods.empty()) {
+			it->locations["/upload"].allowed_methods.push_back("GET");
+			it->locations["/upload"].allowed_methods.push_back("POST");
+		} if (it->locations["/upload"].cgi.empty()) {
+			it->locations["/upload"].cgi[".php"] = "/usr/bin/php";
+			it->locations["/upload"].cgi[".py"] = "/usr/bin/python3";
+		}
 		if (it->locations.find("/cgi-bin") == it->locations.end()) {
 			Location loc;
-			loc.root = "./file/html/cgi-bin";
-			loc.default_file = "index.html";
 			loc.directory_listing = false;
 			it->locations["/cgi-bin"] = loc;
+		}
+		if (it->locations["/cgi-bin"].root.empty()) {
+			it->locations["/cgi-bin"].root = "./file/html/cgi-bin";
+		} if (it->locations["/cgi-bin"].default_file.empty()) {
+			it->locations["/cgi-bin"].default_file = "index.html";
+		} if (it->locations["/cgi-bin"].allowed_methods.empty()) {
+			it->locations["/cgi-bin"].allowed_methods.push_back("GET");
+			it->locations["/cgi-bin"].allowed_methods.push_back("POST");
+		} if (it->locations["/cgi-bin"].cgi.empty()) {
+			it->locations["/upload"].cgi[".php"] = "/usr/bin/php";
+			it->locations["/upload"].cgi[".py"] = "/usr/bin/python3";
 		}
 	}
 	return servers;

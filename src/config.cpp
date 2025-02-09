@@ -18,9 +18,9 @@ void Config::printConfig(){
             for (std::vector<std::string>::iterator it2 = it->second.allowed_methods.begin(); it2 != it->second.allowed_methods.end(); ++it2)
                 std::cout << *it2 << "\t";
             std::cout << std::endl;
-            std::cout << "CGI-Extensions: ";
-            for (std::vector<std::string>::iterator it2 = it->second.cgi_extensions.begin(); it2 != it->second.cgi_extensions.end(); ++it2)
-                std::cout << "  " << *it2 << "\t";
+            std::cout << "CGI-Extensions: \n";
+            for (std::map<std::string, std::string>::iterator it2 = it->second.cgi.begin(); it2 != it->second.cgi.end(); ++it2)
+                std::cout << it2->first << " -> " << it2->second << "\n";
             std::cout << std::endl;
         }
     }

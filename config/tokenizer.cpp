@@ -42,7 +42,6 @@ void Tokenizer::tokenize(const std::string& configContent) {
         token.value = *it;
         if (*it == "{" || *it == "}" || *it == ";") {
             token.type = "symbol";
-        // } else if (*it == "server" || (*it == "location" && (*(it+1) == "/" || *(it+1) == "/upload" || *(it+1) == "/cgi-bin"))) {
         } else if (*it == "server" || *it == "location") {
             token.type = "block";
         } else if (delayed == "symbol" && (*it == "listen"
@@ -57,7 +56,7 @@ void Tokenizer::tokenize(const std::string& configContent) {
                 || *it == "directory_listing" 
                 || *it == "default_file" 
                 || *it == "upload_path"
-                || *it == "cgi_extensions" 
+                || *it == "cgi"
                 || *it == "redirect")) {
             token.type = "directive";
         } else
@@ -68,6 +67,4 @@ void Tokenizer::tokenize(const std::string& configContent) {
         tokens.push_back(token);
         delayed = token.type;
     }
-    // for (std::vector<Token>::iterator it = tokens.begin(); it != tokens.end(); ++it) //debug
-    //     std::cout << "value: " << it->value << " \t\t\ttype:\t\t" << it->type << std::endl;   //debug
 }
