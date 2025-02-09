@@ -19,8 +19,8 @@
 #include <iomanip>
 #include <cctype>
 
-#define PORT 8080
-#define BACKLOG 10
+#define PORT 
+#define BACKLOG 2
 #define BUFFER_SIZE 1024
 #define clinet_max 1000000000
 

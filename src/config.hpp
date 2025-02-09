@@ -10,5 +10,4 @@ class Config {
 public:
     std::vector<Server> servers;
     Config();
-    void printServerDetails() const;
 };

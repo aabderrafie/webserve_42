@@ -1,5 +1,5 @@
 CC = c++
-CFLAGS = -Wall -Wextra -Werror -fsanitize=address -g3
+CFLAGS = -Wall -Wextra -Werror  #-fsanitize=address -g3
 NAME = webserver
 
 # Colors and effects
@@ -12,36 +12,12 @@ PURPLE = \033[1;35m
 RESET = \033[0m
 BOLD = \033[1m
 
-# Header display function
-define HEADER
-
-$(CYAN)
-╔══════════════════════════════════════════════════════════════════╗
-║                                                                  ║
-║     $(PURPLE)██╗    ██╗███████╗██████╗ ███████╗███████╗██████╗ ██╗   ██╗███████╗██████╗ $(CYAN)  ║
-║     $(PURPLE)██║    ██║██╔════╝██╔══██╗██╔════╝██╔════╝██╔══██╗██║   ██║██╔════╝██╔══██╗$(CYAN)  ║
-║     $(PURPLE)██║ █╗ ██║█████╗  ██████╔╝███████╗█████╗  ██████╔╝██║   ██║█████╗  ██████╔╝$(CYAN)  ║
-║     $(PURPLE)██║███╗██║██╔══╝  ██╔══██╗╚════██║██╔══╝  ██╔══██╗╚██╗ ██╔╝██╔══╝  ██╔══██╗$(CYAN)  ║
-║     $(PURPLE)╚███╔███╔╝███████╗██████╔╝███████║███████╗██║  ██║ ╚████╔╝ ███████╗██║  ██║$(CYAN)  ║
-║     $(PURPLE) ╚══╝╚══╝ ╚══════╝╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝  ╚═══╝  ╚══════╝╚═╝  ╚═╝$(CYAN)  ║
-║                                                                  ║
-║      $(GREEN)Created by: $(YELLOW)aaskal && zbakkas && tlasfar$(CYAN)                           ║
-║     $(BLUE)[ Version 42 ]$(CYAN)                                               ║
-║                                                                  ║
-╚══════════════════════════════════════════════════════════════════╝
-$(RESET)
-endef
-export HEADER
-
 src = $(wildcard src/*.cpp) $(wildcard config/*.cpp) #$(filter-out src/Request.cpp,
 obj = $(src:.cpp=.o)
 
-all: header $(NAME)
+all:  $(NAME)
 
-header:
-	@clear
-	@echo "$$HEADER"
-	@sleep 0.2
+
 
 $(NAME): $(obj)
 	@echo "$(GREEN)🔨 Linking $@...$(RESET)"

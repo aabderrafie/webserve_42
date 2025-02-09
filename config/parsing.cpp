@@ -172,13 +172,6 @@ static bool isValidExt(std::string ref) {
 // }
 
 void configureLocation( block& ref, Location& loc ) {
-	// loc.root = "/files/html";
-	// loc.default_file = "index.html";
-	// loc.directory_listing = false;
-	// loc.allowed_methods.push_back("GET");
-	// loc.allowed_methods.push_back("POST");
-	// loc.cgi_extensions.push_back(".py");
-	// loc.cgi_extensions.push_back(".php");
 	for (std::map<std::string, std::vector<std::string> >::iterator it2 = ref.directives.begin(); it2 != ref.directives.end(); ++it2) {
 		if (it2->first == "allowed_methods") {
 			if (!validateAllowedMethods(it2->second))
@@ -310,11 +303,12 @@ static bool validateClientMaxBodySize( std::string ref ,int *digitCount) {
 	return true;
 }
 
-void configureServer( block& ref ) {
+Server configureServer( block& ref ) {
 	Server serv;
 	serv.host = "127.0.0.1";
 	serv.server_name = "localhost";
 	serv.client_max_body_size = 1024 * 1024;
+	serv.ports.push_back(8081);
 	for (std::map<std::string, std::vector<std::string> >::iterator it2 = ref.directives.begin(); it2 != ref.directives.end(); ++it2) {
 		if (it2->first == "server_name") {
 			if (it2->second.size() > 1)
@@ -346,6 +340,7 @@ void configureServer( block& ref ) {
 				throw std::runtime_error("Error: host: invalid argument");
 			serv.host = *it2->second.begin();
 		} else if (it2->first == "port") {
+			serv.ports.erase(serv.ports.begin(), serv.ports.end());
 			for (std::vector<std::string>::iterator port_it = it2->second.begin(); port_it < it2->second.end(); port_it++) {
 				if (!validatePort(*port_it))
 					throw std::runtime_error("Error: port: invalid argument");
@@ -381,12 +376,15 @@ void configureServer( block& ref ) {
 			configureLocation(*it2, serv.cgi_location);
 		}
 	}
+	return serv;
 }
 
-void initConfig( std::vector<block> blocks ) {
+std::vector<Server> initConfig( std::vector<block> blocks ) {
+	std::vector<Server> servers;
 	for (std::vector<block>::iterator it = blocks.begin(); it != blocks.end(); ++it) {
 		Server serv;
-		configureServer(*it);
+		servers.push_back(configureServer(*it));
 	}
+	return servers;
 }
 

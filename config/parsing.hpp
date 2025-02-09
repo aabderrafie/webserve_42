@@ -33,5 +33,5 @@ class parser {
 };
 
 void configureLocation( block& ref, Location& loc );
-void configureServer( block& ref );
-void initConfig( std::vector<block> blocks );
+Server configureServer( block& ref );
+std::vector<Server> initConfig( std::vector<block> blocks );

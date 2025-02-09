@@ -141,44 +141,93 @@ void Response::create_user(const std::map<std::string, std::string>& data, const
        std::cerr << RED << "Unable to create user file" << RESET << std::endl;
 }
 
+void Response::upload_file(std::string& uploaded_file_path) 
+{
+    std::string post_data = request.getPostData();//body>>
+    std::string boundary = request.getBoundary();
 
-void Response::handle_post_request( const std::string &body) {
+    size_t pos = 0;
+    while ((pos = post_data.find(boundary, pos)) != std::string::npos) {
+        pos += boundary.length();
+        size_t name_pos = post_data.find("name=\"", pos);
+        if (name_pos == std::string::npos) break;
+        
+        size_t name_end = post_data.find("\"", name_pos + 6);
+        std::string field_name = post_data.substr(name_pos + 6, name_end - name_pos - 6);
+        
+        size_t filename_pos = post_data.find("filename=\"", name_end);
+        if (filename_pos != std::string::npos) {
+            size_t filename_end = post_data.find("\"", filename_pos + 10);
+            std::string filename = post_data.substr(filename_pos + 10, filename_end - filename_pos - 10);
+
+            size_t file_start = post_data.find("\r\n\r\n", filename_end) + 4;
+            size_t file_end = post_data.find(boundary, file_start) - 2;
+            std::string file_content = post_data.substr(file_start, file_end - file_start);
+
+            uploaded_file_path = "./files/uploads/" + filename;
+            std::ofstream out_file(uploaded_file_path.c_str(), std::ios::binary);
+            if (out_file) {
+                out_file.write(file_content.c_str(), file_content.size());
+                out_file.close();
+                std::cout << "Saved file: " << uploaded_file_path << std::endl;
+            } else {
+                std::cerr << "Failed to save file: " << uploaded_file_path << std::endl;
+            }
+        }
+    }
+}
+
+void Response::handle_post_request(const std::string &body) {
     (void) body;
     std::string uploads = server.upload_location.root;
     std::string root = server.root_location.root;
     std::string post_path = root + request.getPath();
 
+    if (!is_valid_url(request.getPath()))
+        return send_error_response(400, "text/html", server.error_pages[400]), void();
 
-    // if(request.getIsMultipart())
-    //      request.parseMultipartFormData(body);
-    // else
-    //     return send_error_response(400, "text/html",  server.error_pages[400]), void();
+    if (request.getPath().find("..") != std::string::npos)
+        return send_error_response(403, "text/html", server.error_pages[403]), void();
 
+    if (request.getPath().length() > 2048)
+        return send_error_response(414, "text/html", server.error_pages[414]), void();
+
+    std::cout << "Post path: " << post_path << std::endl;
+
+    if (request.getIsMultipart())
+        upload_file(uploads);
+    else
+        return send_error_response(400, "text/html", server.error_pages[400]), void();
+
+    std::cout << "Uploaded file: " << uploads << std::endl;
     set_status(200);
     set_content_type("text/html");
     set_body(read_html_file(post_path));
     send_response();
-
 }
-
-
-
 void Response::handle_delete_request(const std::string& body) {
     (void) body;
     std::string root = server.root_location.root;
-    std::string uploads = server.upload_location.root  + request.getPath();
+    std::string uploads = server.upload_location.root + request.getPath();
     std::string delete_path = root + "/delete-success.html";
     std::string delete_error = root + "/delete-failure.html";
+
+    if (!is_valid_url(request.getPath()))
+        return send_error_response(400, "text/html", server.error_pages[400]), void();
+
+    if (request.getPath().find("..") != std::string::npos)
+        return send_error_response(403, "text/html", server.error_pages[403]), void();
+
+    if (request.getPath().length() > 2048)
+        return send_error_response(414, "text/html", server.error_pages[414]), void();
 
     if (!std::filesystem::exists(uploads))
         return send_error_response(404, "text/html", delete_error), void();
 
-    if (remove(uploads.c_str()) != 0) 
+    if (remove(uploads.c_str()) != 0)
         return send_error_response(500, "text/html", delete_error), void();
-
     set_status(200);
     set_content_type("text/html");
     set_body(read_html_file(delete_path));
     send_response();
 }
-

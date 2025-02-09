@@ -7,45 +7,59 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh; 
             display: flex; 
             justify-content: center;
             align-items: center;
             position: relative;
-             /* overflow: hidden; */
             color: white;
             padding: 20px;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea, #764ba2, #667eea, #764ba2);
+            background-size: 400% 400%; /* Larger background size for smooth animation */
+            animation: gradientBackground 15s ease infinite; /* Background animation */
+        }
+        @keyframes gradientBackground {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
         }
         .container {
-            /* max-width: 600px;
-            margin: auto;
-            /* background: white; */
-            padding: 20px;
-            /* border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); */ 
-
             position: relative;
             z-index: 10;
             text-align: center;
-            /* width: 90%; */
             max-width: 1200px;
-             /* padding: 60px 40px;  */
             background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
             backdrop-filter: blur(15px);
             box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            padding: 60px 40px;
+            animation: fadeInScale 1.5s ease-in-out;
+            margin: 20px; /* Add margin for better spacing */
         }
-        h1 {
-            color: #ffffff;
+        @keyframes fadeInScale {
+            0% {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
-        h2 {
+        h1, h2 {
             color: #ffffff;
         }
         form {
             margin: 20px 0;
             padding: 15px;
-            background: rgba(255, 255, 255, 0.1); /* Transparent background for forms */
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
@@ -55,6 +69,7 @@
             font-size: 16px;
             border: 1px solid #ccc;
             border-radius: 5px;
+            transition: all 0.3s ease;
         }
         button {
             background-color: #001aff57;
@@ -64,39 +79,74 @@
         }
         button:hover {
             background-color: #0277bd;
+            animation: bounce 0.5s ease;
+        }
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+        input:focus {
+            border-color: #001aff57;
+            box-shadow: 0 0 10px rgba(0, 26, 255, 0.7);
+            outline: none;
+        }
+        .serve-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .serve-buttons button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            background-color: #4CAF50; /* Green for PHP */
+        }
+        .serve-buttons button.python {
+            background-color: #FFA500; /* Orange for Python */
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Test CGI Scripts</h1>
+
+        <!-- Serve PHP and Python Buttons -->
+        <div class="serve-buttons">
+            <button onclick="window.location.href='chat.html'">Serve PHP</button>
+            <button class="python" onclick="window.location.href='service.py'">Serve Python</button>
+        </div>
         
         <h2>PHP CGI GET Test</h2>
-        <form action="test.php" method="GET">
+        <form action="send_r.php" method="GET">
             <input type="text" name="name" placeholder="Enter your name" required>
             <input type="number" name="age" placeholder="Enter your age" required>
             <button type="submit">Submit</button>
         </form>
         <h2>PHP CGI POST Test</h2>
-        <form action="test.php" method="POST" enctype="multipart/form-data">
+        <form action="send_r.php" method="POST" enctype="multipart/form-data">
             <input type="text" name="name" placeholder="Enter your name" required>
             <input type="number" name="age" placeholder="Enter your age" required>
             <input type="file" name="file" required>
             <button type="submit">Upload</button>
         </form>
         <h2>Python CGI GET Test</h2>
-        <form action="test.py" method="GET">
+        <form action="send_r.py" method="GET">
             <input type="text" name="name" placeholder="Enter your name" required>
             <input type="number" name="age" placeholder="Enter your age" required>
             <button type="submit">Submit</button>
         </form>        
         <h2>Python CGI POST Test</h2>
-        <form action="test.py" method="POST" enctype="multipart/form-data">
+        <form action="send_r.py" method="POST" enctype="multipart/form-data">
             <input type="text" name="name" placeholder="Enter your name" required>
             <input type="number" name="age" placeholder="Enter your age" required>
             <input type="file" name="file" required>
             <button type="submit">Upload</button>
-        </form>
+        </form>     
     </div>
 </body>
 </html>
