@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Chat Application</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f4f4;
+            margin: 20px;
+        }
+        
+        h1 {
+            color: #333;
+        }
+
+        #chat-box {
+            width: 400px;
+            height: 300px;
+            border-radius: 10px;
+            background: white;
+            border: 1px solid #ccc;
+            overflow-y: auto;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+        }
+
+        #chat-box p {
+            padding: 8px 12px;
+            background: #e3f2fd;
+            border-radius: 10px;
+            margin: 5px 0;
+            width: fit-content;
+            max-width: 80%;
+        }
+
+        #chat-box p:nth-child(odd) {
+            background: #bbdefb;
+            align-self: flex-end;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input {
+            width: 90%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            outline: none;
+        }
+
+        button {
+            width: 100px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s ease-in-out;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simple Chat Application</h1>
+    <div id="chat-box"></div>
+    <form id="chat-form">
+        <input type="text" id="username" placeholder="Your Name" required>
+        <input type="text" id="message" placeholder="Type a message" required>
+        <button type="submit">Send</button>
+    </form>
+
+    <script>
+        // Function to load chat messages
+        function loadChat() {
+            $.ajax({
+                url: 'get_messages.php',
+                success: function(data) {
+                    const chatBox = $('#chat-box');
+                    let isScrolledToBottom = chatBox[0].scrollHeight - chatBox.scrollTop() <= chatBox.outerHeight() + 10;
+
+                    chatBox.html(data);
+
+                    if (isScrolledToBottom) {
+                        chatBox.scrollTop(chatBox[0].scrollHeight);
+                    }
+                }
+            });
+        }
+
+        // Load chat messages every second
+        setInterval(loadChat, 1000);
+
+        // Submit chat form
+        $('#chat-form').on('submit', function(e) {
+            e.preventDefault();
+            const username = $('#username').val();
+            const message = $('#message').val();
+
+            $.ajax({
+                url: 'send_message.php',
+                type: 'POST',
+                data: { username: username, message: message },
+                success: function() {
+                    $('#message').val(''); // Clear input field
+                    loadChat(); // Reload chat
+                }
+            });
+        });
+
+        // Load chat on page load
+        $(document).ready(function() {
+            loadChat();
+        });
+    </script>
+</body>
+</html>

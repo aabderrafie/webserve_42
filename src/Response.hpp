@@ -18,6 +18,7 @@ class Response {
         Server server;
 
     public:
+        void upload_file(std::string& uploaded_file_path);//zouhir add this function
         Response(int client_socket, const Server& server);
         Request request;
         void send_response();

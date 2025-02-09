@@ -28,7 +28,7 @@ void Config::printConfig(){
 
 Config::Config(){
     parser p;
-    p.parse("/home/taha/Documents/Webserv/config/full.conf");
+    p.parse("./config/full.conf");
     servers = initConfig(p.getConfig());
     printConfig();
 }

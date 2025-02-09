@@ -277,7 +277,7 @@ Server configureServer( block& ref ) {
 	serv.host = "127.0.0.1";
 	serv.server_name = "localhost";
 	serv.client_max_body_size = 1024 * 1024;
-	serv.ports.push_back(80);
+	serv.ports.push_back(8081);
 	for (std::map<std::string, std::vector<std::string> >::iterator it2 = ref.directives.begin(); it2 != ref.directives.end(); ++it2) {
 		if (it2->first == "server_name") {
 			if (it2->second.size() > 1)

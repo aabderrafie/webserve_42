@@ -1,7 +1,7 @@
 #pragma once
 #include "../includes/include.hpp"
 using namespace std;
-
+class Response;//zouhir add this line
 class Request {
     private:
         string method;
@@ -23,6 +23,7 @@ class Request {
         
 
     public:
+        std::string execute_cgi(const std::string& interpreter ,Response& response, std::string root_cgi);//zouhir add this function
         Request(){};
         Request(const string &body);
         void parseRequestLine(const string& line);
