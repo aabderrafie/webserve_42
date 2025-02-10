@@ -2,134 +2,93 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Delete File</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Manager</title>
+    <script src="file_manager_script.js" defer></script>
     <style>
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            color: white;
-        }
-        .container {
-            background: rgba(255,255,255,0.1);
-            border-radius: 20px;
-            padding: 40px;
-            width: 100%;
-            max-width: 400px;
-            backdrop-filter: blur(10px);
+            font-family: Arial, sans-serif;
             text-align: center;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
         }
-        input, select {
-            width: 100%;
+
+        header {
+            background-color: #007BFF;
+            color: white;
+            padding: 15px;
+            font-size: 24px;
+            position: relative;
+        }
+
+        .home-button {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #ffc107;
+            color: black;
+            border: none;
+            padding: 8px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .home-button:hover {
+            background-color: #e0a800;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 20px auto;
+            width: 50%;
+        }
+
+        li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
             padding: 10px;
             margin: 10px 0;
             border-radius: 5px;
-            border: none;
+            border: 1px solid #ddd;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
         }
-        .delete-button {
-            background: linear-gradient(45deg, #ee0979, #ff6a00);
+
+        button {
+            background-color: #28a745;
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 8px 12px;
             cursor: pointer;
+            border-radius: 3px;
+            margin: 0 5px;
         }
-        .toggle {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 15px;
+
+        .delete-btn {
+            background-color: #d9534f;
         }
-        .toggle label {
-            margin: 0 10px;
-        }
-        .response-message {
-            margin-top: 20px;
-            padding: 10px;
-            border-radius: 5px;
-            display: none;
-        }
-        .response-message.success {
-            background: rgba(0, 255, 0, 0.1);
-            color: green;
-        }
-        .response-message.error {
-            background: rgba(255, 0, 0, 0.1);
-            color: red;
+
+        button:hover {
+            opacity: 0.8;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Delete File</h2>
-        <form id="deleteForm">
-            <div class="toggle">
-                <label>
-                    <input type="radio" name="fileType" value="withExtension" checked> With Extension
-                </label>
-                <label>
-                    <input type="radio" name="fileType" value="withoutExtension"> Without Extension
-                </label>
-            </div>
-            <input type="text" id="fileName" placeholder="Enter file name" required>
-            <select id="fileExtension" style="display:block;">
-                <option value=".txt">txt</option>
-                <option value=".pdf">pdf</option>
-                <option value=".docx">docx</option>
-                <option value=".jpg">jpg</option>
-                <option value=".png">png</option>
-            </select>
-            <button type="submit" class="delete-button">Delete File</button>
-        </form>
-        <div id="responseMessage" class="response-message"></div>
-    </div>
+    <header>
+        <button class="home-button" onclick="goHome()">🏠 Home</button>
+        File Manager
+    </header>
+    <ul id="fileList"></ul>
 
     <script>
-        const fileExtensionSelect = document.getElementById('fileExtension');
-        const fileTypeRadios = document.querySelectorAll('input[name="fileType"]');
-        const deleteForm = document.getElementById('deleteForm');
-        const responseMessage = document.getElementById('responseMessage');
-
-        fileTypeRadios.forEach(radio => {
-            radio.addEventListener('change', function() {
-                fileExtensionSelect.style.display = 
-                    this.value === 'withExtension' ? 'block' : 'none';
-            });
-        });
-
-        deleteForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const fileName = document.getElementById('fileName').value;
-            const fileType = document.querySelector('input[name="fileType"]:checked').value;
-            
-            let fullFileName;
-            if (fileType === 'withExtension') {
-                const fileExtension = document.getElementById('fileExtension').value;
-                fullFileName = fileName + fileExtension;
-            } else {
-                fullFileName = fileName;
-            }
-
-            fetch(`${fullFileName}`, {
-                method: 'DELETE'
-            })
-            .then(response => {
-                if (response.ok) {
-                    return response.text();
-                } else {
-                    throw new Error('Failed to delete file.');
-                }
-            })
-            .then(html => {
-                document.body.innerHTML = html;
-            })
-            .catch(error => {
-                window.location.href = 'delete-failure.html';
-            });
-        });
+        function goHome() {
+            window.location.href = "/"; // Change this to the correct home URL
+        }
     </script>
 </body>
 </html>
