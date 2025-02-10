@@ -6,7 +6,11 @@ import html
 from urllib.parse import parse_qs
 
 # HTML header
+<<<<<<< HEAD
 print("Content-Type: text/html\n")
+=======
+# print("Content-Type: text/html\n")
+>>>>>>> master
 
 # HTML structure and styling
 html_content = """
@@ -82,6 +86,7 @@ elif os.environ['REQUEST_METHOD'] == 'POST':
     html_content += f"<p>Age: <strong>{html.escape(age)}</strong></p>"
 
     # Handle file upload
+<<<<<<< HEAD
     if "file" in form:
         file_item = form["file"]
         upload_dir = "./files/html/uploads/"
@@ -98,6 +103,24 @@ elif os.environ['REQUEST_METHOD'] == 'POST':
                 html_content += f"<p class='error'>File upload failed: {e}</p>"
         else:
             html_content += "<p class='error'>No file uploaded!</p>"
+=======
+    # if "file" in form:
+    #     file_item = form["file"]
+    #     upload_dir = "./files/html/uploads/"
+    #     upload_dir2 = "/uploads/"
+    #     if file_item.filename:
+    #         filename = os.path.basename(file_item.filename)
+    #         upload_path = os.path.join(upload_dir, filename)
+    #         upload_path2 = os.path.join(upload_dir2, filename)
+    #         try:
+    #             with open(upload_path, 'wb') as f:
+    #                 f.write(file_item.file.read())
+    #             html_content += f"<p class='success'>File uploaded successfully: <a href='{upload_path2}'>{filename}</a></p>"
+    #         except Exception as e:
+    #             html_content += f"<p class='error'>File upload failed: {e}</p>"
+    #     else:
+    #         html_content += "<p class='error'>No file uploaded!</p>"
+>>>>>>> master
 
 html_content += """
     </div>

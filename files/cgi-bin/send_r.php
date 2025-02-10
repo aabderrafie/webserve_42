@@ -66,29 +66,29 @@ header("Content-Type: text/html");
             echo "<p>Name: <strong>$name</strong></p>";
             echo "<p>Age: <strong>$age</strong></p>";
             
-            if (isset($_FILES["file"])) {
-                $upload_dir = "uploads/";
-                $filename = basename($_FILES["file"]["name"]);
-                $upload_path = $upload_dir . $filename;
+            // if (isset($_FILES["file"])) {
+            //     $upload_dir = "uploads/";
+            //     $filename = basename($_FILES["file"]["name"]);
+            //     $upload_path = $upload_dir . $filename;
                 
-                // Debugging information
-                // echo "<pre>";
-                // echo "File Info:\n";
-                // print_r($_FILES["file"]);
-                // echo "</pre>";
+            //     // Debugging information
+            //     // echo "<pre>";
+            //     // echo "File Info:\n";
+            //     // print_r($_FILES["file"]);
+            //     // echo "</pre>";
 
-                if ($_FILES["file"]["error"] == UPLOAD_ERR_OK) {
-                    if (move_uploaded_file($_FILES["file"]["tmp_name"], $upload_path)) {
-                        echo "<p class='success'>File uploaded successfully: <a href='$upload_path'>$filename</a></p>";
-                    } else {
-                        echo "<p class='error'>File upload failed! Could not move file.</p>";
-                    }
-                } else {
-                    echo "<p class='error'>File upload failed! Error code: " . $_FILES["file"]["error"] . "</p>";
-                }
-            } else {
-                echo "<p class='error'>No file uploaded!</p>";
-            }
+            //     if ($_FILES["file"]["error"] == UPLOAD_ERR_OK) {
+            //         if (move_uploaded_file($_FILES["file"]["tmp_name"], $upload_path)) {
+            //             echo "<p class='success'>File uploaded successfully: <a href='$upload_path'>$filename</a></p>";
+            //         } else {
+            //             echo "<p class='error'>File upload failed! Could not move file.</p>";
+            //         }
+            //     } else {
+            //         echo "<p class='error'>File upload failed! Error code: " . $_FILES["file"]["error"] . "</p>";
+            //     }
+            // } else {
+            //     echo "<p class='error'>No file uploaded!</p>";
+            // }
         }
         ?>
     </div>
