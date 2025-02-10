@@ -1,6 +1,6 @@
 #include "server.hpp"
 #include <ctime>
-
+#include <fstream> // Add this line
 
 #include <limits.h>
 #include <sys/wait.h>
@@ -10,13 +10,6 @@ std::map<std::string, std::string> interpreters =  {
     {".py", "/usr/bin/python3"},
     {".sh", "/bin/bash"}
 };
-
-
-
-
-
-
-
 
 std::string Request::execute_cgi(const std::string& interpreter ,Response& response, std::string root_cgi) 
 {
@@ -147,7 +140,40 @@ std::string current_time() {
     return std::string(buf);
 }
 
-Server::Server()  {}
+Server::Server() {
+    // load_sessions_from_file(); // Add this line
+}
+
+Server::~Server() {}
+
+// void Server::save_sessions_to_file() {
+//     std::ofstream file("sessions.txt");
+//     if (file.is_open()) {
+//         for (std::map<int, Session>::value_type& session : sessions) {
+//             file << "session_id=" << session.first << ";" << "isDarkMode=" << session.second.isDarkMode << std::endl; //add other data here <---
+//         }
+//         file.close();
+//     } else {
+//         std::cerr << "Unable to open sessions file for writing" << std::endl;
+//     }
+// }
+
+// void Server::load_sessions_from_file() {
+//     std::ifstream file("sessions.txt");
+//     if (file.is_open()) {
+//         int session_id;
+//         while (file >> session_id) {
+//             Session session(session_id);
+//             std::string isDarkMode;
+//             file >> isDarkMode;
+//             session.isDarkMode = std::stoi(isDarkMode);
+//             sessions.insert(std::make_pair(session_id, session));
+//         }
+//         file.close();
+//     } else {
+//         std::cerr << "Unable to open sessions file for reading" << std::endl;
+//     }
+// }
 
 void Server::server_init() {
     for (size_t i = 0; i < ports.size(); ++i) {
@@ -166,9 +192,6 @@ void Server::server_init() {
         server_sockets.push_back(server_socket);
         server_addrs.push_back(server_addr);
     }
-}
-Server::~Server() {
-    // std::cout << RED << "[" << current_time() << "] Server shutting down..." << RESET << std::endl;
 }
 
 
@@ -282,6 +305,16 @@ void Server::send_cgi(std::string extension, std::string path, int client_socket
     send(client_socket, response_.c_str(), response_.length(), 0);
 }
 
+// void Response::set_cookies(std::vector<std::string> cookies) {
+//     }
+
+// void manageSessions(std::map<int, Session>& sessions, std::vector<std::string>& Cookies) {
+//     int session_id = std::stoi(Cookies[0].substr(11));
+//     if (sessions.find(session_id) == sessions.end()) {
+//         std::cout << "Creating new session" << std::endl;
+//         sessions.insert(std::make_pair(session_id, Session(session_id)));
+//     }
+// }
 
 bool Server::handle_client(int client_socket) {
     std::string body = read_request(client_socket);
@@ -291,6 +324,10 @@ bool Server::handle_client(int client_socket) {
     response.request = Request(body);
     std::string method = response.request.getMethod();
     std::string path = response.request.getPath();
+    // std::vector<std::string> Cookies = response.request.getCookies();
+    // manageSessions(sessions, Cookies);
+    // save_sessions_to_file();
+    // response.set_cookies(Cookies);
     if(!check_method(method, locations["/"].allowed_methods)) {
         std::cout << "Method not allowed" << std::endl;
         response.send_error_response(405, "text/html", error_pages[405]);
@@ -332,6 +369,7 @@ bool Server::handle_client(int client_socket) {
     close(client_socket);
     return true;
 }
+
 void Server::start_server() {
 
         int poll_count = poll(poll_fds.data(), poll_fds.size(),0);

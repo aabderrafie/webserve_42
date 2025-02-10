@@ -1,7 +1,12 @@
 #include "Request.hpp"
 
+// static int session_id = 10;
+
 Request::Request(const string &body) 
 {
+    std::cout << "------------------------------" << std::endl;
+    std::cout << "Request body: " << body << std::endl;
+    std::cout << "------------------------------" << std::endl;
     if(body.find("Content-Type: application/x-www-form-urlencoded") != std::string::npos)
         isUrlEncoded = true;
 
@@ -66,7 +71,24 @@ Request::Request(const string &body)
             }
         }
     }
-
+    
+    // if (body.find("Cookie: ") != std::string::npos) {
+    //     std::cout << "Cookies found" << std::endl;
+    //     // size_t cookie_pos = body.find("Cookie: ") + 8;
+    //     // size_t cookie_end = body.find("\r\n", cookie_pos);
+        
+    //     // cookies = body.substr(cookie_pos, cookie_end - cookie_pos);
+    // } else {
+    //     std::cout << "No cookies found, creating new token" << std::endl;
+    //     cookies.push_back("session_id=" + std::to_string(session_id));
+    //     cookies.push_back("isDarkMode=0");
+    //     // std::ostringstream tmp;
+    //     // tmp << "session_id=" << std::to_string(session_id) << ";" << "isDarkMode=0";
+    //     // cookies = tmp.str();
+    //     // std::cout << "assigning cookies to: " << cookies << std::endl;
+    //     session_id+=10;
+    // }
+    
     if (method == "POST") {
         size_t header_end = body.find("\r\n\r\n");
         if (header_end != std::string::npos) {

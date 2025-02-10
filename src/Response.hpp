@@ -16,6 +16,8 @@ class Response {
         std::string content_type;
         std::string body;
         Server server;
+        bool switch_theme;
+        // std::vector<std::string> Cookies;
 
     public:
         void upload_file(std::string& uploaded_file_path);//zouhir add this function
@@ -33,6 +35,7 @@ class Response {
         void handle_post_request(const std::string& body);
         void handle_delete_request(const std::string& body);
         void create_user(const std::map<std::string, std::string>& data, const std::string& uploads);
+        // void set_cookies(const std::string& cookies);
 
         ~Response();
 };

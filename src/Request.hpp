@@ -20,9 +20,10 @@ class Request {
         std::string post_data;
         std::string query_string;
         // std::string boundary;
-        
 
+        
     public:
+        std::vector<std::string> cookies;
         std::string execute_cgi(const std::string& interpreter ,Response& response, std::string root_cgi);//zouhir add this function
         Request(){};
         Request(const string &body);
@@ -40,6 +41,14 @@ class Request {
         const string& getPostData() const { return post_data; }
         const string& getContentType() const { return content_type; }
         const string& getBoundary() const { return boundary; }
+        // std::vector<std::string> getCookies() const { return cookies; }
+        // int toggleTheme(std::string body) const {
+        //     if (body.find("isDarkMode=true") != std::string::npos)
+        //         return 2;
+        //     if (body.find("isDarkMode=false") != std::string::npos)
+        //         return 1;
+        //     return 0;
+        // }
         
 
         const map<string, string>& getHeaders() const { return headers; }

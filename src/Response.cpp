@@ -49,14 +49,18 @@ void Response::send_error_response(int status, const std::string& content_type, 
 }
 
 void Response::send_response() {
-    std::cout << "sending response" << std::endl;
     std::ostringstream response;
     response << "HTTP/1.1 " << status << "\r\n"
-             << "Set-Cookie: session_id=1738862053; Path=/; HttpOnly" << "\r\n"
-             << "Content-Type: " << content_type << "\r\n"
-             << "Content-Length: " << body.size() << "\r\n"
-             << "Connection: close\r\n"
-             << "\r\n";
+            //  << "Set-Cookie: " << Cookies[0] << "\r\n"
+            //  << "Set-Cookie: " << Cookies[1] << "\r\n"
+    // for (std::vector<std::string>::const_iterator it = request.cookies.begin(); it != request.cookies.end(); ++it)
+    //     response << "Set-Cookie: " << *it << "\r\n";
+    // }
+    // response << "Content-Type: " << content_type << "\r\n"
+            << "Content-Type: " << content_type << "\r\n"
+            << "Content-Length: " << body.size() << "\r\n"
+            << "Connection: close\r\n"
+            << "\r\n";
     std::string headers = response.str();
     send(client_socket, headers.c_str(), headers.size(), 0);
 
@@ -68,6 +72,7 @@ void Response::send_response() {
         sent += to_send;
     }
 }
+
 void Response::handle_get_request(const std::string &body) {
     (void) body;
     std::string root = server.locations["/"].root;
@@ -91,7 +96,6 @@ void Response::handle_get_request(const std::string &body) {
     set_status(200);
     set_content_type(mime_types.get_mime_type(path));
     set_body(read_html_file(path));
-    std::cout << "recived request from session_id: " << std::endl;
     send_response();
  }
 
@@ -180,11 +184,27 @@ void Response::upload_file(std::string& uploaded_file_path)
     }
 }
 
+// int getSessionID(const std::string& ref) {
+//     std::string session_id;
+//     size_t pos = ref.find("session_id=");
+//     if (pos != std::string::npos) {
+//         pos += 11;
+//         while (ref[pos] != ';') {
+//             session_id += ref[pos];
+//             ++pos;
+//         }
+//     }
+//     return std::stoi(session_id);
+// }
+
+// std::map<int, Session> sessions;
+
 void Response::handle_post_request(const std::string &body) {
     (void) body;
     std::string uploads = server.locations["/upload"].root;
     std::string root = server.locations["/"].root;
     std::string post_path = root + request.getPath();
+    // server.load_sessions_from_file();
 
     if (!is_valid_url(request.getPath()))
         return send_error_response(400, "text/html", server.error_pages[400]), void();
@@ -197,10 +217,21 @@ void Response::handle_post_request(const std::string &body) {
 
     if (request.getIsMultipart())
         upload_file(uploads);
-    else
+    // else if (request.toggleTheme(request.getPostData()) == 2) {
+    //     post_path = post_path + "dark" + server.locations["/"].default_file;
+    //     server.sessions[getSessionID(request.getCookies()[0])].isDarkMode = 1;
+    // } else if (request.toggleTheme(request.getPostData()) == 1) {
+    //     post_path = post_path + server.locations["/"].default_file;
+    //     server.sessions[getSessionID(request.getCookies()[0])].isDarkMode = 0;
+    // }
+     else
         return send_error_response(400, "text/html", server.error_pages[400]), void();
 
-    std::cout << "Uploaded file: " << uploads << std::endl;
+    // for (std::map<int, Session>::value_type& session : server.sessions) {
+    //     std::cout << "Session ID: " << session.first << std::endl;
+    //     std::cout << "Dark Mode: " << session.second.isDarkMode << std::endl;
+    // }
+    // server.save_sessions_to_file();
     set_status(200);
     set_content_type("text/html");
     set_body(read_html_file(post_path));
