@@ -1,12 +1,13 @@
 <?php
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['_method']) && $_POST['_method'] === 'DELETE') {
-    if (!isset($_POST['file'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+    // Get file name from the URL
+    if (!isset($_GET['file']) || empty($_GET['file']) || !is_string($_GET['file'])) {
         http_response_code(400);
         echo json_encode(["error" => "No file specified"]);
         exit;
     }
 
-    $fileName = basename($_POST['file']); // Sanitize filename
+    $fileName = basename($_GET['file']); // Sanitize filename
     $filePath = "../uploads/" . $fileName;
 
     if (!file_exists($filePath)) {
@@ -23,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['_method']) && $_POST[
         echo json_encode(["error" => "Failed to delete file"]);
     }
 } else {
-    http_response_code(405);
+    http_response_code(405); // Method Not Allowed
     echo json_encode(["error" => "Invalid request method"]);
 }
 ?>

@@ -139,20 +139,23 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function sendDeleteRequest(fileName) {
-        return fetch(`/delete-file.php`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `file=${encodeURIComponent(fileName)}&_method=DELETE`
-        }).then(response => {
+        return fetch(`/delete-file.php?file=${encodeURIComponent(fileName)}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => {
             if (!response.ok) throw new Error('Failed to delete file');
             return response.json();
-        }).then(() => {
-            fetchFileList(); // Refresh file list instead of full reload
-        }).catch(error => {
+        })
+        .then(() => {
+            fetchFileList(); // Refresh file list
+        })
+        .catch(error => {
             console.error('Error deleting file:', error);
         });
     }
-
+    
+    
     fetchFileList(); // Load file list on page load
 });
 
