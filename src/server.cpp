@@ -5,11 +5,11 @@
 #include <limits.h>
 #include <sys/wait.h>
 
-std::map<std::string, std::string> interpreters =  {
-    {".php", "/usr/bin/php-cgi"},
-    {".py", "/usr/bin/python3"},
-    {".sh", "/bin/bash"}
-};
+// std::map<std::string, std::string> interpreters =  {
+//     {".php", "/usr/bin/php-cgi"},
+//     {".py", "/usr/bin/python3"},
+//     {".sh", "/bin/bash"}
+// };
 
 
 
@@ -18,16 +18,16 @@ std::map<std::string, std::string> interpreters =  {
 
 
 
-std::string Request::execute_cgi(const std::string& interpreter ,Response& response, std::string root_cgi) 
+std::string Request::execute_cgi(const std::string& interpreter , std::string root_cgi) 
 {
     std::cout << "Executing CGI script: " << path << std::endl;
 
-    std::string uploaded_file;
-    if (isMultipart)
-    {
-        response.upload_file(uploaded_file);
-        std::cout << "Uploaded file: ok"  << std::endl;
-    }
+    // std::string uploaded_file;
+    // if (isMultipart)
+    // {
+    //     response.upload_file(uploaded_file);
+    //     std::cout << "Uploaded file: ok"  << std::endl;
+    // }
     // std::cout << "interpreter" <<interpreter << std::endl;
   std::string path_ = root_cgi + this->path;
         // std::cout << "path_: " << path_ << std::endl;
@@ -53,8 +53,8 @@ std::string Request::execute_cgi(const std::string& interpreter ,Response& respo
             "CONTENT_TYPE=" + content_type,
             "CONTENT_LENGTH=" + std::to_string(post_data.length()),
             "SCRIPT_FILENAME=" + path_,
-            "REDIRECT_STATUS=200",  // Required for PHP-CGI
-            "UPLOADED_FILE=" + uploaded_file
+            "REDIRECT_STATUS=200"  // Required for PHP-CGI
+            // "UPLOADED_FILE=" + uploaded_file
         };
 
         std::vector<char*> envp;
@@ -249,7 +249,6 @@ std::string Server::read_request(int client_socket) {
     }
     std::string full_request = partial_requests[client_socket];
     partial_requests.erase(client_socket);
-    std::cout << "Full request received" << std::endl;
     return full_request;
 }
 
@@ -267,18 +266,18 @@ bool Server::is_cgi(std::string path,std::string &extension)
     {
         // std::string extension = path.substr(dot_pos);//<<
         extension = path.substr(dot_pos);
-        std::ifstream file(cgi_location.root + path, std::ios::binary);
+        std::ifstream file(this->locations["/cgi-bin"].root + path, std::ios::binary);
         // std::cout << "cgi_location.root"<< cgi_location.root + path << std::endl;
-        return (file.is_open()&&interpreters.find(extension) != interpreters.end());
+        return (file.is_open()&&this->locations["/cgi-bin"].cgi.find(extension) != this->locations["/cgi-bin"].cgi.end());
     }
     return false;
 }
 //zouhir add this
 void Server::send_cgi(std::string extension, std::string path, int client_socket, Response& response)
 {
-    std::string interpreter = interpreters[extension];
-    std::string script_path = cgi_location.root + path;
-    std::string cgi_output = response.request.execute_cgi(interpreter, response, cgi_location.root);
+    std::string interpreter = this->locations["/cgi-bin"].cgi[extension];
+    std::string script_path = this->locations["/cgi-bin"].root + path;
+    std::string cgi_output = response.request.execute_cgi(interpreter, this->locations["/cgi-bin"].root);
     std::string response_ = response.request.getHttpVersion() + " 200 OK\r\nContent-Type: text/html\r\nContent-Length: " + std::to_string(cgi_output.length()) + "\r\n\r\n" + cgi_output;
     send(client_socket, response_.c_str(), response_.length(), 0);
 }
@@ -288,12 +287,11 @@ bool Server::handle_client(int client_socket) {
     std::string body = read_request(client_socket);
     if (body.empty())
         return false;
-    std::cout << "Handling client request" << std::endl;
     Response response(client_socket, *this);
     response.request = Request(body);
     std::string method = response.request.getMethod();
     std::string path = response.request.getPath();
-    if(!check_method(method, root_location.allowed_methods)) {
+    if(!check_method(method, locations["/"].allowed_methods)) {
         std::cout << "Method not allowed" << std::endl;
         response.send_error_response(405, "text/html", error_pages[405]);
         close(client_socket);
@@ -313,7 +311,7 @@ bool Server::handle_client(int client_socket) {
         if (method == "GET")
             response.handle_get_request(body);
         else if (method == "POST") {
-            if(!check_method(method, upload_location.allowed_methods)) {
+            if(!check_method(method, this->locations["/upload"].allowed_methods)) {
                 response.send_error_response(405, "text/html", error_pages[405]);
                 close(client_socket);
                 return true;

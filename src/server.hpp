@@ -20,9 +20,10 @@ class Server {
         std::string server_name;
         std::map<int, std::string> error_pages;
         int client_max_body_size;
-        Location root_location;
-        Location upload_location;
-        Location cgi_location;
+        std::map<std::string, Location> locations;
+        // Location root_location;   //replaced by locations[/]
+        // Location upload_location; //replaced by locations[/upload]
+        // Location cgi_location;    //replaced by locations[/cgi-bin]
 
         Server();
         ~Server();
