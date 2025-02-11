@@ -46,12 +46,11 @@ Server::~Server() {
 bool isDirectory(const std::string& path) {
     struct stat statbuf;
     if (stat(path.c_str(), &statbuf) != 0) 
-        return false;
+        return throw std::runtime_error("Error getting file status"), false;
     
     return S_ISDIR(statbuf.st_mode);
 }
 
-// Method to list files in a directory (optional, for debugging or listing purposes)
 std::vector<std::string> list_files(const std::string& directory) {
     std::vector<std::string> files;
     DIR* dirp = opendir(directory.c_str());
@@ -148,7 +147,9 @@ std::string Server::read_request(int client_socket) {
 bool Server::check_method(const std::string& method, const std::vector<std::string>& allowed_methods) {
     return std::find(allowed_methods.begin(), allowed_methods.end(), method) != allowed_methods.end();
 }
+
 bool Server::handle_client(int client_socket) {
+
     std::string body = read_request(client_socket);
     if (body.empty())
         return false;
@@ -159,19 +160,18 @@ bool Server::handle_client(int client_socket) {
     std::string root_uri = locations[uri].root;
     std::string path = root_uri + uri;
 
-std::cout << "PATH: " << path << std::endl;
-std::cout << "URI: " << uri << std::endl;
     if (isDirectory(path)) {
         if (!check_method(method, locations[uri].allowed_methods)) 
             return response.send_error_response(405, "text/html", error_pages[405]), true;
         if (locations[uri].directory_listing)
             return response.list_directory_contents(path), true;
+
         else {
+            std::cout << "im here" << std::endl;
             if (!path.empty() && path.back() != '/')
                 path += '/';
             path += locations[uri].default_file;
         }
-      
     }
     else {
         if (path.empty() || path.back() == '/')
@@ -187,7 +187,7 @@ std::cout << "URI: " << uri << std::endl;
     else if (method == "POST")
         response.handle_post_request(path);
      else if (method == "DELETE") 
-        response.handle_delete_request(path);
+        response.handle_delete_request();
      else 
         response.send_error_response(405, "text/html", error_pages[405]);
     
@@ -195,15 +195,6 @@ std::cout << "URI: " << uri << std::endl;
     close(client_socket);
     return true;
 }
-
-
-
-
-
-
-
-
-
 
 
 

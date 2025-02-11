@@ -30,7 +30,7 @@ class Response {
         bool is_directory(const std::string& url);
         void send_error_response(int status, const std::string& content_type, const std::string& error_page_path);
         void handle_post_request(const std::string& path);
-        void handle_delete_request(const std::string& path);
+        void handle_delete_request();
         void create_user(const std::map<std::string, std::string>& data, const std::string& uploads);
         void list_directory_contents(const std::string& dir_path);
         void check_error(const std::string& path);

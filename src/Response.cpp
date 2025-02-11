@@ -256,37 +256,27 @@ void Response::handle_post_request(const std::string &path) {
 
 
 
-void Response::handle_delete_request(const std::string& body) {
-    (void) body;
-
+void Response::handle_delete_request() {
+    std::string query_string = request.getQueryString();
+    query_string = query_string.find_first_of('=') ? query_string.substr(0, query_string.find_first_of('=')) : query_string;
     std::string root = server.locations["/"].root;
+
     std::string uploads = server.locations["/upload"].root;
     if (!uploads.empty() && uploads.back() != '/')
         uploads += '/';
-    uploads += "upload" + request.getPath();
+    uploads += "upload" + request.getPath() + query_string;
 
     std::string delete_path = root + "/delete-success.html";
     std::string delete_error = root + "/delete-failure.html";
 
-    std::cout << "Uploads path: " << uploads << std::endl;
+    if (!std::filesystem::exists(uploads)) 
+        return send_error_response(404, "text/html", delete_error), void();
+    if (remove(uploads.c_str()) != 0)
+        return send_error_response(500, "text/html", delete_error), void();
+  
 
-    if (!std::filesystem::exists(uploads)) {
-        std::cout << "File does not exist: " << uploads << std::endl;
-        send_error_response(404, "text/html", delete_error);
-        return;
-    }
-
-    if (remove(uploads.c_str()) != 0) {
-        std::cout << "Failed to delete file: " << uploads << std::endl;
-        send_error_response(500, "text/html", delete_error);
-        return;
-    }
-
-    std::cout << "File deleted successfully: " << uploads << std::endl;
     set_status(200);
     set_content_type("text/html");
     set_body(read_html_file(delete_path));
     send_response();
-    
-    std::cout << "Response sent successfully" << std::endl;
 }

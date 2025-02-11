@@ -84,7 +84,6 @@ std::string Request::trim(std::string str) {
 }
 
 void Request::parseRequestLine(const string& line) {
-    std::cout << "Request Line: " << line << std::endl;
     std::istringstream iss(line);
     iss >> method >> path >> httpVersion;
 

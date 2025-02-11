@@ -23,6 +23,7 @@ class Request {
         
 
     public:
+    std::string  deleeted;
         Request(){};
         Request(const string &body);
         void parseRequestLine(const string& line);
