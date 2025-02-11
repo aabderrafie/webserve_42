@@ -18,6 +18,10 @@
 #include <ctime>
 #include <iomanip>
 #include <cctype>
+#include <iostream>
+#include <string>
+#include <dirent.h>
+#include <sys/types.h>
 
 #define PORT 
 #define BACKLOG 2

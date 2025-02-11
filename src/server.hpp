@@ -21,9 +21,6 @@ class Server {
         std::map<int, std::string> error_pages;
         int client_max_body_size;
         std::map<std::string, Location> locations;
-        // Location root_location;   //replaced by locations[/]
-        // Location upload_location; //replaced by locations[/upload]
-        // Location cgi_location;    //replaced by locations[/cgi-bin]
 
         Server();
         ~Server();
