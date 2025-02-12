@@ -182,12 +182,13 @@ Server::~Server() {
 
 bool isDirectory(const std::string& path) {
     struct stat statbuf;
-    if (stat(path.c_str(), &statbuf) != 0) 
-        return throw std::runtime_error("Error getting file status"), false;
-    
+    if (stat(path.c_str(), &statbuf) != 0) {
+        std::cerr << "Error getting file status" << std::endl;
+        return false;
+    }
+    std::cout << "statbuf.st_mode: " << statbuf.st_mode << std::endl;
     return S_ISDIR(statbuf.st_mode);
 }
-
 std::vector<std::string> list_files(const std::string& directory) {
     std::vector<std::string> files;
     DIR* dirp = opendir(directory.c_str());
@@ -324,26 +325,25 @@ bool Server::handle_client(int client_socket) {
     std::string uri = response.request.getPath();
     std::string root_uri = locations[uri].root;
     std::string path = root_uri + uri;
-
+    std::cout << "path: " << path << std::endl;
+    std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << ", Path: " << path << RESET << std::endl;
     if (isDirectory(path)) {
         if (!check_method(method, locations[uri].allowed_methods)) 
             return response.send_error_response(405, "text/html", error_pages[405]), true;
         if (locations[uri].directory_listing)
             return response.list_directory_contents(path), true;
-
         else {
-            std::cout << "im here" << std::endl;
             if (!path.empty() && path.back() != '/')
                 path += '/';
             path += locations[uri].default_file;
         }
     }
     else {
-        if (path.empty() || path.back() == '/')
-            path += locations[uri].default_file;
+        std::string default_file = locations["/"].root + path;
+        path = default_file;
     }
 
-    std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << ", Path: " << uri << RESET << std::endl;
+
 
     response.check_error(path);
 

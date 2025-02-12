@@ -32,6 +32,7 @@ class Request {
         void parseUrlEncodedData(const string& body);
         void parseMultipartFormData(const string& body);
         string trim(string str);
+        int getContentLength();
 
 
         const string& getMethod() const { return method; }

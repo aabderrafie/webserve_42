@@ -5,117 +5,178 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CGI Test Page</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh; 
-            display: flex; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
+            overflow: hidden;
             color: white;
             padding: 20px;
-            margin: 0;
-            background: linear-gradient(135deg, #667eea, #764ba2, #667eea, #764ba2);
-            background-size: 400% 400%; /* Larger background size for smooth animation */
-            animation: gradientBackground 15s ease infinite; /* Background animation */
         }
-        @keyframes gradientBackground {
-            0% {
-                background-position: 0% 50%;
-            }
-            50% {
-                background-position: 100% 50%;
-            }
-            100% {
-                background-position: 0% 50%;
-            }
+
+        .background-animation {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
         }
+
+        @keyframes subtle-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: subtle-float 8s ease-in-out infinite alternate;
+            backdrop-filter: blur(5px);
+        }
+
+        .circle:nth-child(1) {
+            width: 150px;
+            height: 150px;
+            top: 10%;
+            left: 10%;
+            animation-delay: -2s;
+        }
+
+        .circle:nth-child(2) {
+            width: 100px;
+            height: 100px;
+            top: 20%;
+            right: 15%;
+            animation-delay: -4s;
+        }
+
+        .circle:nth-child(3) {
+            width: 200px;
+            height: 200px;
+            bottom: 15%;
+            right: 25%;
+            animation-delay: -6s;
+        }
+
         .container {
             position: relative;
             z-index: 10;
             text-align: center;
-            max-width: 1200px;
+            width: 90%;
+            max-width: 800px;
+            padding: 60px 40px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
+            border-radius: 30px;
             backdrop-filter: blur(15px);
             box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-            padding: 60px 40px;
-            animation: fadeInScale 1.5s ease-in-out;
-            margin: 20px; /* Add margin for better spacing */
         }
-        @keyframes fadeInScale {
-            0% {
-                opacity: 0;
-                transform: scale(0.9);
-            }
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
-        h1, h2 {
-            color: #ffffff;
+
+        h2 {
+            font-size: 1.5em;
+            margin: 30px 0 20px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
         }
+
         form {
-            margin: 20px 0;
-            padding: 15px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            border-radius: 20px;
+            margin: 20px 0;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
-        input, button {
-            padding: 10px;
-            margin: 5px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+
+        input {
+            width: 100%;
+            max-width: 300px;
+            padding: 12px 20px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1em;
             transition: all 0.3s ease;
         }
-        button {
-            background-color: #001aff57;
-            color: white;
-            cursor: pointer;
-            border: none;
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
         }
-        button:hover {
-            background-color: #0277bd;
-            animation: bounce 0.5s ease;
-        }
-        @keyframes bounce {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-10px);
-            }
-        }
+
         input:focus {
-            border-color: #001aff57;
-            box-shadow: 0 0 10px rgba(0, 26, 255, 0.7);
             outline: none;
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 15px rgba(255,255,255,0.2);
         }
+
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            min-width: 150px;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
         .serve-buttons {
-            margin-top: 20px;
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 20px;
+            margin: 30px 0;
+            flex-wrap: wrap;
         }
+
         .serve-buttons button {
-            padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 5px;
-            background-color: #4CAF50; /* Green for PHP */
+            background: linear-gradient(45deg, #4CAF50, #2196F3);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
         }
-        .serve-buttons button.python {
-            background-color: #FFA500; /* Orange for Python */
+
+        .serve-buttons .python {
+            background: linear-gradient(45deg, #FFC107, #FF9800);
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+        }
+
+        form button[type="submit"] {
+            background: linear-gradient(45deg, #2196F3, #3F51B5);
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
         }
     </style>
 </head>
 <body>
+    <div class="background-animation">
+        <div class="circle"></div>
+        <div class="circle"></div>
+        <div class="circle"></div>
+    </div>
+
     <div class="container">
         <h1>Test CGI Scripts</h1>
 
-        <!-- Serve PHP and Python Buttons -->
         <div class="serve-buttons">
             <button onclick="window.location.href='chat.html'">Serve PHP</button>
             <button class="python" onclick="window.location.href='service.py'">Serve Python</button>
@@ -127,24 +188,25 @@
             <input type="number" name="age" placeholder="Enter your age" required>
             <button type="submit">Submit</button>
         </form>
+
         <h2>PHP CGI POST Test</h2>
         <form action="send_r.php" method="POST" enctype="multipart/form-data">
             <input type="text" name="name" placeholder="Enter your name" required>
             <input type="number" name="age" placeholder="Enter your age" required>
-            <!-- <input type="file" name="file" required> -->
             <button type="submit">Submit</button>
         </form>
+
         <h2>Python CGI GET Test</h2>
         <form action="send_r.py" method="GET">
             <input type="text" name="name" placeholder="Enter your name" required>
             <input type="number" name="age" placeholder="Enter your age" required>
             <button type="submit">Submit</button>
         </form>        
+
         <h2>Python CGI POST Test</h2>
         <form action="send_r.py" method="POST" enctype="multipart/form-data">
             <input type="text" name="name" placeholder="Enter your name" required>
             <input type="number" name="age" placeholder="Enter your age" required>
-            <!-- <input type="file" name="file" required> -->
             <button type="submit">Submit</button>
         </form>     
     </div>

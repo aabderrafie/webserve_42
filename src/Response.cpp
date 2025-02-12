@@ -122,7 +122,10 @@ void Response::send_response() {
 void Response::check_error(const std::string& path) {
     std::string root = server.locations["/"].root;
     std::string uri = request.getPath();
-        if (!is_valid_url(uri))
+    
+    if (request.getContentLength() > server.client_max_body_size )
+        return send_error_response(413, "text/html", server.error_pages[413]) , void();
+    if (!is_valid_url(uri))
        return  send_error_response(400, "text/html", server.error_pages[400]), void();
 
     if (uri.find("..") != std::string::npos)
@@ -240,22 +243,17 @@ void Response::handle_post_request(const std::string &path) {
     std::string root = server.locations["/"].root;
     std::cout << "uploads: " << uploads << std::endl;
     std::string post_path = root + "/post-success.html";
+    std::cout << "post_path: " << post_path << std::endl;
 
     if (request.getIsMultipart())
         upload_file(uploads);
-    else
-        return send_error_response(400, "text/html", server.error_pages[400]), void();
+
 
     set_status(200);
     set_content_type("text/html");
     set_body(read_html_file(post_path));
     send_response();
 }
-#include <iostream>
-#include <filesystem>
-#include <string>
-
-
 
 void Response::handle_delete_request() {
     std::string query_string = request.getQueryString();
@@ -266,7 +264,6 @@ void Response::handle_delete_request() {
     if (!uploads.empty() && uploads.back() != '/')
         uploads += '/';
     uploads += "upload" + request.getPath() + query_string;
-
     std::string delete_path = root + "/delete-success.html";
     std::string delete_error = root + "/delete-failure.html";
 
