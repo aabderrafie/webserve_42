@@ -195,12 +195,46 @@ void Response::upload_file(std::string& uploaded_file_path)
 
 // std::map<int, Session> sessions;
 
+// void Response::handle_post_request(const std::string &body) {
+//     (void) body;
+//     std::string uploads = server.locations["/upload"].root;
+//     std::string root = server.locations["/"].root;
+//     std::string post_path = root + request.getPath();
+//     // server.load_sessions_from_file();
+
+//     if (!is_valid_url(request.getPath()))
+//         return send_error_response(400, "text/html", server.error_pages[400]), void();
+
+//     if (request.getPath().find("..") != std::string::npos)
+//         return send_error_response(403, "text/html", server.error_pages[403]), void();
+
+//     if (request.getPath().length() > 2048)
+//         return send_error_response(414, "text/html", server.error_pages[414]), void();
+
+//     if (request.getIsMultipart())
+//         upload_file(uploads);
+//     // else if (request.toggleTheme(request.getPostData()) == 2) {
+//     //     post_path = post_path + "dark" + server.locations["/"].default_file;
+//     //     server.sessions[getSessionID(request.getCookies()[0])].isDarkMode = 1;
+//     // } else if (request.toggleTheme(request.getPostData()) == 1) {
+//     //     post_path = post_path + server.locations["/"].default_file;
+//     //     server.sessions[getSessionID(request.getCookies()[0])].isDarkMode = 0;
+//     // }
+//      else
+//         return send_error_response(400, "text/html", server.error_pages[400]), void();
+
+//     // server.save_sessions_to_file();
+//     set_status(200);
+//     set_content_type("text/html");
+//     set_body(read_html_file(post_path));
+//     send_response();
+// }
+
 void Response::handle_post_request(const std::string &body) {
     (void) body;
     std::string uploads = server.locations["/upload"].root;
     std::string root = server.locations["/"].root;
     std::string post_path = root + request.getPath();
-    // server.load_sessions_from_file();
 
     if (!is_valid_url(request.getPath()))
         return send_error_response(400, "text/html", server.error_pages[400]), void();
@@ -213,22 +247,17 @@ void Response::handle_post_request(const std::string &body) {
 
     if (request.getIsMultipart())
         upload_file(uploads);
-    // else if (request.toggleTheme(request.getPostData()) == 2) {
-    //     post_path = post_path + "dark" + server.locations["/"].default_file;
-    //     server.sessions[getSessionID(request.getCookies()[0])].isDarkMode = 1;
-    // } else if (request.toggleTheme(request.getPostData()) == 1) {
-    //     post_path = post_path + server.locations["/"].default_file;
-    //     server.sessions[getSessionID(request.getCookies()[0])].isDarkMode = 0;
-    // }
-     else
+    else
         return send_error_response(400, "text/html", server.error_pages[400]), void();
 
-    // server.save_sessions_to_file();
+    std::cout << "Uploaded file: " << uploads << std::endl;
     set_status(200);
     set_content_type("text/html");
     set_body(read_html_file(post_path));
     send_response();
 }
+
+
 void Response::handle_delete_request(const std::string& body) {
     (void) body;
     std::string root = server.locations["/"].root;
