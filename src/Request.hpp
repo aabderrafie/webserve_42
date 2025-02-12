@@ -2,6 +2,18 @@
 #include "../includes/include.hpp"
 using namespace std;
 class Response;//zouhir add this line
+// class Session {
+//     public:
+//         int session_id;
+//         Session() {
+//             std::cout << "Session created" << std::endl;
+//         }
+//         Session(int id): session_id(id) {
+//             std::cout << "Session created" << std::endl;
+//         }
+//         ~Session() {}
+// };
+
 class Request {
     private:
         string method;
@@ -19,10 +31,12 @@ class Request {
         std::string content_type;
         std::string post_data;
         std::string query_string;
-        // std::string boundary;
 
-        
+        std::string cookies;
+
     public:
+        int session_id;
+        bool isInNeedOfCookies;
         std::string execute_cgi(const std::string& interpreter , std::string root_cgi);//zouhir add this function
         Request(){};
         Request(const string &body);
@@ -40,7 +54,7 @@ class Request {
         const string& getPostData() const { return post_data; }
         const string& getContentType() const { return content_type; }
         const string& getBoundary() const { return boundary; }
-        // std::vector<std::string> getCookies() const { return cookies; }
+        std::string getCookies() const { return cookies; }
         // int toggleTheme(std::string body) const {
         //     if (body.find("isDarkMode=true") != std::string::npos)
         //         return 2;

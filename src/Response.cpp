@@ -50,17 +50,13 @@ void Response::send_error_response(int status, const std::string& content_type, 
 
 void Response::send_response() {
     std::ostringstream response;
-    response << "HTTP/1.1 " << status << "\r\n"
-            //  << "Set-Cookie: " << Cookies[0] << "\r\n"
-            //  << "Set-Cookie: " << Cookies[1] << "\r\n"
-    // for (std::vector<std::string>::const_iterator it = request.cookies.begin(); it != request.cookies.end(); ++it)
-    //     response << "Set-Cookie: " << *it << "\r\n";
-    // }
-    // response << "Content-Type: " << content_type << "\r\n"
-            << "Content-Type: " << content_type << "\r\n"
-            << "Content-Length: " << body.size() << "\r\n"
-            << "Connection: close\r\n"
-            << "\r\n";
+    response << "HTTP/1.1 " << status << "\r\n";
+    if (request.isInNeedOfCookies)
+        response << "Set-Cookie: " << Cookies << "\r\n";
+    response << "Content-Type: " << content_type << "\r\n";
+    response << "Content-Length: " << body.size() << "\r\n";
+    response << "Connection: close\r\n";
+    response << "\r\n";
     std::string headers = response.str();
     send(client_socket, headers.c_str(), headers.size(), 0);
 
@@ -227,10 +223,6 @@ void Response::handle_post_request(const std::string &body) {
      else
         return send_error_response(400, "text/html", server.error_pages[400]), void();
 
-    // for (std::map<int, Session>::value_type& session : server.sessions) {
-    //     std::cout << "Session ID: " << session.first << std::endl;
-    //     std::cout << "Dark Mode: " << session.second.isDarkMode << std::endl;
-    // }
     // server.save_sessions_to_file();
     set_status(200);
     set_content_type("text/html");

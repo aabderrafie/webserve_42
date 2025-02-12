@@ -148,39 +148,68 @@ std::string current_time() {
 }
 
 Server::Server() {
-    // load_sessions_from_file(); // Add this line
+    std::cout << "Server created" << std::endl;
+    load_sessions_from_file(); // Add this line
 }
 
 Server::~Server() {}
 
-// void Server::save_sessions_to_file() {
-//     std::ofstream file("sessions.txt");
-//     if (file.is_open()) {
-//         for (std::map<int, Session>::value_type& session : sessions) {
-//             file << "session_id=" << session.first << ";" << "isDarkMode=" << session.second.isDarkMode << std::endl; //add other data here <---
-//         }
-//         file.close();
-//     } else {
-//         std::cerr << "Unable to open sessions file for writing" << std::endl;
-//     }
-// }
+void Server::save_sessions_to_file() {
+    std::ofstream file("sessions.txt");
+    if (file.is_open()) {
+        std::cout << "updating sessions file" << std::endl;
+        for (std::map<int, Session>::value_type& session : sessions) {
+            file << "session_id=" << session.first << ";" << std::endl; //add other data here <---
+        }
+        file.close();
+    } else {
+        std::cerr << "Unable to open sessions file for writing" << std::endl;
+    }
+}
 
 // void Server::load_sessions_from_file() {
 //     std::ifstream file("sessions.txt");
 //     if (file.is_open()) {
 //         int session_id;
+//         std::cout << "loading sessions file.." << std::endl;
 //         while (file >> session_id) {
+//             std::cout << "session_id: " << session_id << std::endl;
 //             Session session(session_id);
-//             std::string isDarkMode;
-//             file >> isDarkMode;
-//             session.isDarkMode = std::stoi(isDarkMode);
 //             sessions.insert(std::make_pair(session_id, session));
+//             session_id += 10;
 //         }
 //         file.close();
 //     } else {
 //         std::cerr << "Unable to open sessions file for reading" << std::endl;
 //     }
 // }
+
+void Server::load_sessions_from_file() {
+    std::ifstream file("sessions.txt");
+    if (file.is_open()) {
+        std::string line;
+        std::cout << "loading sessions file.." << std::endl;
+        while (std::getline(file, line)) {
+            size_t start_pos = line.find("session_id=") + std::string("session_id=").length();
+            size_t end_pos = line.find(';');
+            
+            if (start_pos != std::string::npos && end_pos != std::string::npos) {
+                // Extract the session ID substring and convert it to an integer
+                std::string session_id_str = line.substr(start_pos, end_pos - start_pos);
+                int session_id = std::stoi(session_id_str);
+                
+                std::cout << "session_id: " << session_id << std::endl;
+                Session session(session_id);
+                sessions.insert(std::make_pair(session_id, session));
+            } else {
+                std::cerr << "Invalid session ID format in file: " << line << std::endl;
+            }
+        }
+        file.close();
+    } else {
+        std::cerr << "Unable to open sessions file for reading" << std::endl;
+    }
+}
 
 void Server::server_init() {
     for (size_t i = 0; i < ports.size(); ++i) {
@@ -312,8 +341,9 @@ void Server::send_cgi(std::string extension, std::string path, int client_socket
     send(client_socket, response_.c_str(), response_.length(), 0);
 }
 
-// void Response::set_cookies(std::vector<std::string> cookies) {
-//     }
+void Response::set_cookies(const std::string& cookies) {
+    Cookies = cookies;
+}
 
 // void manageSessions(std::map<int, Session>& sessions, std::vector<std::string>& Cookies) {
 //     int session_id = std::stoi(Cookies[0].substr(11));
@@ -327,14 +357,18 @@ bool Server::handle_client(int client_socket) {
     std::string body = read_request(client_socket);
     if (body.empty())
         return false;
+    // load_sessions_from_file();
     Response response(client_socket, *this);
     response.request = Request(body);
     std::string method = response.request.getMethod();
     std::string path = response.request.getPath();
-    // std::vector<std::string> Cookies = response.request.getCookies();
+    std::string Cookies = response.request.getCookies();
     // manageSessions(sessions, Cookies);
-    // save_sessions_to_file();
-    // response.set_cookies(Cookies);
+    if (response.request.isInNeedOfCookies) {
+        response.set_cookies(Cookies);
+        sessions.insert(std::make_pair(response.request.session_id, Session(response.request.session_id)));
+    }
+    save_sessions_to_file();
     if(!check_method(method, locations["/"].allowed_methods)) {
         std::cout << "Method not allowed" << std::endl;
         response.send_error_response(405, "text/html", error_pages[405]);
