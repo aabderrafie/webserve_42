@@ -11,17 +11,9 @@
 //     {".sh", "/bin/bash"}
 // };
 
-
-
-
-
-
-
-
 std::string Request::execute_cgi(const std::string& interpreter , std::string root_cgi) 
 {
     std::cout << "Executing CGI script: " << path << std::endl;
-
     // std::string uploaded_file;
     // if (isMultipart)
     // {
@@ -29,8 +21,8 @@ std::string Request::execute_cgi(const std::string& interpreter , std::string ro
     //     std::cout << "Uploaded file: ok"  << std::endl;
     // }
     // std::cout << "interpreter" <<interpreter << std::endl;
-  std::string path_ = root_cgi + this->path;
-        // std::cout << "path_: " << path_ << std::endl;
+    std::string path_ = root_cgi + this->path;
+    // std::cout << "path_: " << path_ << std::endl;
 
     int pipefd[2];
     if (pipe(pipefd) == -1) {
@@ -413,7 +405,7 @@ bool Server::handle_client(int client_socket) {
 
 void Server::start_server() {
 
-        int poll_count = poll(poll_fds.data(), poll_fds.size(),0);
+        int poll_count = poll(poll_fds.data(), poll_fds.size(), 0);
         if (poll_count < 0)
             throw std::runtime_error("Error polling for events");
         for (size_t i = 0; i < poll_fds.size(); ++i) {
