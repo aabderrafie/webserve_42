@@ -38,6 +38,7 @@ class Request {
         int session_id;
         bool isInNeedOfCookies;
         std::string execute_cgi(const std::string& interpreter , std::string root_cgi);//zouhir add this function
+    std::string  deleeted;
         Request(){};
         Request(const string &body);
         void parseRequestLine(const string& line);
@@ -45,6 +46,7 @@ class Request {
         void parseUrlEncodedData(const string& body);
         void parseMultipartFormData(const string& body);
         string trim(string str);
+        int getContentLength();
 
 
         const string& getMethod() const { return method; }

@@ -49,7 +49,6 @@ MultiServer::~MultiServer() {
         for(size_t i = 0; i < it->server_sockets.size(); ++i) {
             close(it->server_sockets[i]);
         }
-
     }
     Draw::success("All servers shut down successfully");
 }

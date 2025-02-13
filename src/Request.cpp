@@ -150,6 +150,7 @@ std::string Request::trim(std::string str) {
 void Request::parseRequestLine(const string& line) {
     std::istringstream iss(line);
     iss >> method >> path >> httpVersion;
+
 }
 
 void Request::parseHeader(const string& line) {
@@ -177,40 +178,8 @@ void Request::parseUrlEncodedData(const string& body) {
 
 
 
-// void Request::parseMultipartFormData(const std::string& body) {
-//     std::string body_copy;
-//     size_t startPos = body.find("filename=\"");
-//     size_t endPos = std::string::npos; 
-//     if (startPos != std::string::npos) {
-//         startPos += 10; 
-//         endPos = body.find("\"", startPos);
-//         if (endPos == std::string::npos) 
-//             throw std::runtime_error("Filename not found!");
-//         filename = body.substr(startPos, endPos - startPos);
-//     } 
-//         else 
-//             throw std::runtime_error("Filename not found!");
-//     body_copy = body.substr(endPos + 2);
-//     std::map<std::string, std::string> headers = getHeaders();
-//     std::string boundary = headers["Content-Type"];
-//     boundary = boundary.substr(boundary.find("boundary=") + 9);
-//     if(boundary.empty())
-//         throw std::runtime_error("Boundary not found!");
-
-//  std::istringstream iss(body_copy);
-//  std::string fileContent,line;
-// std::getline(iss, line);
-// std::getline(iss, line);
-// std::getline(iss, line);
-// while(std::getline(iss, line)){
-//     fileContent += line;
-//     fileContent += "\n";
-// }
-
-// size_t boundaryEnd = fileContent.find("WebKitFormBoundary") - 8;
-// fileContent = fileContent.substr(0, boundaryEnd);
-//     std::ofstream file(filename, std::ios::binary);
-//     file.write(fileContent.c_str(), fileContent.size());
-//     file.close();
-
-// }
+int Request::getContentLength() {
+    if(headers.find("Content-Length") != headers.end())
+        return std::stoi(headers["Content-Length"]);
+    return -1;
+}

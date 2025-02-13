@@ -1,94 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Manager</title>
-    <script src="file_manager_script.js" defer></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-
-        header {
-            background-color: #007BFF;
-            color: white;
-            padding: 15px;
-            font-size: 24px;
-            position: relative;
-        }
-
-        .home-button {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: #ffc107;
-            color: black;
-            border: none;
-            padding: 8px 15px;
-            font-size: 16px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        .home-button:hover {
-            background-color: #e0a800;
-        }
-
-        ul {
-            list-style-type: none;
-            padding: 0;
-            margin: 20px auto;
-            width: 50%;
-        }
-
-        li {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: white;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        button {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            cursor: pointer;
-            border-radius: 3px;
-            margin: 0 5px;
-        }
-
-        .delete-btn {
-            background-color: #d9534f;
-        }
-
-        button:hover {
-            opacity: 0.8;
-        }
-    </style>
+    <title>Directory Listing</title>
 </head>
 <body>
-    <header>
-        <button class="home-button" onclick="goHome()">🏠 Home</button>
-        File Manager
-    </header>
-    <ul id="fileList"></ul>
-
-    <script>
-        function goHome() {
-            window.location.href = "/"; // Change this to the correct home URL
-        }
-    </script>
+    <h1>Files in {DIRECTORY_PATH}</h1>
+    <ul>
+        {DIRECTORY_ITEMS}
+    </ul>
 </body>
 </html>

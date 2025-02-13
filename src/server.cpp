@@ -208,20 +208,52 @@ void Server::server_init() {
         int server_socket = socket(AF_INET, SOCK_STREAM, 0);
         if (server_socket < 0)
             throw std::runtime_error("Error creating socket");
+
         struct sockaddr_in server_addr;
         server_addr.sin_family = AF_INET;
         server_addr.sin_port = htons(ports[i]);
         server_addr.sin_addr.s_addr = INADDR_ANY;
         memset(&(server_addr.sin_zero), 0, 8);
+
         struct pollfd server_poll_fd;
         server_poll_fd.fd = server_socket;
         server_poll_fd.events = POLLIN;
+
         poll_fds.push_back(server_poll_fd);
         server_sockets.push_back(server_socket);
         server_addrs.push_back(server_addr);
     }
 }
 
+Server::~Server() {
+    // std::cout << RED << "[" << current_time() << "] Server shutting down..." << RESET << std::endl;
+}
+
+#include <dirent.h>
+#include <sys/stat.h>
+
+#include <sys/stat.h>
+#include <string>
+
+bool isDirectory(const std::string& path) {
+    struct stat statbuf;
+    if (stat(path.c_str(), &statbuf) != 0) {
+        std::cerr << "Error getting file status" << std::endl;
+        return false;
+    }
+    std::cout << "statbuf.st_mode: " << statbuf.st_mode << std::endl;
+    return S_ISDIR(statbuf.st_mode);
+}
+std::vector<std::string> list_files(const std::string& directory) {
+    std::vector<std::string> files;
+    DIR* dirp = opendir(directory.c_str());
+    struct dirent* dp;
+    while ((dp = readdir(dirp)) != nullptr) {
+        files.push_back(dp->d_name);
+    }
+    closedir(dirp);
+    return files;
+}
 
 void Server::bind_and_listen() {
     for (size_t i = 0; i < server_sockets.size(); ++i) {
@@ -263,6 +295,7 @@ void Server::new_connection(int server_socket) {
     client_poll_fd.fd = client_socket;
     client_poll_fd.events = POLLIN;
     poll_fds.push_back(client_poll_fd);
+
     std::cout << BLUE << "[" << current_time() << "] New client connected on socket " << client_socket << RESET << std::endl;
 }
 
@@ -271,10 +304,10 @@ std::unordered_map<int, std::string> partial_requests;
 
 std::string Server::read_request(int client_socket) {
     char buffer[BUFFER_SIZE];
-    int bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, MSG_DONTWAIT);
+    int bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, 0);
 
     if (bytes_received < 0)
-            return "";
+        return "";
 
     if (bytes_received == 0) {
         std::string final_request = partial_requests[client_socket];
@@ -295,8 +328,9 @@ std::string Server::read_request(int client_socket) {
         size_t content_length_end = headers.find("\r\n", content_length_pos);
         int content_length = std::stoi(headers.substr(content_length_pos + 16, content_length_end - content_length_pos - 16));
         size_t total_length = header_end + 4 + content_length;
-        if (partial_requests[client_socket].size() < total_length)
+        if (partial_requests[client_socket].size() < total_length) {
             return "";
+        }
     }
     std::string full_request = partial_requests[client_socket];
     partial_requests.erase(client_socket);
@@ -312,13 +346,18 @@ bool Server::is_cgi(std::string path,std::string &extension)
 {
     size_t dot_pos = path.find_last_of('.');
     // std::cout << "dot_pos: " << dot_pos << std::endl;
-    // std::cout << "path: " << path << std::endl;
+     std::cout << "path: 2" << path << std::endl;
     if(dot_pos < path.length())
     {
         // std::string extension = path.substr(dot_pos);//<<
         extension = path.substr(dot_pos);
+        std::cout << "extension: " << extension << std::endl;
         std::ifstream file(this->locations["/cgi-bin"].root + path, std::ios::binary);
-        // std::cout << "cgi_location.root"<< cgi_location.root + path << std::endl;
+         std::cout << "cgi_location.root"<< locations["/cgi-bin"].root + path << std::endl;
+         std::cout<< "file.is_open()"<< file.is_open() << std::endl;
+         bool is_cgii = this->locations["/cgi-bin"].cgi.find(extension) != this->locations["/cgi-bin"].cgi.end();
+
+         std::cout << "loc" <<  is_cgii<< std::endl;
         return (file.is_open()&&this->locations["/cgi-bin"].cgi.find(extension) != this->locations["/cgi-bin"].cgi.end());
     }
     return false;
@@ -353,7 +392,10 @@ bool Server::handle_client(int client_socket) {
     Response response(client_socket, *this);
     response.request = Request(body);
     std::string method = response.request.getMethod();
-    std::string path = response.request.getPath();
+    std::string uri = response.request.getPath();
+    std::string root_uri = locations[uri].root;
+    std::string path = root_uri + uri;
+
     std::string Cookies = response.request.getCookies();
     // manageSessions(sessions, Cookies);
     if (response.request.isInNeedOfCookies) {
@@ -362,34 +404,50 @@ bool Server::handle_client(int client_socket) {
     }
     save_sessions_to_file();
     if(!check_method(method, locations["/"].allowed_methods)) {
-        std::cout << "Method not allowed" << std::endl;
         response.send_error_response(405, "text/html", error_pages[405]);
         close(client_socket);
         return true;
     }
 
     std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << ", Path: " << path << RESET << std::endl;
+    if (isDirectory(path)) {
+        if (!check_method(method, locations[uri].allowed_methods)) 
+            return response.send_error_response(405, "text/html", error_pages[405]), true;
+        if (locations[uri].directory_listing)
+            return response.list_directory_contents(path), true;
+        else {
+            if (!path.empty() && path.back() != '/')
+                path += '/';
+            path += locations[uri].default_file;
+        }
+    }
+    else {
+        std::string extension;
+        std::string default_file;
+        if (is_cgi(uri,extension))
+            default_file = locations["/cgi-bin"].root + path;
+        else
+            default_file = locations["/"].root + path;
+        path = default_file;
+    }
 //zouhir add this 
     std::string extension;
-    if (is_cgi(path,extension))
-    {
-        std::cout << "CGI script detected" << std::endl;
-        send_cgi(extension, path, client_socket, response);
-    }
+    if (is_cgi(uri,extension))
+        send_cgi(extension, uri, client_socket, response);
     else
     {
         if (method == "GET")
-            response.handle_get_request(body);
+            response.handle_get_request(path);
         else if (method == "POST") {
             if(!check_method(method, this->locations["/upload"].allowed_methods)) {
                 response.send_error_response(405, "text/html", error_pages[405]);
                 close(client_socket);
                 return true;
             }
-            response.handle_post_request(body);
+            response.handle_post_request(path);
         }
         else if (method == "DELETE")
-            response.handle_delete_request(body);
+            response.handle_delete_request();
         else{
             std::cout << "Method not allowed" << std::endl;
             response.send_error_response(405, "text/html", error_pages[405]);
@@ -402,7 +460,6 @@ bool Server::handle_client(int client_socket) {
     close(client_socket);
     return true;
 }
-
 void Server::start_server() {
 
         int poll_count = poll(poll_fds.data(), poll_fds.size(), 0);

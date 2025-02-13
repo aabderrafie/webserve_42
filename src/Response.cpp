@@ -32,6 +32,60 @@ bool Response::is_directory(const std::string &url) {
     return S_ISDIR(file_stat.st_mode);
 }
 
+
+#include <fstream>
+#include <sstream>
+
+void Response::list_directory_contents(const std::string& dir_path) {
+    DIR* dir;
+    struct dirent* ent;
+    std::string html_template;
+    std::ifstream template_file("./files/html/directory.html");
+
+    if (template_file.is_open()) {
+        std::stringstream buffer;
+        buffer << template_file.rdbuf();
+        html_template = buffer.str();
+        template_file.close();
+    } else {
+        send_error_response(500, "text/html", server.error_pages[500]);
+        return;
+    }
+
+    std::string directory_items;
+    if ((dir = opendir(dir_path.c_str())) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            std::string name = ent->d_name;
+    
+            if (name != "." && name != "..") {
+                directory_items += "<li><a href='";
+                directory_items += name;
+                directory_items += "'>";
+                directory_items += name;
+                directory_items += "</a></li>";
+            }
+        }
+        closedir(dir); 
+    } else {
+        send_error_response(500, "text/html", server.error_pages[500]);
+        return;
+    }
+
+    size_t pos;
+    while ((pos = html_template.find("{DIRECTORY_PATH}")) != std::string::npos) {
+        html_template.replace(pos, 15, dir_path);
+    }
+    while ((pos = html_template.find("{DIRECTORY_ITEMS}")) != std::string::npos) {
+        html_template.replace(pos, 16, directory_items);
+    }
+
+    set_status(200);
+    set_content_type("text/html");
+    set_body(html_template);
+    send_response();
+    std::cout << "Directory listing sent" << std::endl;
+}
+
 std::string Response::read_html_file(const std::string& file_path) {
     std::ifstream file(file_path.c_str());
     if (!file.is_open()) 
@@ -42,6 +96,7 @@ std::string Response::read_html_file(const std::string& file_path) {
 }
 
 void Response::send_error_response(int status, const std::string& content_type, const std::string& error_page_path) {
+
     set_status(status);
     set_content_type(content_type);
     set_body(read_html_file(error_page_path));
@@ -58,22 +113,18 @@ void Response::send_response() {
     response << "Connection: close\r\n";
     response << "\r\n";
     std::string headers = response.str();
-    send(client_socket, headers.c_str(), headers.size(), 0);
+    std::string full_response = headers + body;
 
-    const size_t chunk_size = 1024; 
-    size_t sent = 0;
-    while (sent < body.size()) {
-        size_t to_send = std::min(chunk_size, body.size() - sent);
-        send(client_socket, body.c_str() + sent, to_send, 0);
-        sent += to_send;
-    }
+    if(send(client_socket, full_response.c_str(), full_response.size(), 0) < 0)
+        throw std::runtime_error("Failed to send response");
 }
 
-void Response::handle_get_request(const std::string &body) {
-    (void) body;
+void Response::check_error(const std::string& path) {
     std::string root = server.locations["/"].root;
     std::string uri = request.getPath();
     
+    if (request.getContentLength() > server.client_max_body_size )
+        return send_error_response(413, "text/html", server.error_pages[413]) , void();
     if (!is_valid_url(uri))
        return  send_error_response(400, "text/html", server.error_pages[400]), void();
 
@@ -82,16 +133,19 @@ void Response::handle_get_request(const std::string &body) {
     
     if (uri.length() > 2048)
         return send_error_response(414, "text/html", server.error_pages[414]), void();
-
-    std::string path = root + uri;
     std::ifstream file(path.c_str(), std::ios::binary);
     if (!file.is_open() ) 
        return send_error_response(404, "text/html", server.error_pages[404]), void();
+    else    
+        return;
+}
 
-    path += (path.back() == '/') ? server.locations["/"].default_file : "";
+
+void Response::handle_get_request(const std::string &uri) {
     set_status(200);
-    set_content_type(mime_types.get_mime_type(path));
-    set_body(read_html_file(path));
+    set_content_type(mime_types.get_mime_type(uri));
+    set_body(read_html_file(uri));
+    std::cout << "recived request from session_id: " << std::endl;
     send_response();
  }
 
@@ -167,7 +221,7 @@ void Response::upload_file(std::string& uploaded_file_path)
             size_t file_end = post_data.find(boundary, file_start) - 2;
             std::string file_content = post_data.substr(file_start, file_end - file_start);
 
-            uploaded_file_path = "./files/uploads/" + filename;
+            uploaded_file_path += filename;
             std::ofstream out_file(uploaded_file_path.c_str(), std::ios::binary);
             if (out_file) {
                 out_file.write(file_content.c_str(), file_content.size());
@@ -180,105 +234,45 @@ void Response::upload_file(std::string& uploaded_file_path)
     }
 }
 
-// int getSessionID(const std::string& ref) {
-//     std::string session_id;
-//     size_t pos = ref.find("session_id=");
-//     if (pos != std::string::npos) {
-//         pos += 11;
-//         while (ref[pos] != ';') {
-//             session_id += ref[pos];
-//             ++pos;
-//         }
-//     }
-//     return std::stoi(session_id);
-// }
-
-// std::map<int, Session> sessions;
-
-// void Response::handle_post_request(const std::string &body) {
-//     (void) body;
-//     std::string uploads = server.locations["/upload"].root;
-//     std::string root = server.locations["/"].root;
-//     std::string post_path = root + request.getPath();
-//     // server.load_sessions_from_file();
-
-//     if (!is_valid_url(request.getPath()))
-//         return send_error_response(400, "text/html", server.error_pages[400]), void();
-
-//     if (request.getPath().find("..") != std::string::npos)
-//         return send_error_response(403, "text/html", server.error_pages[403]), void();
-
-//     if (request.getPath().length() > 2048)
-//         return send_error_response(414, "text/html", server.error_pages[414]), void();
-
-//     if (request.getIsMultipart())
-//         upload_file(uploads);
-//     // else if (request.toggleTheme(request.getPostData()) == 2) {
-//     //     post_path = post_path + "dark" + server.locations["/"].default_file;
-//     //     server.sessions[getSessionID(request.getCookies()[0])].isDarkMode = 1;
-//     // } else if (request.toggleTheme(request.getPostData()) == 1) {
-//     //     post_path = post_path + server.locations["/"].default_file;
-//     //     server.sessions[getSessionID(request.getCookies()[0])].isDarkMode = 0;
-//     // }
-//      else
-//         return send_error_response(400, "text/html", server.error_pages[400]), void();
-
-//     // server.save_sessions_to_file();
-//     set_status(200);
-//     set_content_type("text/html");
-//     set_body(read_html_file(post_path));
-//     send_response();
-// }
-
 void Response::handle_post_request(const std::string &body) {
     (void) body;
     std::string uploads = server.locations["/upload"].root;
+    if(!uploads.empty() &&  uploads.back() != '/')
+        uploads += '/';
+    uploads+= "upload/";
     std::string root = server.locations["/"].root;
-    std::string post_path = root + request.getPath();
-
-    if (!is_valid_url(request.getPath()))
-        return send_error_response(400, "text/html", server.error_pages[400]), void();
-
-    if (request.getPath().find("..") != std::string::npos)
-        return send_error_response(403, "text/html", server.error_pages[403]), void();
-
-    if (request.getPath().length() > 2048)
-        return send_error_response(414, "text/html", server.error_pages[414]), void();
+    std::cout << "uploads: " << uploads << std::endl;
+    std::string post_path = root + "/post-success.html";
+    std::cout << "post_path: " << post_path << std::endl;
 
     if (request.getIsMultipart())
         upload_file(uploads);
-    else
-        return send_error_response(400, "text/html", server.error_pages[400]), void();
 
-    std::cout << "Uploaded file: " << uploads << std::endl;
+
     set_status(200);
     set_content_type("text/html");
     set_body(read_html_file(post_path));
     send_response();
 }
 
-
-void Response::handle_delete_request(const std::string& body) {
-    (void) body;
+void Response::handle_delete_request() {
+    std::string query_string = request.getQueryString();
+    query_string = query_string.find_first_of('=') ? query_string.substr(0, query_string.find_first_of('=')) : query_string;
     std::string root = server.locations["/"].root;
-    std::string uploads = server.locations["/upload"].root + request.getPath();
+
+    std::string uploads = server.locations["/upload"].root;
+    if (!uploads.empty() && uploads.back() != '/')
+        uploads += '/';
+    uploads += "upload" + request.getPath() + query_string;
     std::string delete_path = root + "/delete-success.html";
     std::string delete_error = root + "/delete-failure.html";
 
-    if (!is_valid_url(request.getPath()))
-        return send_error_response(400, "text/html", server.error_pages[400]), void();
-
-    if (request.getPath().find("..") != std::string::npos)
-        return send_error_response(403, "text/html", server.error_pages[403]), void();
-
-    if (request.getPath().length() > 2048)
-        return send_error_response(414, "text/html", server.error_pages[414]), void();
-
-    if (!std::filesystem::exists(uploads))
+    if (!std::filesystem::exists(uploads)) 
         return send_error_response(404, "text/html", delete_error), void();
-
     if (remove(uploads.c_str()) != 0)
         return send_error_response(500, "text/html", delete_error), void();
+  
+
     set_status(200);
     set_content_type("text/html");
     set_body(read_html_file(delete_path));

@@ -178,6 +178,8 @@
             position: relative;
             overflow: hidden;
             font-size: 1.1em;
+            min-width: 180px;
+            text-align: center;
         }
 
         .method-button::before {
@@ -200,70 +202,28 @@
             left: 100%;
         }
 
-        .get-button { background: linear-gradient(45deg, #4CAF50, #2ECC71); }
-        .post-button { background: linear-gradient(45deg, #2196F3, #3F51B5); }
-        .delete-button { background: linear-gradient(45deg, #FF5722, #F44336); }
-        .upload-button { background: linear-gradient(45deg, #FFC107, #FF9800); }
-        .cgi-button { background: linear-gradient(45deg, #4CAF50, #2196F3); }
-        .php-button { background: linear-gradient(45deg, #9C27B0, #673AB7); }
-
-        /* Theme Toggle Switch */
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .get-button { 
+            background: linear-gradient(45deg, #4CAF50, #2ECC71);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
         }
 
-        .theme-toggle input {
-            display: none; /* Hide the checkbox */
+        .post-button { 
+            background: linear-gradient(45deg, #2196F3, #3F51B5);
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
         }
 
-        .theme-toggle label {
-            display: inline-block;
-            width: 60px;
-            height: 30px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 30px;
-            position: relative;
-            cursor: pointer;
-            transition: background 0.3s ease;
+        .upload-button { 
+            background: linear-gradient(45deg, #FFC107, #FF9800);
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
         }
 
-        .theme-toggle label::before {
-            content: '';
-            position: absolute;
-            top: 3px;
-            left: 3px;
-            width: 24px;
-            height: 24px;
-            background: white;
-            border-radius: 50%;
-            transition: transform 0.3s ease;
-        }
-
-        .theme-toggle input:checked + label {
-            background: rgba(0, 0, 0, 0.3);
-        }
-
-        .theme-toggle input:checked + label::before {
-            transform: translateX(30px);
-        }
-
-        /* Dark Theme Adjustments */
-        body.dark-theme .theme-toggle label {
-            background: rgba(0, 0, 0, 0.3);
-        }
-
-        body.dark-theme .theme-toggle label::before {
-            background: #e0e0e0;
+        .cgi-button { 
+            background: linear-gradient(45deg, #4CAF50, #2196F3);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
         }
     </style>
 </head>
 <body>
-    <!-- Animated background -->
     <div class="background-animation">
         <div class="circle"></div>
         <div class="circle"></div>
@@ -291,7 +251,6 @@
         <h1>WebServer 1337</h1>
         <div class="creator">Created By</div>
         
-        <!-- Team Members Section -->
         <div class="team-members">
             <div class="team-member">
                 <div class="team-member-circle" style="background-image: url('https://cdn.intra.42.fr/users/db27e31f9927ca8116093c00fcdaba9b/aaskal.jpg')"></div>
@@ -310,10 +269,8 @@
         <div class="button-container">
             <a href="success.html" class="method-button get-button">Try GET</a>
             <a href="post-form.html" class="method-button post-button">Try POST</a>
-            <a href="delete.html" class="method-button delete-button">Try DELETE</a>
             <a href="upload.html" class="method-button upload-button">Try UPLOAD</a>
             <a href="cgi.html" class="method-button cgi-button">Try CGI</a>
-            <!-- <a href="test.php" class="method-button php-button">Try PHP</a> -->
         </div>
     </div>
 </body>
