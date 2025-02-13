@@ -358,10 +358,7 @@ bool Server::handle_client(int client_socket) {
 //zouhir add this 
     std::string extension;
     if (is_cgi(uri,extension))
-    {
-        std::cout << "CGI script detected" << std::endl;
         send_cgi(extension, uri, client_socket, response);
-    }
     else
     {
         if (method == "GET")
