@@ -225,16 +225,6 @@ void Server::server_init() {
     }
 }
 
-Server::~Server() {
-    // std::cout << RED << "[" << current_time() << "] Server shutting down..." << RESET << std::endl;
-}
-
-#include <dirent.h>
-#include <sys/stat.h>
-
-#include <sys/stat.h>
-#include <string>
-
 bool isDirectory(const std::string& path) {
     struct stat statbuf;
     if (stat(path.c_str(), &statbuf) != 0) {
@@ -244,6 +234,7 @@ bool isDirectory(const std::string& path) {
     std::cout << "statbuf.st_mode: " << statbuf.st_mode << std::endl;
     return S_ISDIR(statbuf.st_mode);
 }
+
 std::vector<std::string> list_files(const std::string& directory) {
     std::vector<std::string> files;
     DIR* dirp = opendir(directory.c_str());
@@ -268,7 +259,6 @@ void Server::bind_and_listen() {
             throw std::runtime_error("Error listening on port " + std::to_string(ntohs(server_addrs[i].sin_port)));
     }
 }
-
 
 size_t Server::get_content_length(const std::string& headers) {
     size_t content_length_pos = headers.find("Content-Length: ");
@@ -345,19 +335,10 @@ bool Server::check_method(const std::string& method, const std::vector<std::stri
 bool Server::is_cgi(std::string path,std::string &extension)
 {
     size_t dot_pos = path.find_last_of('.');
-    // std::cout << "dot_pos: " << dot_pos << std::endl;
-     std::cout << "path: 2" << path << std::endl;
     if(dot_pos < path.length())
     {
-        // std::string extension = path.substr(dot_pos);//<<
         extension = path.substr(dot_pos);
-        std::cout << "extension: " << extension << std::endl;
         std::ifstream file(this->locations["/cgi-bin"].root + path, std::ios::binary);
-         std::cout << "cgi_location.root"<< locations["/cgi-bin"].root + path << std::endl;
-         std::cout<< "file.is_open()"<< file.is_open() << std::endl;
-         bool is_cgii = this->locations["/cgi-bin"].cgi.find(extension) != this->locations["/cgi-bin"].cgi.end();
-
-         std::cout << "loc" <<  is_cgii<< std::endl;
         return (file.is_open()&&this->locations["/cgi-bin"].cgi.find(extension) != this->locations["/cgi-bin"].cgi.end());
     }
     return false;
@@ -374,6 +355,7 @@ void Server::send_cgi(std::string extension, std::string path, int client_socket
 
 void Response::set_cookies(const std::string& cookies) {
     Cookies = cookies;
+    std::cout << "Cookies: " << Cookies << std::endl;
 }
 
 // void manageSessions(std::map<int, Session>& sessions, std::vector<std::string>& Cookies) {
@@ -391,6 +373,7 @@ bool Server::handle_client(int client_socket) {
     // load_sessions_from_file();
     Response response(client_socket, *this);
     response.request = Request(body);
+    std::cout << "Request: " << body << std::endl;
     std::string method = response.request.getMethod();
     std::string uri = response.request.getPath();
     std::string root_uri = locations[uri].root;

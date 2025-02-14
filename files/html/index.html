@@ -24,6 +24,26 @@
             padding: 20px;
         }
 
+        /* Login Button */
+        .login-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            background: linear-gradient(45deg, #FF416C, #FF4B2B);
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255, 65, 108, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .login-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255, 65, 108, 0.4);
+        }
+
         .background-animation {
             position: fixed;
             width: 100vw;
@@ -52,7 +72,6 @@
             margin-bottom: 40px;
             opacity: 0.8;
         }
-
 
         .circle {
             position: absolute;
@@ -221,6 +240,11 @@
             background: linear-gradient(45deg, #4CAF50, #2196F3);
             box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
         }
+
+        .Login { 
+            background: linear-gradient(45deg, #bd640b, #f31c00);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -229,23 +253,6 @@
         <div class="circle"></div>
         <div class="circle"></div>
     </div>
-
-    <div class="theme-toggle">
-        <form action="/" method="POST">
-            <input type="checkbox" id="theme-switch">
-            <input type="hidden" name="isDarkMode" value="true">
-            <button type="submit">Toggle Dark Mode</button>
-        </form>
-    </div>
-
-    <!-- <div class="theme-toggle">
-        <form action="/" method="POST">
-            <input type="checkbox" id="theme-switch">
-            <input type="hidden" name="isDarkMode" value="true">
-            <label for="theme-switch"></label>
-            <button type="submit"></button>
-        </form>
-    </div> -->
 
     <div class="container">
         <h1>WebServer 1337</h1>
@@ -271,6 +278,7 @@
             <a href="post-form.html" class="method-button post-button">Try POST</a>
             <a href="upload.html" class="method-button upload-button">Try UPLOAD</a>
             <a href="cgi.html" class="method-button cgi-button">Try CGI</a>
+            <a href="Sign_in.html" class="method-button Login">Try Login</a>
         </div>
     </div>
 </body>
