@@ -5,14 +5,21 @@
 class Response;  // Forward declaration
 class Request;   // Forward declaration
 #include "location.hpp"
+#include"../config/utils.hpp"
 
 class Session {
     public:
         int session_id;
+        std::map<std::string, std::string> session_data;
         Session() {
             std::cout << "Session created" << std::endl;
         }
-        Session(int id): session_id(id) {
+        Session(int id, std::string data): session_id(id) {
+            std::vector<std::string> vars = split(data, ';');
+            for (std::string var : vars) {
+                std::vector<std::string> key_value = split(var, '=');
+                session_data[key_value[0]] = key_value[1];
+            }
             std::cout << "Session created" << std::endl;
         }
         ~Session() {}

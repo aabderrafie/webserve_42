@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logout</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            color: white;
+            padding: 20px;
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+            padding: 60px 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        p {
+            font-size: 1.2em;
+            margin-bottom: 40px;
+        }
+
+        a {
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            background: linear-gradient(45deg, #FF416C, #FF4B2B);
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: inline-block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: all 0.3s ease;
+        }
+
+        a:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 65, 108, 0.3);
+        }
+
+        a:hover::before {
+            left: 100%;
+        }
+
+        .background-animation {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+        }
+
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: subtle-float 8s ease-in-out infinite alternate;
+            backdrop-filter: blur(5px);
+        }
+
+        .circle:nth-child(1) {
+            width: 150px;
+            height: 150px;
+            top: 10%;
+            left: 10%;
+            animation-delay: -2s;
+        }
+
+        .circle:nth-child(2) {
+            width: 100px;
+            height: 100px;
+            top: 20%;
+            right: 15%;
+            animation-delay: -4s;
+        }
+
+        .circle:nth-child(3) {
+            width: 200px;
+            height: 200px;
+            bottom: 15%;
+            right: 25%;
+            animation-delay: -6s;
+        }
+
+        @keyframes subtle-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation">
+        <div class="circle"></div>
+        <div class="circle"></div>
+        <div class="circle"></div>
+    </div>
+
+    <div class="container">
+        <h1>Logging Out...</h1>
+        <p>You are being logged out. Please wait a moment.</p>
+        <p>If you are not redirected</p>
+        <a href="index.html">click here</a>
+    </div>
+
+    <script>
+        // Clear all cookies
+        document.cookie.split("; ").forEach(function(cookie) {
+            document.cookie = cookie.replace(/=.*/, "=;expires=" + new Date(0).toUTCString() + ";path=/");
+        });
+
+        // Redirect to the homepage after 0.5 seconds
+        setTimeout(function() {
+            window.location.href = "index.html";
+        }, 300);
+    </script>
+</body>
+</html>

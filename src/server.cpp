@@ -85,7 +85,7 @@ std::string Request::execute_cgi(const std::string& interpreter , std::string ro
     } 
     else if (pid > 0) {  // Parent process
         close(pipefd[1]);  // Close unused write end
-        std::cout << "Parent process" << std::endl;
+        // std::cout << "Parent process" << std::endl;
         if (method == "POST") 
         {
             close(input_pipe[0]);  // Close read end
@@ -131,7 +131,6 @@ std::string Request::execute_cgi(const std::string& interpreter , std::string ro
     // return "500 Internal Server Error\n";
 }
 
-
 std::string current_time() {
     std::time_t now = std::time(nullptr);
     char buf[100];
@@ -149,9 +148,11 @@ Server::~Server() {}
 void Server::save_sessions_to_file() {
     std::ofstream file("sessions.txt");
     if (file.is_open()) {
-        std::cout << "updating sessions file" << std::endl;
+        // std::cout << "updating sessions file" << std::endl;
         for (std::map<int, Session>::value_type& session : sessions) {
-            file << "session_id=" << session.first << ";" << std::endl; //add other data here <---
+            for (std::map<std::string, std::string>::value_type& data : session.second.session_data) {
+                file << data.first << "=" << data.second << ";";
+            }
         }
         file.close();
     } else {
@@ -179,22 +180,19 @@ void Server::save_sessions_to_file() {
 void Server::load_sessions_from_file() {
     std::ifstream file("sessions.txt");
     if (file.is_open()) {
+        // std::cout << "loading sessions file.." << std::endl;
         std::string line;
-        std::cout << "loading sessions file.." << std::endl;
         while (std::getline(file, line)) {
-            size_t start_pos = line.find("session_id=") + std::string("session_id=").length();
-            size_t end_pos = line.find(';');
-            
-            if (start_pos != std::string::npos && end_pos != std::string::npos) {
-                // Extract the session ID substring and convert it to an integer
-                std::string session_id_str = line.substr(start_pos, end_pos - start_pos);
-                int session_id = std::stoi(session_id_str);
-                
-                std::cout << "session_id: " << session_id << std::endl;
-                Session session(session_id);
-                sessions.insert(std::make_pair(session_id, session));
-            } else {
-                std::cerr << "Invalid session ID format in file: " << line << std::endl;
+            std::istringstream iss(line);
+            std::string token;
+            std::map<std::string, std::string> session_data;
+            while (std::getline(iss, token, ';')) {
+                size_t pos = token.find("=");
+                if (pos != std::string::npos) {
+                    std::string key = token.substr(0, pos);
+                    std::string value = token.substr(pos + 1);
+                    session_data.insert(std::make_pair(key, value));
+                }
             }
         }
         file.close();
@@ -228,10 +226,8 @@ void Server::server_init() {
 bool isDirectory(const std::string& path) {
     struct stat statbuf;
     if (stat(path.c_str(), &statbuf) != 0) {
-        std::cerr << "Error getting file status" << std::endl;
         return false;
     }
-    std::cout << "statbuf.st_mode: " << statbuf.st_mode << std::endl;
     return S_ISDIR(statbuf.st_mode);
 }
 
@@ -353,10 +349,10 @@ void Server::send_cgi(std::string extension, std::string path, int client_socket
     send(client_socket, response_.c_str(), response_.length(), 0);
 }
 
-void Response::set_cookies(const std::string& cookies) {
-    Cookies = cookies;
-    std::cout << "Cookies: " << Cookies << std::endl;
-}
+// void Response::set_cookies(const std::string& cookies) {
+//     Cookies = cookies;
+//     std::cout << "Cookies: " << Cookies << std::endl;
+// }
 
 // void manageSessions(std::map<int, Session>& sessions, std::vector<std::string>& Cookies) {
 //     int session_id = std::stoi(Cookies[0].substr(11));
@@ -370,10 +366,16 @@ bool Server::handle_client(int client_socket) {
     std::string body = read_request(client_socket);
     if (body.empty())
         return false;
-    // load_sessions_from_file();
+    load_sessions_from_file();
+    //print sessions
+    // for (std::map<int, Session>::value_type& session : sessions) {
+    //     std::cout << "loaded session_id: " << session.first << std::endl;
+    //     for (std::map<std::string, std::string>::value_type& data : session.second.session_data) {
+    //         std::cout << "loaded " <<  data.first << "=" << data.second << std::endl;
+    //     }
+    // }
     Response response(client_socket, *this);
     response.request = Request(body);
-    std::cout << "Request: " << body << std::endl;
     std::string method = response.request.getMethod();
     std::string uri = response.request.getPath();
     std::string root_uri = locations[uri].root;
@@ -382,8 +384,12 @@ bool Server::handle_client(int client_socket) {
     std::string Cookies = response.request.getCookies();
     // manageSessions(sessions, Cookies);
     if (response.request.isInNeedOfCookies) {
-        response.set_cookies(Cookies);
-        sessions.insert(std::make_pair(response.request.session_id, Session(response.request.session_id)));
+        // response.set_cookies(Cookies);
+        sessions.insert(std::make_pair(response.request.session_id, Session(response.request.session_id, Cookies)));
+        //print session data
+        for (std::map<std::string, std::string>::value_type& data : sessions[response.request.session_id].session_data) {
+            std::cout << "hereee " << data.first << "=" << data.second << std::endl;
+        }
     }
     save_sessions_to_file();
     if(!check_method(method, locations["/"].allowed_methods)) {
@@ -416,7 +422,10 @@ bool Server::handle_client(int client_socket) {
 //zouhir add this 
     std::string extension;
     if (is_cgi(uri,extension))
+    {
+        std::cout << "CGI script detected--------------------" << std::endl;
         send_cgi(extension, uri, client_socket, response);
+    }
     else
     {
         if (method == "GET")
@@ -445,7 +454,7 @@ bool Server::handle_client(int client_socket) {
 }
 void Server::start_server() {
 
-        int poll_count = poll(poll_fds.data(), poll_fds.size(), 0);
+        int poll_count = poll(poll_fds.data(), poll_fds.size(), 100);
         if (poll_count < 0)
             throw std::runtime_error("Error polling for events");
         for (size_t i = 0; i < poll_fds.size(); ++i) {

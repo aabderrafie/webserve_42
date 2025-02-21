@@ -2,17 +2,6 @@
 #include "../includes/include.hpp"
 using namespace std;
 class Response;//zouhir add this line
-// class Session {
-//     public:
-//         int session_id;
-//         Session() {
-//             std::cout << "Session created" << std::endl;
-//         }
-//         Session(int id): session_id(id) {
-//             std::cout << "Session created" << std::endl;
-//         }
-//         ~Session() {}
-// };
 
 class Request {
     private:
@@ -57,14 +46,6 @@ class Request {
         const string& getContentType() const { return content_type; }
         const string& getBoundary() const { return boundary; }
         std::string getCookies() const { return cookies; }
-        // int toggleTheme(std::string body) const {
-        //     if (body.find("isDarkMode=true") != std::string::npos)
-        //         return 2;
-        //     if (body.find("isDarkMode=false") != std::string::npos)
-        //         return 1;
-        //     return 0;
-        // }
-        
 
         const map<string, string>& getHeaders() const { return headers; }
         const map<string, string>& getFormData() const { return formData; }

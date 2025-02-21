@@ -1,17 +1,28 @@
 <?php
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $email = isset($_POST['email']) ? $_POST['email'] : '';
-    $password = isset($_POST['password']) ? $_POST['password'] : '';
-    
+    session_start();
+    $userSessionId = session_id();
+    setcookie('sessionID', $userSessionId, 0, '/', '', false, true);
+    $userEmail = $_COOKIE['email'] ?? ''; 
+    $email = $_POST['email'] ?? '';
+    $password = $_POST['password'] ?? '';
+    // Debugging statements
+    // error_log("Email: " . $email);
+    // error_log("Password: " . $password);
+    // error_log("Session ID: " . $userSessionId);    
     if (!empty($email) && !empty($password)) {
-        setcookie("user_email", $email, 0, "/");
-        setcookie("user_password", $password, 0, "/");
-        $message = "Credentials saved successfully!";
+        // $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        $_SESSION['user_email'] = $userEmail;
+        $_SESSION['user_session_id'] = $userSessionId;
+        $data = "SessionID: $userSessionId, Email: $email, Password: $password\n";
+        file_put_contents('/home/taha/Documents/Webserv/files/credentials.txt', $data, FILE_APPEND | LOCK_EX);
+        $message = "Credentials and cookies saved successfully!";
     } else {
         $message = "Please fill all the fields.";
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In</title>
+    <title>Login</title>
     <style>
         * {
             margin: 0;
@@ -24,16 +24,103 @@
             padding: 20px;
         }
 
+        .container {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+            padding: 60px 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        input {
+            padding: 15px;
+            border: none;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1em;
+            outline: none;
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        button {
+            padding: 15px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(45deg, #FF416C, #FF4B2B);
+            color: white;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 65, 108, 0.3);
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1em;
+            text-align: center;
+            backdrop-filter: blur(5px);
+            display: none; /* Hide by default */
+        }
+
+        .message.error {
+            background: rgba(255, 65, 108, 0.7);
+        }
+
+        .message.success {
+            background: rgba(76, 175, 80, 0.7);
+        }
+
+        .redirect-button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .redirect-button:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
         .background-animation {
             position: fixed;
             width: 100vw;
             height: 100vh;
             z-index: 0;
-        }
-
-        @keyframes subtle-float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
         }
 
         .circle {
@@ -68,58 +155,9 @@
             animation-delay: -6s;
         }
 
-        .container {
-            position: relative;
-            z-index: 10;
-            text-align: center;
-            width: 90%;
-            max-width: 400px;
-            padding: 40px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 30px;
-            backdrop-filter: blur(15px);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-        }
-
-        h2 {
-            font-size: 2.5em;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        input {
-            width: 100%;
-            padding: 15px;
-            margin: 10px 0;
-            border: none;
-            border-radius: 25px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            font-size: 1em;
-            outline: none;
-        }
-
-        input::placeholder {
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        button {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(45deg, #007bff, #0056b3);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            font-size: 1.1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-        }
-
-        button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        @keyframes subtle-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
         }
     </style>
 </head>
@@ -131,19 +169,58 @@
     </div>
 
     <div class="container">
-        <h2>Sign In</h2>
-        <form action="save_credentials.php" method="post" onsubmit="setCookie()">
+        <h1>Login</h1>
+        <form id="loginForm">
             <input type="email" name="email" placeholder="Email" required>
             <input type="password" name="password" placeholder="Password" required>
-            <button type="submit">Sign In</button>
+            <button type="submit">Login</button>
         </form>
+        <div id="message" class="message"></div>
     </div>
 
     <script>
-        function setCookie() {
-            document.cookie = "email=" + document.querySelector('input[name="email"]').value + "; path=/";
-            document.cookie = "password=" + document.querySelector('input[name="password"]').value + "; path=/";
-        }
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
+            e.preventDefault(); // Prevent the default form submission
+
+            const formData = new FormData(this);
+            try {
+                const response = await fetch('login.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                const messageDiv = document.getElementById('message');
+                if (result.success) {
+                    // Set a cookie with the email (valid for 1 day)
+                    document.cookie = `email=${result.email}; max-age=${86400}; path=/`;
+
+                    // Display success message with a redirect button
+                    messageDiv.innerHTML = `
+                        Login successful! Redirecting in 2 seconds...<br>
+                        <button class="redirect-button" onclick="window.location.href='index.html'">Redirect Now</button>
+                    `;
+                    messageDiv.className = 'message success';
+                    messageDiv.style.display = 'block'; // Show the message
+
+                    // Redirect to index.html after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 2000);
+                } else {
+                    messageDiv.textContent = result.message;
+                    messageDiv.className = 'message error';
+                    messageDiv.style.display = 'block'; // Show the message
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                const messageDiv = document.getElementById('message');
+                messageDiv.textContent = 'An error occurred. Please try again.';
+                messageDiv.className = 'message error';
+                messageDiv.style.display = 'block'; // Show the message
+            }
+        });
     </script>
 </body>
 </html>
