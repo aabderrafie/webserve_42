@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebServer 1337</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* Dark Theme Styles */
+        body.dark-theme {
+            background: linear-gradient(135deg, #1a1a1a, #0d0d0d);
+            color: #e0e0e0;
+        }
+
+        .container {
+            text-align: center;
+            padding: 30px;
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            transition: background 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        body.dark-theme .container {
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            font-size: 4em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .creator {
+            font-size: 1.5em;
+            margin-bottom: 40px;
+            opacity: 0.8;
+        }
+
+        .team-members {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            margin-top: 40px;
+        }
+
+        .team-member {
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .team-member:hover {
+            transform: translateY(-10px);
+        }
+
+        .team-member-circle {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+            border: 6px solid rgba(255, 255, 255, 0.7);
+            margin-bottom: 20px;
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        body.dark-theme .team-member-circle {
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .team-member:hover .team-member-circle {
+            transform: rotate(5deg);
+        }
+
+        .team-member-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-top: 50px;
+        }
+
+        .method-button {
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: inline-block;
+            position: relative;
+            overflow: hidden;
+            font-size: 1.1em;
+        }
+
+        .method-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: all 0.3s ease;
+        }
+
+        .method-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .method-button:hover::before {
+            left: 100%;
+        }
+
+        .get-button { background: linear-gradient(45deg, #4CAF50, #2ECC71); }
+        .post-button { background: linear-gradient(45deg, #2196F3, #3F51B5); }
+        .delete-button { background: linear-gradient(45deg, #FF5722, #F44336); }
+        .upload-button { background: linear-gradient(45deg, #FFC107, #FF9800); }
+        .cgi-button { background: linear-gradient(45deg, #4CAF50, #2196F3); }
+        .php-button { background: linear-gradient(45deg, #9C27B0, #673AB7); }
+
+        /* Theme Toggle Switch */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .theme-toggle input {
+            display: none; /* Hide the checkbox */
+        }
+
+        .theme-toggle label {
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .theme-toggle label::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .theme-toggle input:checked + label {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .theme-toggle input:checked + label::before {
+            transform: translateX(30px);
+        }
+
+        /* Dark Theme Adjustments */
+        body.dark-theme .theme-toggle label {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-theme .theme-toggle label::before {
+            background: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Theme Toggle Switch -->
+
+    <div class="theme-toggle">
+        <form action="/" method="POST">
+            <input type="checkbox" id="theme-switch">
+            <input type="hidden" name="isDarkMode" value="false">
+            <button type="submit">Toggle Dark Mode</button>
+        </form>
+    </div>
+
+    <!-- <div class="theme-toggle">
+        <input type="checkbox" id="theme-switch">
+        <label for="theme-switch"></label>
+    </div> -->
+
+    <div class="container">
+        <h1>WebServer 1337</h1>
+        <div class="creator">Created By</div>
+        
+        <!-- Team Members Section -->
+        <div class="team-members">
+            <div class="team-member">
+                <div class="team-member-circle" style="background-image: url('https://cdn.intra.42.fr/users/db27e31f9927ca8116093c00fcdaba9b/aaskal.jpg')"></div>
+                <div class="team-member-name">Abderrafia Askal</div>
+            </div>
+            <div class="team-member">
+                <div class="team-member-circle" style="background-image: url('https://cdn.intra.42.fr/users/c0aa88e9d1588ac8d3e57791392b4bb9/tlasfar.jpg')"></div>
+                <div class="team-member-name">Taha Lasfar</div>
+            </div>
+            <div class="team-member">
+                <div class="team-member-circle" style="background-image: url('https://cdn.intra.42.fr/users/6d030343555caf95ee7b42b49513b614/zbakkas.jpg')"></div>
+                <div class="team-member-name">Zouhir Bakkas</div>
+            </div>
+        </div>
+
+        <div class="button-container">
+            <a href="success.html" class="method-button get-button">Try GET</a>
+            <a href="post-form.html" class="method-button post-button">Try POST</a>
+            <a href="delete.html" class="method-button delete-button">Try DELETE</a>
+            <a href="upload.html" class="method-button upload-button">Try UPLOAD</a>
+            <a href="cgi.html" class="method-button cgi-button">Try CGI</a>
+            <!-- <a href="test.php" class="method-button php-button">Try PHP</a> -->
+        </div>
+    </div>
+</body>
+</html>

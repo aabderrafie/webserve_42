@@ -2,6 +2,7 @@
 #include "../includes/include.hpp"
 using namespace std;
 class Response;//zouhir add this line
+
 class Request {
     private:
         string method;
@@ -19,10 +20,12 @@ class Request {
         std::string content_type;
         std::string post_data;
         std::string query_string;
-        // std::string boundary;
-        
+
+        std::string cookies;
 
     public:
+        int session_id;
+        bool isInNeedOfCookies;
         std::string execute_cgi(const std::string& interpreter , std::string root_cgi);//zouhir add this function
     std::string  deleeted;
         Request(){};
@@ -42,7 +45,7 @@ class Request {
         const string& getPostData() const { return post_data; }
         const string& getContentType() const { return content_type; }
         const string& getBoundary() const { return boundary; }
-        
+        std::string getCookies() const { return cookies; }
 
         const map<string, string>& getHeaders() const { return headers; }
         const map<string, string>& getFormData() const { return formData; }

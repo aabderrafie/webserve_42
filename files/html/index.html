@@ -24,16 +24,111 @@
             padding: 20px;
         }
 
+        /* Top-left user container */
+        .top-left {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000; /* Ensure it's above other elements */
+        }
+
+        .user-container {
+            padding: 10px 20px;
+            border-radius: 25px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .user-container:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Top-right buttons */
+        .top-right {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 1000; /* Ensure buttons are above other elements */
+        }
+
+        .user-label {
+            font-size: 1.1em;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .logout-button, .login-button {
+            padding: 10px 20px;
+            border-radius: 25px;
+            background: linear-gradient(45deg, #FF416C, #FF4B2B);
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255, 65, 108, 0.3);
+            transition: all 0.3s ease;
+            display: inline-block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logout-button::before, .login-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: all 0.3s ease;
+        }
+
+        .logout-button:hover, .login-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255, 65, 108, 0.4);
+        }
+
+        .logout-button:hover::before, .login-button:hover::before {
+            left: 100%;
+        }
+
         .background-animation {
             position: fixed;
             width: 100vw;
             height: 100vh;
-            z-index: 0;
+            z-index: 0; /* Ensure it stays behind other elements */
         }
 
         @keyframes subtle-float {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-15px); }
+        }
+
+        body.dark-theme .container {
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            font-size: 4em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .creator {
+            font-size: 1.5em;
+            margin-bottom: 40px;
+            opacity: 0.8;
         }
 
         .circle {
@@ -42,6 +137,7 @@
             background: rgba(255, 255, 255, 0.1);
             animation: subtle-float 8s ease-in-out infinite alternate;
             backdrop-filter: blur(5px);
+            z-index: 1; /* Ensure circles stay behind other elements */
         }
 
         .circle:nth-child(1) {
@@ -81,17 +177,9 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.2);
         }
 
-        h1 {
-            font-size: 4em;
-            margin-bottom: 30px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            transition: transform 0.3s ease;
-        }
-
-        .creator {
-            font-size: 1.5em;
-            margin-bottom: 40px;
-            opacity: 0.8;
+        body.dark-theme .container {
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.1);
         }
 
         .team-members {
@@ -120,6 +208,10 @@
             margin-bottom: 20px;
             box-shadow: 0 12px 25px rgba(0,0,0,0.3);
             transition: transform 0.3s ease;
+        }
+
+        body.dark-theme .team-member-circle {
+            border-color: rgba(255, 255, 255, 0.2);
         }
 
         .team-member:hover .team-member-circle {
@@ -194,9 +286,49 @@
             background: linear-gradient(45deg, #4CAF50, #2196F3);
             box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
         }
+
+        .Login { 
+            background: linear-gradient(45deg, #bd640b, #f31c00);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .Logout { 
+            background: linear-gradient(45deg, #f31c00, #bd640b);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
     </style>
 </head>
 <body>
+    <script>
+        // Check if the email cookie is set
+        function getCookie(name) {
+            let value = "; " + document.cookie;
+            let parts = value.split("; " + name + "=");
+            if (parts.length === 2) return parts.pop().split(";").shift();
+        }
+
+        const email = getCookie('email');
+    </script>
+
+    <!-- Top-left USER container -->
+    <div class="top-left">
+        <script>
+            if (email) {
+                const decodedEmail = decodeURIComponent(email);
+                document.write('<div class="user-container">USER: ' + decodedEmail + '</div>');
+            }
+        </script>
+    </div>
+
+    <!-- Top-right buttons -->
+    <!-- <div class="top-right">
+        <script>
+            if (email) {
+                document.write('<a href="logout.html" class="logout-button">Logout</a>');
+            }
+        </script>
+    </div> -->
+
     <div class="background-animation">
         <div class="circle"></div>
         <div class="circle"></div>
@@ -217,7 +349,7 @@
                 <div class="team-member-name">Taha Lasfar</div>
             </div>
             <div class="team-member">
-                <div class="team-member-circle" style="background-image: url('https://cdn.intra.42.fr/users/6d030343555caf95ee7b42b49513b614/zbakkas.jpg')"></div>
+                <div class="team-member-circle" style="background-image: url('https://avatars.githubusercontent.com/u/105161749?v=4')"></div>
                 <div class="team-member-name">Zouhir Bakkas</div>
             </div>
         </div>
@@ -228,6 +360,22 @@
             <a href="upload.html" class="method-button upload-button">Try UPLOAD</a>
             <a href="cgi.html" class="method-button cgi-button">Try CGI</a>
         </div>
+        <script>
+            const buttonContainer = document.querySelector('.button-container');
+            if (email) {
+                const logoutButton = document.createElement('a');
+                logoutButton.href = 'logout.html';
+                logoutButton.className = 'method-button Logout';
+                logoutButton.textContent = 'Logout';
+                buttonContainer.appendChild(logoutButton);
+            } else {
+                const loginButton = document.createElement('a');
+                loginButton.href = 'Sign_in.html';
+                loginButton.className = 'method-button Login';
+                loginButton.textContent = 'Try Login';
+                buttonContainer.appendChild(loginButton);
+            }
+        </script>
     </div>
 </body>
 </html>

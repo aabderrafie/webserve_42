@@ -1,67 +1,51 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #6a11cb, #2575fc);
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+/* Theme Toggle Button */
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 30px;
     color: white;
+    font-weight: bold;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.container {
-    text-align: center;
-    padding: 30px;
-    border-radius: 15px;
-    background: rgba(0, 0, 0, 0.6);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+.theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    animation: theme-switch 1.5s ease-in-out infinite;
 }
 
-.error-code {
-    font-size: 120px;
-    font-weight: 900;
-    letter-spacing: 10px;
-    animation: bounce 1s ease infinite alternate;
-}
-
-.error-message {
-    font-size: 20px;
-    margin: 20px 0;
-}
-
-.suggestion {
-    font-size: 16px;
-    margin-bottom: 30px;
-}
-
-.back-home {
-    display: inline-block;
-    background-color: #ff4081;
-    padding: 10px 25px;
-    font-size: 18px;
-    text-decoration: none;
-    color: white;
-    border-radius: 50px;
-    transition: background-color 0.3s ease;
-}
-
-.back-home:hover {
-    background-color: #ff1c68;
-}
-
-@keyframes bounce {
-    0% {
-        transform: translateY(0);
+@keyframes theme-switch {
+    0%, 100% {
+        background: rgba(255, 255, 255, 0.2);
     }
     50% {
-        transform: translateY(-20px);
-    }
-    100% {
-        transform: translateY(0);
+        background: rgba(0, 0, 0, 0.3);
     }
 }
+
+body.dark-theme .theme-toggle {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+body.dark-theme .theme-toggle:hover {
+    background: rgba(0, 0, 0, 0.4);
+    animation: theme-switch-dark 1.5s ease-in-out infinite;
+}
+
+@keyframes theme-switch-dark {
+    0%, 100% {
+        background: rgba(0, 0, 0, 0.4);
+    }
+    50% {
+        background: rgba(255, 255, 255, 0.2);
+    }
+}
+

@@ -104,17 +104,16 @@ void Response::send_error_response(int status, const std::string& content_type, 
 }
 
 void Response::send_response() {
-    std::cout << "sending response" << std::endl;
     std::ostringstream response;
-    response << "HTTP/1.1 " << status << "\r\n"
-             << "Set-Cookie: session_id=1738862053; Path=/; HttpOnly" << "\r\n"
-             << "Content-Type: " << content_type << "\r\n"
-             << "Content-Length: " << body.size() << "\r\n"
-             << "Connection: close\r\n"
-             << "\r\n";
+    response << "HTTP/1.1 " << status << "\r\n";
+    response << "Content-Type: " << content_type << "\r\n";
+    response << "Content-Length: " << body.size() << "\r\n";
+    response << "Connection: close\r\n";
+    response << "\r\n";
     std::string headers = response.str();
     std::string full_response = headers + body;
 
+    std::cout << "-------------------------------##" << "Response: " << full_response << "-------------------------------##" <<  std::endl;
     if(send(client_socket, full_response.c_str(), full_response.size(), 0) < 0)
         throw std::runtime_error("Failed to send response");
 }
@@ -144,16 +143,12 @@ bool Response::check_error(const std::string& path) {
         return true;
 }
 
-
 void Response::handle_get_request(const std::string &uri) {
     set_status(200);
     set_content_type(mime_types.get_mime_type(uri));
     set_body(read_html_file(uri));
-    std::cout << "recived request from session_id: " << std::endl;
     send_response();
- }
-
-
+}
 
 std::map<std::string, std::string> parse_post_data(const std::string& body) {
     std::map<std::string, std::string> data;
@@ -174,33 +169,29 @@ std::map<std::string, std::string> parse_post_data(const std::string& body) {
     return data;
 }
 
+// void Response::create_user(const std::map<std::string, std::string>& data, const std::string& uploads) {
+//     auto username_it = data.find("username");
+//     auto password_it = data.find("password");
+//     auto fullname_it = data.find("fullname");
+//     if (username_it == data.end() || password_it == data.end() || fullname_it == data.end())
+//         throw std::runtime_error("Missing required user data");
 
+//     std::string username = username_it->second;
+//     std::string password = password_it->second;
+//     std::string fullname = fullname_it->second;
 
-
-
-void Response::create_user(const std::map<std::string, std::string>& data, const std::string& uploads) {
-    auto username_it = data.find("username");
-    auto password_it = data.find("password");
-    auto fullname_it = data.find("fullname");
-    if (username_it == data.end() || password_it == data.end() || fullname_it == data.end())
-        throw std::runtime_error("Missing required user data");
-
-    std::string username = username_it->second;
-    std::string password = password_it->second;
-    std::string fullname = fullname_it->second;
-
-    std::ofstream user_file(uploads + "/" + username + ".txt");
-    if (user_file.is_open()) {
-        user_file << "User Information" << std::endl;
-        user_file << "-----------------" << std::endl;
-        user_file << "Username: " << username << std::endl;
-        user_file << "Password: " << password << std::endl;
-        user_file << "Fullname: " << fullname << std::endl;
-        user_file.close();
-    } 
-    else 
-       std::cerr << RED << "Unable to create user file" << RESET << std::endl;
-}
+//     std::ofstream user_file(uploads + "/" + username + ".txt");
+//     if (user_file.is_open()) {
+//         user_file << "User Information" << std::endl;
+//         user_file << "-----------------" << std::endl;
+//         user_file << "Username: " << username << std::endl;
+//         user_file << "Password: " << password << std::endl;
+//         user_file << "Fullname: " << fullname << std::endl;
+//         user_file.close();
+//     } 
+//     else 
+//        std::cerr << RED << "Unable to create user file" << RESET << std::endl;
+// }
 
 void Response::upload_file(std::string& uploaded_file_path) 
 {
@@ -238,24 +229,23 @@ void Response::upload_file(std::string& uploaded_file_path)
     }
 }
 
-void Response::handle_post_request(const std::string &path) {
-(void) path;
+void Response::handle_post_request(const std::string &body) {
+    // (void) body;
     std::string uploads = server.locations["/upload"].root;
-    if(!uploads.empty() &&  uploads.back() != '/')
+    if(!uploads.empty() && uploads.back() != '/')
         uploads += '/';
-    uploads+= "upload/";
-    std::string root = server.locations["/"].root;
-    std::cout << "uploads: " << uploads << std::endl;
-    std::string post_path = root + "/post-success.html";
-    std::cout << "post_path: " << post_path << std::endl;
+    uploads += "upload/";
+    // std::string root = server.locations["/"].root;
+    // std::cout << "uploads: " << uploads << std::endl;
+    // std::string post_path = root + "/post-success.html"; // chnu hadi aaaa aaskal xD
+    // std::string post_path = root + "/createAcc.php";
 
+    // std::cout << "post_path: " << post_path << std::endl;
     if (request.getIsMultipart())
         upload_file(uploads);
-
-
     set_status(200);
     set_content_type("text/html");
-    set_body(read_html_file(post_path));
+    set_body(read_html_file(body));
     send_response();
 }
 

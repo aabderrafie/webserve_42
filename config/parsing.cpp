@@ -392,7 +392,7 @@ std::vector<Server> initConfig( std::vector<block> blocks ) {
 			it->locations["/cgi-bin"].allowed_methods.push_back("GET");
 			it->locations["/cgi-bin"].allowed_methods.push_back("POST");
 		} if (it->locations["/cgi-bin"].cgi.empty()) {
-			it->locations["/cgi-bin"].cgi[".php"] = "/usr/bin/php";
+			it->locations["/cgi-bin"].cgi[".php"] = "/usr/bin/php-cgi";
 			it->locations["/cgi-bin"].cgi[".py"] = "/usr/bin/python3";
 		}
 	}

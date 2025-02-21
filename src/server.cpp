@@ -1,6 +1,6 @@
 #include "server.hpp"
 #include <ctime>
-
+#include <fstream> // Add this line
 
 #include <limits.h>
 #include <sys/wait.h>
@@ -11,17 +11,9 @@
 //     {".sh", "/bin/bash"}
 // };
 
-
-
-
-
-
-
-
 std::string Request::execute_cgi(const std::string& interpreter , std::string root_cgi) 
 {
     std::cout << "Executing CGI script: " << path << std::endl;
-
     // std::string uploaded_file;
     // if (isMultipart)
     // {
@@ -29,8 +21,8 @@ std::string Request::execute_cgi(const std::string& interpreter , std::string ro
     //     std::cout << "Uploaded file: ok"  << std::endl;
     // }
     // std::cout << "interpreter" <<interpreter << std::endl;
-  std::string path_ = root_cgi + this->path;
-        // std::cout << "path_: " << path_ << std::endl;
+    std::string path_ = root_cgi + this->path;
+    // std::cout << "path_: " << path_ << std::endl;
 
     int pipefd[2];
     if (pipe(pipefd) == -1) {
@@ -87,7 +79,7 @@ std::string Request::execute_cgi(const std::string& interpreter , std::string ro
     } 
     else if (pid > 0) {  // Parent process
         close(pipefd[1]);  // Close unused write end
-        std::cout << "Parent process" << std::endl;
+        // std::cout << "Parent process" << std::endl;
         if (method == "POST") 
         {
             close(input_pipe[0]);  // Close read end
@@ -133,7 +125,6 @@ std::string Request::execute_cgi(const std::string& interpreter , std::string ro
     // return "500 Internal Server Error\n";
 }
 
-
 std::string current_time() {
     std::time_t now = std::time(nullptr);
     char buf[100];
@@ -141,7 +132,68 @@ std::string current_time() {
     return std::string(buf);
 }
 
-Server::Server()  {}
+Server::Server() {
+    std::cout << "Server created" << std::endl;
+    load_sessions_from_file(); // Add this line
+}
+
+Server::~Server() {}
+
+void Server::save_sessions_to_file() {
+    std::ofstream file("sessions.txt");
+    if (file.is_open()) {
+        // std::cout << "updating sessions file" << std::endl;
+        for (std::map<int, Session>::value_type& session : sessions) {
+            for (std::map<std::string, std::string>::value_type& data : session.second.session_data) {
+                file << data.first << "=" << data.second << ";";
+            }
+        }
+        file.close();
+    } else {
+        std::cerr << "Unable to open sessions file for writing" << std::endl;
+    }
+}
+
+// void Server::load_sessions_from_file() {
+//     std::ifstream file("sessions.txt");
+//     if (file.is_open()) {
+//         int session_id;
+//         std::cout << "loading sessions file.." << std::endl;
+//         while (file >> session_id) {
+//             std::cout << "session_id: " << session_id << std::endl;
+//             Session session(session_id);
+//             sessions.insert(std::make_pair(session_id, session));
+//             session_id += 10;
+//         }
+//         file.close();
+//     } else {
+//         std::cerr << "Unable to open sessions file for reading" << std::endl;
+//     }
+// }
+
+void Server::load_sessions_from_file() {
+    std::ifstream file("sessions.txt");
+    if (file.is_open()) {
+        // std::cout << "loading sessions file.." << std::endl;
+        std::string line;
+        while (std::getline(file, line)) {
+            std::istringstream iss(line);
+            std::string token;
+            std::map<std::string, std::string> session_data;
+            while (std::getline(iss, token, ';')) {
+                size_t pos = token.find("=");
+                if (pos != std::string::npos) {
+                    std::string key = token.substr(0, pos);
+                    std::string value = token.substr(pos + 1);
+                    session_data.insert(std::make_pair(key, value));
+                }
+            }
+        }
+        file.close();
+    } else {
+        std::cerr << "Unable to open sessions file for reading" << std::endl;
+    }
+}
 
 void Server::server_init() {
     for (size_t i = 0; i < ports.size(); ++i) {
@@ -164,26 +216,16 @@ void Server::server_init() {
         server_addrs.push_back(server_addr);
     }
 }
-Server::~Server() {
-    // std::cout << RED << "[" << current_time() << "] Server shutting down..." << RESET << std::endl;
-}
-
-#include <dirent.h>
-#include <sys/stat.h>
-
-#include <sys/stat.h>
-#include <string>
 
 bool isDirectory(const std::string& path) {
     std::cout << "------ path: " << path << std::endl;
     struct stat statbuf;
     if (stat(path.c_str(), &statbuf) != 0) {
-        std::cerr << "Error getting file status" << std::endl;
         return false;
     }
-    std::cout << "statbuf.st_mode: " << statbuf.st_mode << std::endl;
     return S_ISDIR(statbuf.st_mode);
 }
+
 std::vector<std::string> list_files(const std::string& directory) {
     std::vector<std::string> files;
     DIR* dirp = opendir(directory.c_str());
@@ -208,7 +250,6 @@ void Server::bind_and_listen() {
             throw std::runtime_error("Error listening on port " + std::to_string(ntohs(server_addrs[i].sin_port)));
     }
 }
-
 
 size_t Server::get_content_length(const std::string& headers) {
     size_t content_length_pos = headers.find("Content-Length: ");
@@ -285,19 +326,10 @@ bool Server::check_method(const std::string& method, const std::vector<std::stri
 bool Server::is_cgi(std::string path,std::string &extension)
 {
     size_t dot_pos = path.find_last_of('.');
-    // std::cout << "dot_pos: " << dot_pos << std::endl;
-     std::cout << "path: 2" << path << std::endl;
     if(dot_pos < path.length())
     {
-        // std::string extension = path.substr(dot_pos);//<<
         extension = path.substr(dot_pos);
-        std::cout << "extension: " << extension << std::endl;
         std::ifstream file(this->locations["/cgi-bin"].root + path, std::ios::binary);
-         std::cout << "cgi_location.root"<< locations["/cgi-bin"].root + path << std::endl;
-         std::cout<< "file.is_open()"<< file.is_open() << std::endl;
-         bool is_cgii = this->locations["/cgi-bin"].cgi.find(extension) != this->locations["/cgi-bin"].cgi.end();
-
-         std::cout << "loc" <<  is_cgii<< std::endl;
         return (file.is_open()&&this->locations["/cgi-bin"].cgi.find(extension) != this->locations["/cgi-bin"].cgi.end());
     }
     return false;
@@ -312,12 +344,32 @@ void Server::send_cgi(std::string extension, std::string path, int client_socket
     send(client_socket, response_.c_str(), response_.length(), 0);
 }
 
+// void Response::set_cookies(const std::string& cookies) {
+//     Cookies = cookies;
+//     std::cout << "Cookies: " << Cookies << std::endl;
+// }
+
+// void manageSessions(std::map<int, Session>& sessions, std::vector<std::string>& Cookies) {
+//     int session_id = std::stoi(Cookies[0].substr(11));
+//     if (sessions.find(session_id) == sessions.end()) {
+//         std::cout << "Creating new session" << std::endl;
+//         sessions.insert(std::make_pair(session_id, Session(session_id)));
+//     }
+// }
+
 bool Server::handle_client(int client_socket) {
 
     std::string body = read_request(client_socket);
     if (body.empty())
         return false;
-
+    load_sessions_from_file();
+    //print sessions
+    // for (std::map<int, Session>::value_type& session : sessions) {
+    //     std::cout << "loaded session_id: " << session.first << std::endl;
+    //     for (std::map<std::string, std::string>::value_type& data : session.second.session_data) {
+    //         std::cout << "loaded " <<  data.first << "=" << data.second << std::endl;
+    //     }
+    // }
     Response response(client_socket, *this);
     response.request = Request(body);
     std::cout << body << std::endl;
@@ -327,6 +379,17 @@ bool Server::handle_client(int client_socket) {
     std::string root_uri = locations[uri].root;
     std::string path = root_uri + uri;
 
+    std::string Cookies = response.request.getCookies();
+    // manageSessions(sessions, Cookies);
+    if (response.request.isInNeedOfCookies) {
+        // response.set_cookies(Cookies);
+        sessions.insert(std::make_pair(response.request.session_id, Session(response.request.session_id, Cookies)));
+        //print session data
+        for (std::map<std::string, std::string>::value_type& data : sessions[response.request.session_id].session_data) {
+            std::cout << "hereee " << data.first << "=" << data.second << std::endl;
+        }
+    }
+    save_sessions_to_file();
     if(!check_method(method, locations["/"].allowed_methods)) {
         response.send_error_response(405, "text/html", error_pages[405]);
         close(client_socket);
@@ -361,7 +424,10 @@ bool Server::handle_client(int client_socket) {
 
     std::string extension;
     if (is_cgi(uri,extension))
+    {
+        std::cout << "CGI script detected--------------------" << std::endl;
         send_cgi(extension, uri, client_socket, response);
+    }
     else
     {
           if (method == "GET")
@@ -379,10 +445,9 @@ bool Server::handle_client(int client_socket) {
     return true;
 }
 
-
 void Server::start_server() {
 
-        int poll_count = poll(poll_fds.data(), poll_fds.size(),0);
+        int poll_count = poll(poll_fds.data(), poll_fds.size(), 100);
         if (poll_count < 0)
             throw std::runtime_error("Error polling for events");
         for (size_t i = 0; i < poll_fds.size(); ++i) {
