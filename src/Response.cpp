@@ -119,25 +119,29 @@ void Response::send_response() {
         throw std::runtime_error("Failed to send response");
 }
 
-void Response::check_error(const std::string& path) {
-    std::string root = server.locations["/"].root;
+bool Response::check_error(const std::string& path) {
     std::string uri = request.getPath();
-    
+        std::cout << "---------- URI: " <<path << std::endl;
     if (request.getContentLength() > server.client_max_body_size )
-        return send_error_response(413, "text/html", server.error_pages[413]) , void();
+        return send_error_response(413, "text/html", server.error_pages[413]) , false;
+
     if (!is_valid_url(uri))
-       return  send_error_response(400, "text/html", server.error_pages[400]), void();
+       return  send_error_response(400, "text/html", server.error_pages[400]) , false;
+
 
     if (uri.find("..") != std::string::npos)
-        return send_error_response(403, "text/html", server.error_pages[403]), void();
-    
+        return send_error_response(403, "text/html", server.error_pages[403]) , false;
+
+
     if (uri.length() > 2048)
-        return send_error_response(414, "text/html", server.error_pages[414]), void();
+        return send_error_response(414, "text/html", server.error_pages[414]) , false;
+
     std::ifstream file(path.c_str(), std::ios::binary);
     if (!file.is_open() ) 
-       return send_error_response(404, "text/html", server.error_pages[404]), void();
+       return send_error_response(404, "text/html", server.error_pages[404]) , false;
+
     else    
-        return;
+        return true;
 }
 
 

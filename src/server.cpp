@@ -313,18 +313,19 @@ void Server::send_cgi(std::string extension, std::string path, int client_socket
 }
 
 bool Server::handle_client(int client_socket) {
+
     std::string body = read_request(client_socket);
     if (body.empty())
         return false;
 
     Response response(client_socket, *this);
     response.request = Request(body);
+    std::cout << body << std::endl;
     std::string method = response.request.getMethod();
     std::string uri = response.request.getPath();
+            std::cout << "-------------------- PATH: " << response.request.getQueryString() << std::endl;
     std::string root_uri = locations[uri].root;
     std::string path = root_uri + uri;
-    std::cout << "ROOT URI: " << root_uri << std::endl;
-    std::cout << "URI: " << uri << std::endl;
 
     if(!check_method(method, locations["/"].allowed_methods)) {
         response.send_error_response(405, "text/html", error_pages[405]);
@@ -333,8 +334,8 @@ bool Server::handle_client(int client_socket) {
     }
 
     std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << ", Path: " << path << RESET << std::endl;
+
     if (isDirectory(path)) {
-        std::cout << "Directory: " << path << std::endl;
         if (!check_method(method, locations[uri].allowed_methods)) 
             return response.send_error_response(405, "text/html", error_pages[405]), true;
         if (locations[uri].directory_listing)
@@ -350,12 +351,14 @@ bool Server::handle_client(int client_socket) {
         std::string default_file;
         if (is_cgi(uri,extension))
             default_file = locations["/cgi-bin"].root + path;
-        else
+        else 
             default_file = locations["/"].root + path;
         path = default_file;
     }
-//zouhir add this 
- response.check_error(path);
+
+ if(!response.check_error(path))
+        return true;
+
     std::string extension;
     if (is_cgi(uri,extension))
         send_cgi(extension, uri, client_socket, response);
@@ -371,9 +374,6 @@ bool Server::handle_client(int client_socket) {
         response.send_error_response(405, "text/html", error_pages[405]);
     }
     
-
-
-
     partial_requests.erase(client_socket);
     close(client_socket);
     return true;
