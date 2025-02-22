@@ -134,25 +134,25 @@ std::string current_time() {
 
 Server::Server() {
     std::cout << "Server created" << std::endl;
-    load_sessions_from_file(); // Add this line
+    // load_sessions_from_file(); // Add this line
 }
 
 Server::~Server() {}
 
-void Server::save_sessions_to_file() {
-    std::ofstream file("sessions.txt");
-    if (file.is_open()) {
-        // std::cout << "updating sessions file" << std::endl;
-        for (std::map<int, Session>::value_type& session : sessions) {
-            for (std::map<std::string, std::string>::value_type& data : session.second.session_data) {
-                file << data.first << "=" << data.second << ";";
-            }
-        }
-        file.close();
-    } else {
-        std::cerr << "Unable to open sessions file for writing" << std::endl;
-    }
-}
+// void Server::save_sessions_to_file() {
+//     std::ofstream file("sessions.txt");
+//     if (file.is_open()) {
+//         // std::cout << "updating sessions file" << std::endl;
+//         for (std::map<int, Session>::value_type& session : sessions) {
+//             for (std::map<std::string, std::string>::value_type& data : session.second.session_data) {
+//                 file << data.first << "=" << data.second << ";";
+//             }
+//         }
+//         file.close();
+//     } else {
+//         std::cerr << "Unable to open sessions file for writing" << std::endl;
+//     }
+// }
 
 // void Server::load_sessions_from_file() {
 //     std::ifstream file("sessions.txt");
@@ -171,29 +171,29 @@ void Server::save_sessions_to_file() {
 //     }
 // }
 
-void Server::load_sessions_from_file() {
-    std::ifstream file("sessions.txt");
-    if (file.is_open()) {
-        // std::cout << "loading sessions file.." << std::endl;
-        std::string line;
-        while (std::getline(file, line)) {
-            std::istringstream iss(line);
-            std::string token;
-            std::map<std::string, std::string> session_data;
-            while (std::getline(iss, token, ';')) {
-                size_t pos = token.find("=");
-                if (pos != std::string::npos) {
-                    std::string key = token.substr(0, pos);
-                    std::string value = token.substr(pos + 1);
-                    session_data.insert(std::make_pair(key, value));
-                }
-            }
-        }
-        file.close();
-    } else {
-        std::cerr << "Unable to open sessions file for reading" << std::endl;
-    }
-}
+// void Server::load_sessions_from_file() {
+//     std::ifstream file("sessions.txt");
+//     if (file.is_open()) {
+//         // std::cout << "loading sessions file.." << std::endl;
+//         std::string line;
+//         while (std::getline(file, line)) {
+//             std::istringstream iss(line);
+//             std::string token;
+//             std::map<std::string, std::string> session_data;
+//             while (std::getline(iss, token, ';')) {
+//                 size_t pos = token.find("=");
+//                 if (pos != std::string::npos) {
+//                     std::string key = token.substr(0, pos);
+//                     std::string value = token.substr(pos + 1);
+//                     session_data.insert(std::make_pair(key, value));
+//                 }
+//             }
+//         }
+//         file.close();
+//     } else {
+//         std::cerr << "Unable to open sessions file for reading" << std::endl;
+//     }
+// }
 
 void Server::server_init() {
     for (size_t i = 0; i < ports.size(); ++i) {
@@ -218,7 +218,7 @@ void Server::server_init() {
 }
 
 bool isDirectory(const std::string& path) {
-    std::cout << "------ path: " << path << std::endl;
+    // std::cout << "------ path: " << path << std::endl;
     struct stat statbuf;
     if (stat(path.c_str(), &statbuf) != 0) {
         return false;
@@ -362,7 +362,7 @@ bool Server::handle_client(int client_socket) {
     std::string body = read_request(client_socket);
     if (body.empty())
         return false;
-    load_sessions_from_file();
+    // load_sessions_from_file();
     //print sessions
     // for (std::map<int, Session>::value_type& session : sessions) {
     //     std::cout << "loaded session_id: " << session.first << std::endl;
@@ -372,10 +372,10 @@ bool Server::handle_client(int client_socket) {
     // }
     Response response(client_socket, *this);
     response.request = Request(body);
-    std::cout << body << std::endl;
+    // std::cout << body << std::endl;
     std::string method = response.request.getMethod();
     std::string uri = response.request.getPath();
-            std::cout << "-------------------- PATH: " << response.request.getQueryString() << std::endl;
+    // std::cout << "-------------------- PATH: " << response.request.getQueryString() << std::endl;
     std::string root_uri = locations[uri].root;
     std::string path = root_uri + uri;
 
@@ -389,7 +389,7 @@ bool Server::handle_client(int client_socket) {
             std::cout << "hereee " << data.first << "=" << data.second << std::endl;
         }
     }
-    save_sessions_to_file();
+    // save_sessions_to_file();
     if(!check_method(method, locations["/"].allowed_methods)) {
         response.send_error_response(405, "text/html", error_pages[405]);
         close(client_socket);

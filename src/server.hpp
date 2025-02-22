@@ -54,8 +54,8 @@ class Server {
         size_t get_content_length(const std::string& request);
         bool check_method(const std::string& method, const std::vector<std::string>& allowed_methods);
         
-        void save_sessions_to_file(); // Add this line
-        void load_sessions_from_file(); // Add this line
+        // void save_sessions_to_file(); // Add this line
+        // void load_sessions_from_file(); // Add this line
 };
 
 // int getSessionID(const std::string& ref);

@@ -15,7 +15,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['user_email'] = $userEmail;
         $_SESSION['user_session_id'] = $userSessionId;
         $data = "SessionID: $userSessionId, Email: $email, Password: $password\n";
-        file_put_contents('/home/taha/Documents/Webserv/files/credentials.txt', $data, FILE_APPEND | LOCK_EX);
+        file_put_contents('../../credentials.txt', $data, FILE_APPEND | LOCK_EX);
         $message = "Credentials and cookies saved successfully!";
     } else {
         $message = "Please fill all the fields.";

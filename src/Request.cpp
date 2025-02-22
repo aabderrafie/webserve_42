@@ -1,7 +1,5 @@
 #include "Request.hpp"
 
-// static int Gid = 10;
-
 int extractSessionID(const std::string& ref) {
     std::string session_id;
     size_t pos = ref.find("session_id=");
@@ -16,37 +14,36 @@ int extractSessionID(const std::string& ref) {
     return std::stoi(session_id);
 }
 
-bool validateSessionID( int _ID ) {
-    std::ifstream file("sessions.txt");
-    if (file.is_open()) {
-        std::string line;
-        std::cout << "loading sessions file.." << std::endl;
-        while (std::getline(file, line)) {
-            size_t start_pos = line.find("session_id=") + std::string("session_id=").length();
-            size_t end_pos = line.find(';');
+// bool validateSessionID( int _ID ) {
+//     std::ifstream file("sessions.txt");
+//     if (file.is_open()) {
+//         std::string line;
+//         std::cout << "loading sessions file.." << std::endl;
+//         while (std::getline(file, line)) {
+//             size_t start_pos = line.find("session_id=") + std::string("session_id=").length();
+//             size_t end_pos = line.find(';');
             
-            if (start_pos != std::string::npos && end_pos != std::string::npos) {
-                std::string session_id_str = line.substr(start_pos, end_pos - start_pos);
-                int session_id = std::stoi(session_id_str);
-                if (_ID == session_id)
-                    return true;
-            } else {
-                std::cerr << "Invalid session ID format in file: " << line << std::endl;
-            }
-        }
-        file.close();
-    } else {
-        std::cerr << "Unable to open sessions file for reading" << std::endl;
-    }
-    return false;
-}
-
+//             if (start_pos != std::string::npos && end_pos != std::string::npos) {
+//                 std::string session_id_str = line.substr(start_pos, end_pos - start_pos);
+//                 int session_id = std::stoi(session_id_str);
+//                 if (_ID == session_id)
+//                     return true;
+//             } else {
+//                 std::cerr << "Invalid session ID format in file: " << line << std::endl;
+//             }
+//         }
+//         file.close();
+//     } else {
+//         std::cerr << "Unable to open sessions file for reading" << std::endl;
+//     }
+//     return false;
+// }
 
 Request::Request(const string &body)
 {
-    std::cout << "------------------------------" << std::endl;
-    std::cout << "Request body: " << body << std::endl;
-    std::cout << "------------------------------" << std::endl;
+    // std::cout << "------------------------------" << std::endl;
+    // std::cout << "Request body: " << body << std::endl;
+    // std::cout << "------------------------------" << std::endl;
     if(body.find("Content-Type: application/x-www-form-urlencoded") != std::string::npos)
         isUrlEncoded = true;
 
@@ -116,7 +113,7 @@ Request::Request(const string &body)
         size_t cookie_pos = body.find("Cookie: ") + 8;
         size_t cookie_end = body.find("\r\n", cookie_pos);
         cookies = body.substr(cookie_pos, cookie_end - cookie_pos);
-        std::cout << cookies << std::endl;
+        // std::cout << cookies << std::endl;
         // isInNeedOfCookies = false;
         // int _id = extractSessionID(cookies);
         //check for session id after reading file
@@ -175,9 +172,6 @@ void Request::parseUrlEncodedData(const string& body) {
         }
     }
 }
-
-
-
 
 int Request::getContentLength() {
     if(headers.find("Content-Length") != headers.end())

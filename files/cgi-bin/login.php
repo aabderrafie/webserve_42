@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Specify the file name
-    $filename = '../credentials.txt';
+    $filename = '../../credentials.txt';
 
     // Check if the file exists
     if (!file_exists($filename)) {

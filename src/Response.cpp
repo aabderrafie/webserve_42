@@ -113,14 +113,14 @@ void Response::send_response() {
     std::string headers = response.str();
     std::string full_response = headers + body;
 
-    std::cout << "-------------------------------##" << "Response: " << full_response << "-------------------------------##" <<  std::endl;
+    // std::cout << "-------------------------------##" << "Response: " << full_response << "-------------------------------##" <<  std::endl;
     if(send(client_socket, full_response.c_str(), full_response.size(), 0) < 0)
         throw std::runtime_error("Failed to send response");
 }
 
 bool Response::check_error(const std::string& path) {
     std::string uri = request.getPath();
-        std::cout << "---------- URI: " <<path << std::endl;
+    // std::cout << "---------- URI: " <<path << std::endl;
     if (request.getContentLength() > server.client_max_body_size )
         return send_error_response(413, "text/html", server.error_pages[413]) , false;
 
