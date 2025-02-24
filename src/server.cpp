@@ -38,17 +38,19 @@ std::string Request::execute_cgi(const std::string& interpreter , std::string ro
 
     pid_t pid = fork();
     if (pid == 0) {  // Child process
+std::stringstream ss;
+ss << post_data.length();
+std::string content_type = ss.str();
         close(pipefd[0]);  // Close unused read end
-        std::vector<std::string> env_vars = {
-            "REQUEST_METHOD=" + method,
-            "QUERY_STRING=" + query_string,
-            "CONTENT_TYPE=" + content_type,
-            "CONTENT_LENGTH=" + std::to_string(post_data.length()),
-            "SCRIPT_FILENAME=" + path_,
-            "REDIRECT_STATUS=200"  // Required for PHP-CGI
-            // "UPLOADED_FILE=" + uploaded_file
-        };
+ std::vector<std::string> env_vars;
 
+env_vars.push_back("REQUEST_METHOD=" + method);
+env_vars.push_back("QUERY_STRING=" + query_string);
+env_vars.push_back("CONTENT_TYPE=" + content_type);
+env_vars.push_back("CONTENT_LENGTH=" + content_type);
+env_vars.push_back("SCRIPT_FILENAME=" + path_);
+env_vars.push_back("REDIRECT_STATUS=200"); // Required for PHP-CGI
+// env_vars.push_back("UPLOADED_FILE=" + uploaded_file);
         std::vector<char*> envp;
         for (size_t i = 0; i < env_vars.size(); ++i)
             envp.push_back(const_cast<char*>(env_vars[i].c_str()));
