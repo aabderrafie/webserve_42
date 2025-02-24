@@ -321,20 +321,32 @@ bool Server::is_cgi(std::string path,std::string &extension)
     if(dot_pos < path.length())
     {
         extension = path.substr(dot_pos);
-        std::ifstream file(this->locations["/cgi-bin"].root + path, std::ios::binary);
+        std::ifstream file((this->locations["/cgi-bin"].root + path).c_str(), std::ios::binary);
         return (file.is_open()&&this->locations["/cgi-bin"].cgi.find(extension) != this->locations["/cgi-bin"].cgi.end());
     }
     return false;
 }
 //zouhir add this
+#include <sstream> // Required for std::ostringstream
+
 void Server::send_cgi(std::string extension, std::string path, int client_socket, Response& response)
 {
     std::string interpreter = this->locations["/cgi-bin"].cgi[extension];
     std::string script_path = this->locations["/cgi-bin"].root + path;
     std::string cgi_output = response.request.execute_cgi(interpreter, this->locations["/cgi-bin"].root);
-    std::string response_ = response.request.getHttpVersion() + " 200 OK\r\nContent-Type: text/html\r\nContent-Length: " + std::to_string(cgi_output.length()) + "\r\n\r\n" + cgi_output;
+
+    // Convert size_t to string using std::ostringstream (C++98 compatible)
+    std::ostringstream oss;
+    oss << cgi_output.length();
+    std::string content_length = oss.str();
+
+    std::string response_ = response.request.getHttpVersion() + 
+        " 200 OK\r\nContent-Type: text/html\r\nContent-Length: " + 
+        content_length + "\r\n\r\n" + cgi_output;
+
     send(client_socket, response_.c_str(), response_.length(), 0);
 }
+
 
 // void Response::set_cookies(const std::string& cookies) {
 //     Cookies = cookies;
