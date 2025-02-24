@@ -277,7 +277,7 @@ Server configureServer( block& ref ) {
 	serv.host = "127.0.0.1";
 	serv.server_name = "localhost";
 	serv.client_max_body_size = 1024 * 1024;
-	serv.ports.push_back(8081);
+	serv.ports.push_back(80);
 	for (std::map<std::string, std::vector<std::string> >::iterator it2 = ref.directives.begin(); it2 != ref.directives.end(); ++it2) {
 		if (it2->first == "server_name") {
 			if (it2->second.size() > 1)
@@ -355,7 +355,8 @@ std::vector<Server> initConfig( std::vector<block> blocks ) {
 			it->locations["/"] = loc;
 		} 
 		if (it->locations["/"].root.empty()) {
-			it->locations["/"].root = "./file/html";
+			// -----------------  it->locations["/"].root = "./files/html"; machi file
+			it->locations["/"].root = "./files/html";
 		} if (it->locations["/"].default_file.empty()) {
 			it->locations["/"].default_file = "index.html";
 		} if (it->locations["/"].allowed_methods.empty()) {
@@ -369,7 +370,7 @@ std::vector<Server> initConfig( std::vector<block> blocks ) {
 			it->locations["/upload"] = loc;
 		}
 		if (it->locations["/upload"].root.empty()) {
-			it->locations["/upload"].root = "./file/html/upload";
+			it->locations["/upload"].root = "./files/html/upload";
 		} if (it->locations["/upload"].default_file.empty()) {
 			it->locations["/upload"].default_file = "index.html";
 		} if (it->locations["/upload"].allowed_methods.empty()) {
@@ -385,7 +386,7 @@ std::vector<Server> initConfig( std::vector<block> blocks ) {
 			it->locations["/cgi-bin"] = loc;
 		}
 		if (it->locations["/cgi-bin"].root.empty()) {
-			it->locations["/cgi-bin"].root = "./file/html/cgi-bin";
+			it->locations["/cgi-bin"].root = "./files/html/cgi-bin";
 		} if (it->locations["/cgi-bin"].default_file.empty()) {
 			it->locations["/cgi-bin"].default_file = "index.html";
 		} if (it->locations["/cgi-bin"].allowed_methods.empty()) {

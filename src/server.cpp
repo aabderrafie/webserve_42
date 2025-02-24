@@ -285,8 +285,6 @@ bool Server::check_method(const std::string& method, const std::vector<std::stri
 bool Server::is_cgi(std::string path,std::string &extension)
 {
     size_t dot_pos = path.find_last_of('.');
-    // std::cout << "dot_pos: " << dot_pos << std::endl;
-     std::cout << "path: 2" << path << std::endl;
     if(dot_pos < path.length())
     {
         // std::string extension = path.substr(dot_pos);//<<
@@ -320,10 +318,8 @@ bool Server::handle_client(int client_socket) {
 
     Response response(client_socket, *this);
     response.request = Request(body);
-    std::cout << body << std::endl;
     std::string method = response.request.getMethod();
     std::string uri = response.request.getPath();
-            std::cout << "-------------------- PATH: " << response.request.getQueryString() << std::endl;
     std::string root_uri = locations[uri].root;
     std::string path = root_uri + uri;
 
@@ -349,8 +345,10 @@ bool Server::handle_client(int client_socket) {
     else {
         std::string extension;
         std::string default_file;
-        if (is_cgi(uri,extension))
+        if (is_cgi(uri,extension)) {
+            std::cout << "CGI script detected" << std::endl;
             default_file = locations["/cgi-bin"].root + path;
+        }
         else 
             default_file = locations["/"].root + path;
         path = default_file;
@@ -381,6 +379,7 @@ bool Server::handle_client(int client_socket) {
 
 
 void Server::start_server() {
+
 
         int poll_count = poll(poll_fds.data(), poll_fds.size(),0);
         if (poll_count < 0)
