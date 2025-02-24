@@ -16,6 +16,8 @@ class Response {
         std::string content_type;
         std::string body;
         Server server;
+        bool switch_theme;
+        std::string Cookies;
 
     public:
         void upload_file(std::string& uploaded_file_path);//zouhir add this function
@@ -35,6 +37,7 @@ class Response {
         void create_user(const std::map<std::string, std::string>& data, const std::string& uploads);
         void list_directory_contents(const std::string& dir_path);
         bool check_error(const std::string& path);
+        void set_cookies(const std::string& cookies);
 
         ~Response();
 };

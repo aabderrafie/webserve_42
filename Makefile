@@ -1,5 +1,5 @@
 CC = c++
-CFLAGS = -Wall -Wextra -Werror  #-fsanitize=address -g3
+CFLAGS = -Wall -Wextra -Werror  -fsanitize=address -g3# -std=c++98
 NAME = webserver
 
 # Colors and effects
@@ -12,12 +12,10 @@ PURPLE = \033[1;35m
 RESET = \033[0m
 BOLD = \033[1m
 
-src = $(wildcard src/*.cpp) $(wildcard config/*.cpp) #$(filter-out src/Request.cpp,
-obj = $(src:.cpp=.o)
+src = $(wildcard src/*.cpp) $(wildcard config/*.cpp)
+obj = $(patsubst %.cpp,obj/%.o,$(src))
 
-all:  $(NAME)
-
-
+all: $(NAME)
 
 $(NAME): $(obj)
 	@echo "$(GREEN)🔨 Linking $@...$(RESET)"
@@ -25,7 +23,8 @@ $(NAME): $(obj)
 	@echo "$(BLUE)✨ Compilation complete!$(RESET)"
 	@echo "$(PURPLE)🚀 Ready to launch!$(RESET)"
 
-%.o: %.cpp
+obj/%.o: %.cpp
+	@mkdir -p $(dir $@)
 	@echo "$(YELLOW)📑 Compiling $<...$(RESET)"
 	@$(CC) $(CFLAGS) -c $< -o $@
 

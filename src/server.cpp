@@ -1,6 +1,6 @@
 #include "server.hpp"
 #include <ctime>
-
+#include <fstream> // Add this line
 
 #include <limits.h>
 #include <sys/wait.h>
@@ -11,17 +11,9 @@
 //     {".sh", "/bin/bash"}
 // };
 
-
-
-
-
-
-
-
 std::string Request::execute_cgi(const std::string& interpreter , std::string root_cgi) 
 {
     std::cout << "Executing CGI script: " << path << std::endl;
-
     // std::string uploaded_file;
     // if (isMultipart)
     // {
@@ -29,8 +21,8 @@ std::string Request::execute_cgi(const std::string& interpreter , std::string ro
     //     std::cout << "Uploaded file: ok"  << std::endl;
     // }
     // std::cout << "interpreter" <<interpreter << std::endl;
-  std::string path_ = root_cgi + this->path;
-        // std::cout << "path_: " << path_ << std::endl;
+    std::string path_ = root_cgi + this->path;
+    // std::cout << "path_: " << path_ << std::endl;
 
     int pipefd[2];
     if (pipe(pipefd) == -1) {
@@ -87,7 +79,7 @@ std::string Request::execute_cgi(const std::string& interpreter , std::string ro
     } 
     else if (pid > 0) {  // Parent process
         close(pipefd[1]);  // Close unused write end
-        std::cout << "Parent process" << std::endl;
+        // std::cout << "Parent process" << std::endl;
         if (method == "POST") 
         {
             close(input_pipe[0]);  // Close read end
@@ -133,15 +125,75 @@ std::string Request::execute_cgi(const std::string& interpreter , std::string ro
     // return "500 Internal Server Error\n";
 }
 
-
 std::string current_time() {
-    std::time_t now = std::time(nullptr);
+    std::time_t now = std::time(NULL);
     char buf[100];
     std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
     return std::string(buf);
 }
 
-Server::Server()  {}
+Server::Server() {
+    std::cout << "Server created" << std::endl;
+    // load_sessions_from_file(); // Add this line
+}
+
+Server::~Server() {}
+
+// void Server::save_sessions_to_file() {
+//     std::ofstream file("sessions.txt");
+//     if (file.is_open()) {
+//         // std::cout << "updating sessions file" << std::endl;
+//         for (std::map<int, Session>::value_type& session : sessions) {
+//             for (std::map<std::string, std::string>::value_type& data : session.second.session_data) {
+//                 file << data.first << "=" << data.second << ";";
+//             }
+//         }
+//         file.close();
+//     } else {
+//         std::cerr << "Unable to open sessions file for writing" << std::endl;
+//     }
+// }
+
+// void Server::load_sessions_from_file() {
+//     std::ifstream file("sessions.txt");
+//     if (file.is_open()) {
+//         int session_id;
+//         std::cout << "loading sessions file.." << std::endl;
+//         while (file >> session_id) {
+//             std::cout << "session_id: " << session_id << std::endl;
+//             Session session(session_id);
+//             sessions.insert(std::make_pair(session_id, session));
+//             session_id += 10;
+//         }
+//         file.close();
+//     } else {
+//         std::cerr << "Unable to open sessions file for reading" << std::endl;
+//     }
+// }
+
+// void Server::load_sessions_from_file() {
+//     std::ifstream file("sessions.txt");
+//     if (file.is_open()) {
+//         // std::cout << "loading sessions file.." << std::endl;
+//         std::string line;
+//         while (std::getline(file, line)) {
+//             std::istringstream iss(line);
+//             std::string token;
+//             std::map<std::string, std::string> session_data;
+//             while (std::getline(iss, token, ';')) {
+//                 size_t pos = token.find("=");
+//                 if (pos != std::string::npos) {
+//                     std::string key = token.substr(0, pos);
+//                     std::string value = token.substr(pos + 1);
+//                     session_data.insert(std::make_pair(key, value));
+//                 }
+//             }
+//         }
+//         file.close();
+//     } else {
+//         std::cerr << "Unable to open sessions file for reading" << std::endl;
+//     }
+// }
 
 void Server::server_init() {
     for (size_t i = 0; i < ports.size(); ++i) {
@@ -164,33 +216,24 @@ void Server::server_init() {
         server_addrs.push_back(server_addr);
     }
 }
-Server::~Server() {
-    // std::cout << RED << "[" << current_time() << "] Server shutting down..." << RESET << std::endl;
-}
 
-#include <dirent.h>
-#include <sys/stat.h>
-
-#include <sys/stat.h>
-#include <string>
 
 bool isDirectory(const std::string& path) {
-    std::cout << "------ path: " << path << std::endl;
-    struct stat statbuf;
-    if (stat(path.c_str(), &statbuf) != 0) {
-        std::cerr << "Error getting file status" << std::endl;
-        return false;
+    DIR* dir = opendir(path.c_str());
+    if (dir) {
+        std::cout << "Directory found" << std::endl;
+        closedir(dir);
+        return true;
     }
-    std::cout << "statbuf.st_mode: " << statbuf.st_mode << std::endl;
-    return S_ISDIR(statbuf.st_mode);
+    return false;
 }
+
 std::vector<std::string> list_files(const std::string& directory) {
     std::vector<std::string> files;
     DIR* dirp = opendir(directory.c_str());
     struct dirent* dp;
-    while ((dp = readdir(dirp)) != nullptr) {
+    while ((dp = readdir(dirp)) != NULL)
         files.push_back(dp->d_name);
-    }
     closedir(dirp);
     return files;
 }
@@ -210,21 +253,6 @@ void Server::bind_and_listen() {
 }
 
 
-size_t Server::get_content_length(const std::string& headers) {
-    size_t content_length_pos = headers.find("Content-Length: ");
-    if (content_length_pos == std::string::npos) {
-        throw std::runtime_error("Content-Length header not found");
-    }
-
-    size_t content_length_end = headers.find("\r\n", content_length_pos);
-    if (content_length_end == std::string::npos) {
-        throw std::runtime_error("Malformed Content-Length header");
-    }
-
-    std::string content_length_str = headers.substr(content_length_pos + 16, content_length_end - (content_length_pos + 16));
-    return std::stoul(content_length_str);  // Convert string to size_t
-}
-
 void Server::new_connection(int server_socket) {
     struct sockaddr_in client_addr;
     socklen_t sin_size = sizeof(client_addr);
@@ -240,14 +268,14 @@ void Server::new_connection(int server_socket) {
 }
 
 
-std::unordered_map<int, std::string> partial_requests;
+std::map<int, std::string> partial_requests ;
 
 std::string Server::read_request(int client_socket) {
     char buffer[BUFFER_SIZE];
-    int bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, 0);
-
+    std::memset(buffer, 0, BUFFER_SIZE); 
+    int bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, MSG_DONTWAIT);
     if (bytes_received < 0)
-        return "";
+        throw std::runtime_error("Error receiving data from client");
 
     if (bytes_received == 0) {
         std::string final_request = partial_requests[client_socket];
@@ -264,14 +292,17 @@ std::string Server::read_request(int client_socket) {
 
     std::string headers = partial_requests[client_socket].substr(0, header_end + 4);
     size_t content_length_pos = headers.find("Content-Length: ");
+    std::cout << "headers: " << headers << std::endl;
+    std::cout << "content_length_pos: " << content_length_pos << std::endl;
     if (content_length_pos != std::string::npos) {
         size_t content_length_end = headers.find("\r\n", content_length_pos);
-        int content_length = std::stoi(headers.substr(content_length_pos + 16, content_length_end - content_length_pos - 16));
+        std::cout << "content_length_end: " << content_length_end << std::endl;
+        int content_length = std::atoi(headers.substr(content_length_pos + 16, content_length_end - content_length_pos - 16).c_str());
         size_t total_length = header_end + 4 + content_length;
-        if (partial_requests[client_socket].size() < total_length) {
+        if (partial_requests[client_socket].size() < total_length)
             return "";
-        }
     }
+    
     std::string full_request = partial_requests[client_socket];
     partial_requests.erase(client_socket);
     return full_request;
@@ -287,15 +318,8 @@ bool Server::is_cgi(std::string path,std::string &extension)
     size_t dot_pos = path.find_last_of('.');
     if(dot_pos < path.length())
     {
-        // std::string extension = path.substr(dot_pos);//<<
         extension = path.substr(dot_pos);
-        std::cout << "extension: " << extension << std::endl;
         std::ifstream file(this->locations["/cgi-bin"].root + path, std::ios::binary);
-         std::cout << "cgi_location.root"<< locations["/cgi-bin"].root + path << std::endl;
-         std::cout<< "file.is_open()"<< file.is_open() << std::endl;
-         bool is_cgii = this->locations["/cgi-bin"].cgi.find(extension) != this->locations["/cgi-bin"].cgi.end();
-
-         std::cout << "loc" <<  is_cgii<< std::endl;
         return (file.is_open()&&this->locations["/cgi-bin"].cgi.find(extension) != this->locations["/cgi-bin"].cgi.end());
     }
     return false;
@@ -310,12 +334,24 @@ void Server::send_cgi(std::string extension, std::string path, int client_socket
     send(client_socket, response_.c_str(), response_.length(), 0);
 }
 
+// void Response::set_cookies(const std::string& cookies) {
+//     Cookies = cookies;
+//     std::cout << "Cookies: " << Cookies << std::endl;
+// }
+
+// void manageSessions(std::map<int, Session>& sessions, std::vector<std::string>& Cookies) {
+//     int session_id = std::stoi(Cookies[0].substr(11));
+//     if (sessions.find(session_id) == sessions.end()) {
+//         std::cout << "Creating new session" << std::endl;
+//         sessions.insert(std::make_pair(session_id, Session(session_id)));
+//     }
+// }
+
 bool Server::handle_client(int client_socket) {
 
     std::string body = read_request(client_socket);
     if (body.empty())
         return false;
-
     Response response(client_socket, *this);
     response.request = Request(body);
     std::string method = response.request.getMethod();
@@ -323,11 +359,16 @@ bool Server::handle_client(int client_socket) {
     std::string root_uri = locations[uri].root;
     std::string path = root_uri + uri;
 
-    if(!check_method(method, locations["/"].allowed_methods)) {
-        response.send_error_response(405, "text/html", error_pages[405]);
-        close(client_socket);
-        return true;
+    std::string Cookies = response.request.getCookies();
+    if (response.request.isInNeedOfCookies) {
+        sessions.insert(std::make_pair(response.request.session_id, Session(response.request.session_id, Cookies)));
+        for (std::map<std::string, std::string>::value_type& data : sessions[response.request.session_id].session_data) {
+            std::cout << "hereee " << data.first << "=" << data.second << std::endl;
+        }
     }
+    // std::cout << "Cookies: " << Cookies << std::endl;
+    if(!check_method(method, locations["/"].allowed_methods)) 
+        return response.send_error_response(405, "text/html", error_pages[405]) , close(client_socket), true;
 
     std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << ", Path: " << path << RESET << std::endl;
 
@@ -337,7 +378,7 @@ bool Server::handle_client(int client_socket) {
         if (locations[uri].directory_listing)
             return response.list_directory_contents(path), true;
         else {
-            if (!path.empty() && path.back() != '/')
+            if (!path.empty() && path[path.length() - 1] != '/')
                 path += '/';
             path += locations[uri].default_file;
         }
@@ -345,10 +386,8 @@ bool Server::handle_client(int client_socket) {
     else {
         std::string extension;
         std::string default_file;
-        if (is_cgi(uri,extension)) {
-            std::cout << "CGI script detected" << std::endl;
+        if (is_cgi(uri,extension)) 
             default_file = locations["/cgi-bin"].root + path;
-        }
         else 
             default_file = locations["/"].root + path;
         path = default_file;
@@ -377,9 +416,7 @@ bool Server::handle_client(int client_socket) {
     return true;
 }
 
-
 void Server::start_server() {
-
 
         int poll_count = poll(poll_fds.data(), poll_fds.size(),0);
         if (poll_count < 0)

@@ -2,11 +2,13 @@
 #include "colors.hpp"
 
 void ports_tostring(const std::vector<int>& ports, std::string& ports_str) {
+    std::ostringstream oss;
     for (size_t i = 0; i < ports.size(); ++i) {
-        ports_str += std::to_string(ports[i]);
+        oss << ports[i];
         if (i < ports.size() - 1)
-            ports_str += ", ";
+            oss << ", ";
     }
+    ports_str = oss.str();
 }
 MultiServer::MultiServer(const Config& config) : config(config), _size(config.servers.size()) {
     for (size_t i = 0; i < _size; ++i) 
