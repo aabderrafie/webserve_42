@@ -48,3 +48,6 @@
 #define CORAL        "\033[1;38;5;209m" // Bold coral
 #define LAVENDER     "\033[1;38;5;147m" // Bold lavender
 #define EMERALD      "\033[1;38;5;46m"  // Bold emerald green
+
+  bool isDirectory(const std::string& path);
+    std::string tostring(int value);

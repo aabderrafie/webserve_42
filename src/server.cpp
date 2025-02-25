@@ -220,15 +220,8 @@ void Server::server_init() {
 }
 
 
-bool isDirectory(const std::string& path) {
-    DIR* dir = opendir(path.c_str());
-    if (dir) {
-        std::cout << "Directory found" << std::endl;
-        closedir(dir);
-        return true;
-    }
-    return false;
-}
+
+
 
 std::vector<std::string> list_files(const std::string& directory) {
     std::vector<std::string> files;
@@ -247,10 +240,10 @@ void Server::bind_and_listen() {
             throw std::runtime_error("Error setting socket options");
 
         if (bind(server_sockets[i], (struct sockaddr *)&server_addrs[i], sizeof(server_addrs[i])) < 0)
-            throw std::runtime_error("Error binding to port " + std::to_string(ntohs(server_addrs[i].sin_port)));
+            throw std::runtime_error("Error binding to port " + tostring(ntohs(server_addrs[i].sin_port)));
 
         if (listen(server_sockets[i], BACKLOG) < 0)
-            throw std::runtime_error("Error listening on port " + std::to_string(ntohs(server_addrs[i].sin_port)));
+            throw std::runtime_error("Error listening on port " + tostring(ntohs(server_addrs[i].sin_port)));
     }
 }
 
@@ -376,9 +369,9 @@ bool Server::handle_client(int client_socket) {
     std::string Cookies = response.request.getCookies();
     if (response.request.isInNeedOfCookies) {
         sessions.insert(std::make_pair(response.request.session_id, Session(response.request.session_id, Cookies)));
-        for (std::map<std::string, std::string>::value_type& data : sessions[response.request.session_id].session_data) {
-            std::cout << "hereee " << data.first << "=" << data.second << std::endl;
-        }
+        // for (std::map<std::string, std::string>::value_type& data : sessions[response.request.session_id].session_data) {
+        //     std::cout << "hereee " << data.first << "=" << data.second << std::endl;
+        // }
     }
     // std::cout << "Cookies: " << Cookies << std::endl;
     if(!check_method(method, locations["/"].allowed_methods)) 
