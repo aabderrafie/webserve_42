@@ -251,6 +251,13 @@ bool Server::is_cgi(std::string path,std::string &extension)
 
 void Server::send_cgi(std::string extension, std::string path, int client_socket, Response& response)
 {
+if (std::find(this->locations["/cgi-bin"].allowed_methods.begin(),
+              this->locations["/cgi-bin"].allowed_methods.end(),
+              response.request.getMethod()) == this->locations["/cgi-bin"].allowed_methods.end()) {
+    return response.send_error_response(405, "text/html", error_pages[405]);
+}
+    // std::cout << this->locations["/cgi-bin"].allowed_methods[0] << std::endl;
+  
     std::string interpreter = this->locations["/cgi-bin"].cgi[extension];
     std::string script_path = this->locations["/cgi-bin"].root + path;
     std::string cgi_output = response.request.execute_cgi(interpreter, this->locations["/cgi-bin"].root);
