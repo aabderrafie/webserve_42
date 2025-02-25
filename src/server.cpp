@@ -199,9 +199,9 @@ bool Server::handle_client(int client_socket) {
         path = default_file;
     }
 
+std::cout << "PATH--------------------->" << path << std::endl;
  if(!response.check_error(path))
         return true;
-
     std::string extension;
     if (is_cgi(uri,extension))
         send_cgi(extension, uri, client_socket, response);
