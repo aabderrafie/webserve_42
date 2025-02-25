@@ -1,5 +1,5 @@
 CC = c++
-CFLAGS = -Wall -Wextra -Werror  -fsanitize=address -g3 -std=c++98
+CFLAGS = -Wall -Wextra -Werror -fsanitize=address -g3 -std=c++98
 NAME = webserver
 
 # Colors and effects
@@ -12,7 +12,7 @@ PURPLE = \033[1;35m
 RESET = \033[0m
 BOLD = \033[1m
 
-src = $(wildcard src/*.cpp) $(wildcard config/*.cpp)
+src = $(wildcard src/*.cpp) $(wildcard config/*.cpp) $(wildcard includes/*.cpp) 
 obj = $(patsubst %.cpp,obj/%.o,$(src))
 
 all: $(NAME)

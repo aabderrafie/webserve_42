@@ -1,15 +1,9 @@
 #include "server.hpp"
 #include <ctime>
-#include <fstream> // Add this line
+#include <fstream>
 
 #include <limits.h>
 #include <sys/wait.h>
-
-// std::map<std::string, std::string> interpreters =  {
-//     {".php", "/usr/bin/php-cgi"},
-//     {".py", "/usr/bin/python3"},
-//     {".sh", "/bin/bash"}
-// };
 
 std::string Request::execute_cgi(const std::string& interpreter , std::string root_cgi) 
 {
@@ -120,11 +114,10 @@ env_vars.push_back("REDIRECT_STATUS=200"); // Required for PHP-CGI
         size_t header_end = output.find("\r\n\r\n");
         return (header_end != std::string::npos) ? output.substr(header_end + 4) : output;
     } 
-    else {  // fork() failed
+    else {
         std::cerr << "Fork failed" << std::endl;
         return "500 Internal Server Error\n";
     }
-    // return "500 Internal Server Error\n";
 }
 
 std::string current_time() {
@@ -136,66 +129,9 @@ std::string current_time() {
 
 Server::Server() {
     std::cout << "Server created" << std::endl;
-    // load_sessions_from_file(); // Add this line
 }
 
 Server::~Server() {}
-
-// void Server::save_sessions_to_file() {
-//     std::ofstream file("sessions.txt");
-//     if (file.is_open()) {
-//         // std::cout << "updating sessions file" << std::endl;
-//         for (std::map<int, Session>::value_type& session : sessions) {
-//             for (std::map<std::string, std::string>::value_type& data : session.second.session_data) {
-//                 file << data.first << "=" << data.second << ";";
-//             }
-//         }
-//         file.close();
-//     } else {
-//         std::cerr << "Unable to open sessions file for writing" << std::endl;
-//     }
-// }
-
-// void Server::load_sessions_from_file() {
-//     std::ifstream file("sessions.txt");
-//     if (file.is_open()) {
-//         int session_id;
-//         std::cout << "loading sessions file.." << std::endl;
-//         while (file >> session_id) {
-//             std::cout << "session_id: " << session_id << std::endl;
-//             Session session(session_id);
-//             sessions.insert(std::make_pair(session_id, session));
-//             session_id += 10;
-//         }
-//         file.close();
-//     } else {
-//         std::cerr << "Unable to open sessions file for reading" << std::endl;
-//     }
-// }
-
-// void Server::load_sessions_from_file() {
-//     std::ifstream file("sessions.txt");
-//     if (file.is_open()) {
-//         // std::cout << "loading sessions file.." << std::endl;
-//         std::string line;
-//         while (std::getline(file, line)) {
-//             std::istringstream iss(line);
-//             std::string token;
-//             std::map<std::string, std::string> session_data;
-//             while (std::getline(iss, token, ';')) {
-//                 size_t pos = token.find("=");
-//                 if (pos != std::string::npos) {
-//                     std::string key = token.substr(0, pos);
-//                     std::string value = token.substr(pos + 1);
-//                     session_data.insert(std::make_pair(key, value));
-//                 }
-//             }
-//         }
-//         file.close();
-//     } else {
-//         std::cerr << "Unable to open sessions file for reading" << std::endl;
-//     }
-// }
 
 void Server::server_init() {
     for (size_t i = 0; i < ports.size(); ++i) {
@@ -218,10 +154,6 @@ void Server::server_init() {
         server_addrs.push_back(server_addr);
     }
 }
-
-
-
-
 
 std::vector<std::string> list_files(const std::string& directory) {
     std::vector<std::string> files;

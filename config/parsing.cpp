@@ -116,7 +116,7 @@ static bool isValidPath(const std::string& path) {
         if (c == '.')
 			hasDot = true;
     }
-    if (path.back() == '/' && hasDot)
+    if (path[path.size() - 1] == '/' && hasDot)
 		return false;
     return true;
 }
@@ -184,7 +184,7 @@ static bool validateHost(std::string input) {
 		return false;
 	for (std::vector<std::string>::iterator it = host.begin(); it != host.end(); ++it) {
 		try {
-			if (std::stoi(*it) < 0 || std::stoi(*it) > 255)
+			if (std::atoi(it->c_str()) < 0 || std::atoi(it->c_str()) > 255)
 				return false;
 		} catch (std::exception& e) {
 			return false;
@@ -196,12 +196,12 @@ static bool validateHost(std::string input) {
 static bool validatePort(std::string input) {
 	try {
 		size_t digitCount = 0;
-		int tmp = std::stoi(input);
+		int tmp = std::atoi(input.c_str());
 		while (tmp != 0) {
 			tmp /= 10;
 			digitCount++;
 		}
-		if (std::stoi(input) < 0 || std::stoi(input) > 65535 || digitCount != input.size())
+		if (std::atoi(input.c_str()) < 0 || std::atoi(input.c_str()) > 65535 || digitCount != input.size())
 			return false;
 	} catch (std::exception& e) {
 		return false;
@@ -217,7 +217,7 @@ static bool isValidServerName(const std::string& name) {
         if (i > 0 && ((c == '.' && name[i - 1] == '.') || (c == '-' && name[i - 1] == '-')))
 			return false;
     }
-    if (name.front() == '.' || name.front() == '-' || name.back() == '.' || name.back() == '-')
+    if (name[0] == '.' || name[0] == '-' || name[name.size() - 1] == '.' || name[name.size() - 1] == '-')
 		return false;
     size_t lastDot = name.rfind('.');
     if (lastDot != std::string::npos && name.size() - lastDot - 1 < 2)
@@ -240,7 +240,7 @@ static bool validateErrorPages(std::vector<std::string> ref) {
 	int i = 0;
 	for (std::vector<std::string>::iterator it = ref.begin(); it != ref.end(); ++it) {
 		try {
-			if (i % 2 == 0 && (std::stoi(*it) < 100 || std::stoi(*it) > 599))
+			if (i % 2 == 0 && (std::atoi(it->c_str()) < 100 || std::atoi(it->c_str()) > 599))
 				return false;
 			if (i % 2 == 1 && !isValidPath(*it))
 				return false;
@@ -254,7 +254,7 @@ static bool validateErrorPages(std::vector<std::string> ref) {
 
 static bool validateClientMaxBodySize( std::string ref ,int *digitCount) {
 	std::string size = ref.substr(0, ref.size() - 1);
-	int tmp = std::stoi(size);
+	int tmp = std::atoi(size.c_str());
 	while (tmp != 0) {
 		tmp /= 10;
 		(*digitCount)++;
@@ -263,7 +263,7 @@ static bool validateClientMaxBodySize( std::string ref ,int *digitCount) {
 	if (unit != "M" && unit != "K")
 		return false;
 	try {
-		if (std::stoi(size) < 0){
+		if (std::atoi(size.c_str()) < 0){
 			return false;
 		}
 	} catch (std::exception& e) {
@@ -292,7 +292,7 @@ Server configureServer( block& ref ) {
 						if (!validateHost(listen[0]) || !validatePort(listen[1]))
 							throw std::runtime_error("Error: listen: invalid argument");
 						serv.host = listen[0];
-						serv.ports.push_back(std::stoi(listen[1]));
+						serv.ports.push_back(std::atoi(listen[1].c_str()));
 					} else if (!validateHost(*it2->second.begin())) {
 						serv.host = *it2->second.begin();
 					} else
@@ -301,7 +301,7 @@ Server configureServer( block& ref ) {
 					if (!validateHost(*it2->second.begin()) || !validatePort(it2->second[1]))
 						throw std::runtime_error("Error: listen: invalid argument");
 					serv.host = *it2->second.begin();
-					serv.ports.push_back(std::stoi(it2->second[1]));
+					serv.ports.push_back(std::atoi(it2->second[1].c_str()));
 				}
 			}
 		} else if (it2->first == "host") {
@@ -313,7 +313,7 @@ Server configureServer( block& ref ) {
 			for (std::vector<std::string>::iterator port_it = it2->second.begin(); port_it < it2->second.end(); port_it++) {
 				if (!validatePort(*port_it))
 					throw std::runtime_error("Error: port: invalid argument");
-				serv.ports.push_back(std::stoi(*port_it));
+				serv.ports.push_back(std::atoi(port_it->c_str()));
 			}
 		} else if (it2->first == "error_page") { 
 			std::vector<std::string> error_page = it2->second;
@@ -321,14 +321,14 @@ Server configureServer( block& ref ) {
 				throw std::runtime_error("Error: error_page: invalid argument");
 			size_t i = 0;
 			while (i < error_page.size()) {
-				serv.error_pages[std::stoi(error_page[i])] = error_page[(i+1)];
+				serv.error_pages[std::atoi(error_page[i].c_str())] = error_page[(i+1)];
 				i += 2;
 			}
 		} else if (it2->first == "client_max_body_size") {
 			int digitCount = 0;
 			if (!validateClientMaxBodySize(*it2->second.begin(), &digitCount))
 				throw std::runtime_error("Error: client_max_body_size: invalid argument");
-			serv.client_max_body_size = std::stoi(*it2->second.begin());
+			serv.client_max_body_size = std::atoi(it2->second.begin()->c_str());
 			std::string unit = it2->second[0].substr(digitCount);
 			if (unit == "K")
 				serv.client_max_body_size *= 1024;
