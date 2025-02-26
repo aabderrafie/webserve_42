@@ -272,20 +272,6 @@ if (std::find(this->locations["/cgi-bin"].allowed_methods.begin(),
     send(client_socket, response_.c_str(), response_.length(), 0);
 }
 
-
-// void Response::set_cookies(const std::string& cookies) {
-//     Cookies = cookies;
-//     std::cout << "Cookies: " << Cookies << std::endl;
-// }
-
-// void manageSessions(std::map<int, Session>& sessions, std::vector<std::string>& Cookies) {
-//     int session_id = std::stoi(Cookies[0].substr(11));
-//     if (sessions.find(session_id) == sessions.end()) {
-//         std::cout << "Creating new session" << std::endl;
-//         sessions.insert(std::make_pair(session_id, Session(session_id)));
-//     }
-// }
-
 bool Server::handle_client(int client_socket) {
 
     std::string body = read_request(client_socket);
@@ -298,14 +284,6 @@ bool Server::handle_client(int client_socket) {
     std::string root_uri = locations[uri].root;
     std::string path = root_uri + uri;
 
-    std::string Cookies = response.request.getCookies();
-    if (response.request.isInNeedOfCookies) {
-        sessions.insert(std::make_pair(response.request.session_id, Session(response.request.session_id, Cookies)));
-        // for (std::map<std::string, std::string>::value_type& data : sessions[response.request.session_id].session_data) {
-        //     std::cout << "hereee " << data.first << "=" << data.second << std::endl;
-        // }
-    }
-    // std::cout << "Cookies: " << Cookies << std::endl;
     if(!check_method(method, locations["/"].allowed_methods)) 
         return response.send_error_response(405, "text/html", error_pages[405]) , close(client_socket), true;
 
