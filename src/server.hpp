@@ -1,6 +1,7 @@
 #pragma once
 #include "../includes/include.hpp"
 #include "config.hpp" 
+#include <sstream> 
 
 class Response;  // Forward declaration
 class Request;   // Forward declaration

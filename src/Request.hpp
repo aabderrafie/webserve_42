@@ -1,5 +1,7 @@
 #pragma once
 #include "../includes/include.hpp"
+#include <limits.h>
+#include <sys/wait.h>
 using namespace std;
 class Response;//zouhir add this line
 
