@@ -146,10 +146,10 @@ void configureLocation( block& ref, Location& loc ) {
 			loc.root = *it2->second.begin();
 		} else if (it2->first == "directory_listing") {
 			if (it2->second.size() > 1)
-				throw std::runtime_error("Error: directory_listing: invalid argument");
+				throw std::runtime_error("Error: directory_listing invalid argument");
 			if (*it2->second.begin() == "on") loc.directory_listing = true;
 			else if (*it2->second.begin() == "off") loc.directory_listing = false;
-			else throw std::runtime_error("Error: directory_listing: invalid argument");
+			else throw std::runtime_error("Error: directory_listing  invalid argument");
 		} else if (it2->first == "cgi") {
 			int i = 0;
 			std::string save;
@@ -170,6 +170,12 @@ void configureLocation( block& ref, Location& loc ) {
 				throw std::runtime_error("Error: default_file: invalid argument");
 			loc.default_file.erase(loc.default_file.begin(), loc.default_file.end());
 			loc.default_file = *it2->second.begin();
+		} else if (it2->first == "allow_upload") {
+			if (it2->second.size() > 1)
+				throw std::runtime_error("allow_upload: invalid argument");
+			if (*it2->second.begin() == "true") loc.allow_upload = true;
+			else if (*it2->second.begin() == "false") loc.allow_upload = false;
+			else throw std::runtime_error("allow_upload: invalid argument");
 		}
 	}
 }
@@ -224,13 +230,6 @@ static bool isValidServerName(const std::string& name) {
 		return false;
     return true;
 }
-
-// static bool validateServerNames(const std::vector<std::string>& serverNames) {
-// 	for (std::vector<std::string>::const_iterator it = serverNames.begin(); it != serverNames.end(); ++it) {
-// 		if (!isValidServerName(*it))
-// 			return false;
-// 	} return true;
-// }
 
 static bool validateErrorPages(std::vector<std::string> ref) {
 	if (ref.size() % 2 != 0){
@@ -351,7 +350,7 @@ std::vector<Server> initConfig( std::vector<block> blocks ) {
 	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it) {
 		if (it->locations.find("/") == it->locations.end()) {
 			Location loc;
-			loc.directory_listing = false;
+			loc.allow_upload = false;
 			it->locations["/"] = loc;
 		} 
 		if (it->locations["/"].root.empty()) {
@@ -366,11 +365,11 @@ std::vector<Server> initConfig( std::vector<block> blocks ) {
 		}
 		if (it->locations.find("/upload") == it->locations.end()) {
 			Location loc;
-			loc.directory_listing = false;
+			loc.allow_upload = false;
 			it->locations["/upload"] = loc;
 		}
 		if (it->locations["/upload"].root.empty()) {
-			it->locations["/upload"].root = "./files/html/upload";
+			it->locations["/upload"].root = "./files";
 		} if (it->locations["/upload"].default_file.empty()) {
 			it->locations["/upload"].default_file = "index.html";
 		} if (it->locations["/upload"].allowed_methods.empty()) {
@@ -382,7 +381,7 @@ std::vector<Server> initConfig( std::vector<block> blocks ) {
 		}
 		if (it->locations.find("/cgi-bin") == it->locations.end()) {
 			Location loc;
-			loc.directory_listing = false;
+			loc.allow_upload = false;
 			it->locations["/cgi-bin"] = loc;
 		}
 		if (it->locations["/cgi-bin"].root.empty()) {

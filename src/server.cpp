@@ -127,9 +127,7 @@ std::string current_time() {
     return std::string(buf);
 }
 
-Server::Server() {
-    std::cout << "Server created" << std::endl;
-}
+Server::Server() {}
 
 Server::~Server() {}
 

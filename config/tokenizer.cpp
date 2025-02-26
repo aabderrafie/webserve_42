@@ -13,9 +13,6 @@ void Tokenizer::tokenize(const std::string& configContent) {
             it--;
         }
     }
-    //print lines
-    // for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it) //debug
-    //     std::cout << *it << std::endl;   //debug
     std::vector<std::string> splited_words;
     for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it) {
         std::vector<std::string> tmp;
@@ -52,6 +49,7 @@ void Tokenizer::tokenize(const std::string& configContent) {
                 || *it == "client_max_body_size" 
                 || *it == "error_page"
                 || *it == "allowed_methods"
+                || *it == "allow_upload"
                 || *it == "root_directory" 
                 || *it == "directory_listing" 
                 || *it == "default_file" 
