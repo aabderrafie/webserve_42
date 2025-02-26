@@ -8,6 +8,7 @@
 std::string Request::execute_cgi(const std::string& interpreter , std::string root_cgi) 
 {
     std::cout << "Executing CGI script: " << path << std::endl;
+
     // std::string uploaded_file;
     // if (isMultipart)
     // {
@@ -15,8 +16,8 @@ std::string Request::execute_cgi(const std::string& interpreter , std::string ro
     //     std::cout << "Uploaded file: ok"  << std::endl;
     // }
     // std::cout << "interpreter" <<interpreter << std::endl;
-    std::string path_ = root_cgi + this->path;
-    // std::cout << "path_: " << path_ << std::endl;
+  std::string path_ = root_cgi + this->path;
+        // std::cout << "path_: " << path_ << std::endl;
 
     int pipefd[2];
     if (pipe(pipefd) == -1) {
@@ -31,20 +32,20 @@ std::string Request::execute_cgi(const std::string& interpreter , std::string ro
     }
 
     pid_t pid = fork();
-    if (pid == 0) {  // Child process
-std::stringstream ss;
-ss << post_data.length();
-std::string content_type = ss.str();
-        close(pipefd[0]);  // Close unused read end
- std::vector<std::string> env_vars;
-
-env_vars.push_back("REQUEST_METHOD=" + method);
-env_vars.push_back("QUERY_STRING=" + query_string);
-env_vars.push_back("CONTENT_TYPE=" + content_type);
-env_vars.push_back("CONTENT_LENGTH=" + content_type);
-env_vars.push_back("SCRIPT_FILENAME=" + path_);
-env_vars.push_back("REDIRECT_STATUS=200"); // Required for PHP-CGI
-// env_vars.push_back("UPLOADED_FILE=" + uploaded_file);
+    if (pid == 0)  // Child process
+    { 
+        close(pipefd[0]); 
+        std::vector<std::string> env_vars ;
+        std::ostringstream oss;
+        oss << post_data.length();
+        
+        env_vars.push_back("REQUEST_METHOD=" + method);
+        env_vars.push_back("QUERY_STRING=" + query_string);
+        env_vars.push_back("CONTENT_TYPE=" + content_type);
+        env_vars.push_back("CONTENT_LENGTH=" + oss.str());
+        env_vars.push_back("SCRIPT_FILENAME=" + path_);
+        env_vars.push_back("REDIRECT_STATUS=200");  // Required for PHP-CGI
+    
         std::vector<char*> envp;
         for (size_t i = 0; i < env_vars.size(); ++i)
             envp.push_back(const_cast<char*>(env_vars[i].c_str()));
@@ -55,39 +56,33 @@ env_vars.push_back("REDIRECT_STATUS=200"); // Required for PHP-CGI
             dup2(input_pipe[0], STDIN_FILENO);
             close(input_pipe[0]);  // Close after dup2
         }
-//   std::cout << "body: \n<p>" <<  body <<"<p> <br>"  << std::endl;
         dup2(pipefd[1], STDOUT_FILENO);
         close(pipefd[1]);
-
-        // std::cout << "post_data: <p>" << std::endl;
-        // std::cout<< post_data << "<p> <br>"; 
-        // std::cout << "body: \n<p>" <<  body <<"<p> <br>"  << std::endl;
         std::vector<char*> args;
         args.push_back(const_cast<char*>(interpreter.c_str()));
-        // std::string path_ = root_cgi + this->path;
-        // std::cout << "path_: " << path_ << std::endl;
         args.push_back(const_cast<char*>(path_.c_str()));
         args.push_back(NULL);
-
         execve(interpreter.c_str(), args.data(), envp.data());
         perror("execve failed");
         exit(1);
     } 
-    else if (pid > 0) {  // Parent process
+    else if (pid > 0) // Parent process
+    {  
         close(pipefd[1]);  // Close unused write end
-        // std::cout << "Parent process" << std::endl;
+        std::cout << "Parent process" << std::endl;
         if (method == "POST") 
         {
             close(input_pipe[0]);  // Close read end
-
             size_t remaining = post_data.length();
-            // std::cout << "Remaining: " << remaining << std::endl;
             const char* data_ptr = post_data.c_str();
-            while (remaining > 0) {
+            while (remaining > 0) 
+            {
                 ssize_t result = write(input_pipe[1], data_ptr, remaining);
-                if (result == -1) {
+                if (result == -1) 
+                {
                     if (errno == EINTR) continue;  // Retry if interrupted by a signal
-                    if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                    if (errno == EAGAIN || errno == EWOULDBLOCK) 
+                    {
                         usleep(1000);  // Small delay
                         continue;
                     }
@@ -99,26 +94,26 @@ env_vars.push_back("REDIRECT_STATUS=200"); // Required for PHP-CGI
             }
             close(input_pipe[1]);  // Signal EOF to CGI
         }
-
         char buffer[BUFFER_SIZE];
         std::string output;
         ssize_t bytes_read;
-        while ((bytes_read = read(pipefd[0], buffer, BUFFER_SIZE - 1)) > 0) {
+        while ((bytes_read = read(pipefd[0], buffer, BUFFER_SIZE - 1)) > 0) 
+        {
             buffer[bytes_read] = '\0';
             output += buffer;
         }
         close(pipefd[0]);
-
         waitpid(pid, NULL, 0);
-
         size_t header_end = output.find("\r\n\r\n");
         return (header_end != std::string::npos) ? output.substr(header_end + 4) : output;
     } 
-    else {
-        std::cerr << "Fork failed" << std::endl;
+    else  // fork() failed
+    { 
+        std::cerr << "===>> Fork failed <<===" << std::endl;
         return "500 Internal Server Error\n";
     }
 }
+
 
 std::string current_time() {
     std::time_t now = std::time(NULL);
@@ -254,6 +249,13 @@ bool Server::is_cgi(std::string path,std::string &extension)
 
 void Server::send_cgi(std::string extension, std::string path, int client_socket, Response& response)
 {
+if (std::find(this->locations["/cgi-bin"].allowed_methods.begin(),
+              this->locations["/cgi-bin"].allowed_methods.end(),
+              response.request.getMethod()) == this->locations["/cgi-bin"].allowed_methods.end()) {
+    return response.send_error_response(405, "text/html", error_pages[405]);
+}
+    // std::cout << this->locations["/cgi-bin"].allowed_methods[0] << std::endl;
+  
     std::string interpreter = this->locations["/cgi-bin"].cgi[extension];
     std::string script_path = this->locations["/cgi-bin"].root + path;
     std::string cgi_output = response.request.execute_cgi(interpreter, this->locations["/cgi-bin"].root);
@@ -270,20 +272,6 @@ void Server::send_cgi(std::string extension, std::string path, int client_socket
     send(client_socket, response_.c_str(), response_.length(), 0);
 }
 
-
-// void Response::set_cookies(const std::string& cookies) {
-//     Cookies = cookies;
-//     std::cout << "Cookies: " << Cookies << std::endl;
-// }
-
-// void manageSessions(std::map<int, Session>& sessions, std::vector<std::string>& Cookies) {
-//     int session_id = std::stoi(Cookies[0].substr(11));
-//     if (sessions.find(session_id) == sessions.end()) {
-//         std::cout << "Creating new session" << std::endl;
-//         sessions.insert(std::make_pair(session_id, Session(session_id)));
-//     }
-// }
-
 bool Server::handle_client(int client_socket) {
 
     std::string body = read_request(client_socket);
@@ -296,14 +284,6 @@ bool Server::handle_client(int client_socket) {
     std::string root_uri = locations[uri].root;
     std::string path = root_uri + uri;
 
-    std::string Cookies = response.request.getCookies();
-    if (response.request.isInNeedOfCookies) {
-        sessions.insert(std::make_pair(response.request.session_id, Session(response.request.session_id, Cookies)));
-        // for (std::map<std::string, std::string>::value_type& data : sessions[response.request.session_id].session_data) {
-        //     std::cout << "hereee " << data.first << "=" << data.second << std::endl;
-        // }
-    }
-    // std::cout << "Cookies: " << Cookies << std::endl;
     if(!check_method(method, locations["/"].allowed_methods)) 
         return response.send_error_response(405, "text/html", error_pages[405]) , close(client_socket), true;
 

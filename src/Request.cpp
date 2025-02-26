@@ -1,19 +1,19 @@
 #include "Request.hpp"
 
-int extractSessionID(const std::string& ref) {
-    std::string session_id;
-    size_t pos = ref.find("session_id=");
-    if (pos != std::string::npos) {
-        pos += 11;
-        session_id = ref.substr(pos);
-        size_t semicolon_pos = session_id.find(";");
-        if (semicolon_pos != std::string::npos) {
-            session_id.erase(semicolon_pos);
-        }
-    }
-    // return std::stoi(session_id);
-    return std::atoi(session_id.c_str());
-}
+// int extractSessionID(const std::string& ref) {
+//     std::string session_id;
+//     size_t pos = ref.find("session_id=");
+//     if (pos != std::string::npos) {
+//         pos += 11;
+//         session_id = ref.substr(pos);
+//         size_t semicolon_pos = session_id.find(";");
+//         if (semicolon_pos != std::string::npos) {
+//             session_id.erase(semicolon_pos);
+//         }
+//     }
+//     // return std::stoi(session_id);
+//     return std::atoi(session_id.c_str());
+// }
 
 // bool validateSessionID( int _ID ) {
 //     std::ifstream file("sessions.txt");
@@ -110,28 +110,7 @@ Request::Request(const string &body)
             }
         }
     }
-    
-    if (body.find("Cookie: ") != std::string::npos) {
-        // std::cout << "Cookies found: ";
-        size_t cookie_pos = body.find("Cookie: ") + 8;
-        size_t cookie_end = body.find("\r\n", cookie_pos);
-        cookies = body.substr(cookie_pos, cookie_end - cookie_pos);
-        // std::cout << cookies << std::endl;
-        // isInNeedOfCookies = false;
-        // int _id = extractSessionID(cookies);
-        //check for session id after reading file
-        // if (!validateSessionID(_id))
-        //     throw std::runtime_error("Invalid session");
-    }
-    //  else {
-        // std::cout << "No cookies found, creating new session ID" << std::endl;
-        // cookies = "session_id=" + std::to_string(Gid);
-        // std::cout << "assigning cookies to: " << cookies << std::endl;
-        // this->session_id = Gid;
-        // Gid += 10;
-        // isInNeedOfCookies = true;
-    // }
-    
+
     if (method == "POST") {
         size_t header_end = body.find("\r\n\r\n");
         if (header_end != std::string::npos) {
