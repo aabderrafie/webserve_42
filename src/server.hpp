@@ -10,7 +10,6 @@ class Request;   // Forward declaration
 
 class Server {
     public:
-        // std::map<int, std::string> partial_requests;
         bool is_cgi(std::string path, std::string &extension);// zouhir add this
         void send_cgi(std::string extension, std::string path, int client_socket, Response& response);//zouhir add this
         std::vector<int> server_sockets;
@@ -34,6 +33,13 @@ class Server {
         std::string read_request(int client_socket);
         size_t get_content_length(const std::string& request);
         bool check_method(const std::string& method, const std::vector<std::string>& allowed_methods);
+<<<<<<< HEAD
+=======
+        void server_error(const std::string& message, int client_socket);
+        
+        // void save_sessions_to_file(); // Add this line
+        // void load_sessions_from_file(); // Add this line
+>>>>>>> 8f270e4 (waiting for taha ...)
 };
 
 std::string current_time();

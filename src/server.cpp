@@ -3,7 +3,107 @@
 #include <fstream>
 
 
+<<<<<<< HEAD
 
+=======
+std::string Request::execute_cgi(const std::string& interpreter , std::string root_cgi) 
+{
+  std::string path_ = root_cgi + this->path;
+    int pipefd[2];
+    if (pipe(pipefd) == -1) {
+        perror("pipe failed");
+        return "500 Internal Server Error\n";
+    }
+
+    int input_pipe[2];  // Pipe for CGI input
+    if (method == "POST" && pipe(input_pipe) == -1) {
+        perror("pipe failed");
+        return "500 Internal Server Error\n";
+    }
+
+    pid_t pid = fork();
+    if (pid == 0)  // Child process
+    { 
+        close(pipefd[0]); 
+        std::vector<std::string> env_vars ;
+        std::ostringstream oss;
+        oss << post_data.length();
+        
+        env_vars.push_back("REQUEST_METHOD=" + method);
+        env_vars.push_back("QUERY_STRING=" + query_string);
+        env_vars.push_back("CONTENT_TYPE=" + content_type);
+        env_vars.push_back("CONTENT_LENGTH=" + oss.str());
+        env_vars.push_back("SCRIPT_FILENAME=" + path_);
+        env_vars.push_back("REDIRECT_STATUS=200");  // Required for PHP-CGI
+    
+        std::vector<char*> envp;
+        for (size_t i = 0; i < env_vars.size(); ++i)
+            envp.push_back(const_cast<char*>(env_vars[i].c_str()));
+        envp.push_back(NULL);
+
+        if (method == "POST") {
+            close(input_pipe[1]);  // Close write end in child
+            dup2(input_pipe[0], STDIN_FILENO);
+            close(input_pipe[0]);  // Close after dup2
+        }
+        dup2(pipefd[1], STDOUT_FILENO);
+        close(pipefd[1]);
+        std::vector<char*> args;
+        args.push_back(const_cast<char*>(interpreter.c_str()));
+        args.push_back(const_cast<char*>(path_.c_str()));
+        args.push_back(NULL);
+        execve(interpreter.c_str(), args.data(), envp.data());
+        perror("execve failed");
+        exit(1);
+    } 
+    else if (pid > 0) // Parent process
+    {  
+        close(pipefd[1]);  // Close unused write end
+        std::cout << "Parent process" << std::endl;
+        if (method == "POST") 
+        {
+            close(input_pipe[0]);  // Close read end
+            size_t remaining = post_data.length();
+            const char* data_ptr = post_data.c_str();
+            while (remaining > 0) 
+            {
+                ssize_t result = write(input_pipe[1], data_ptr, remaining);
+                if (result == -1) 
+                {
+                    if (errno == EINTR) continue;  // Retry if interrupted by a signal
+                    if (errno == EAGAIN || errno == EWOULDBLOCK) 
+                    {
+                        usleep(1000);  // Small delay
+                        continue;
+                    }
+                    perror("write failed");
+                    break;
+                }
+                remaining -= result;
+                data_ptr += result;
+            }
+            close(input_pipe[1]);  // Signal EOF to CGI
+        }
+        char buffer[BUFFER_SIZE];
+        std::string output;
+        ssize_t bytes_read;
+        while ((bytes_read = read(pipefd[0], buffer, BUFFER_SIZE - 1)) > 0) 
+        {
+            buffer[bytes_read] = '\0';
+            output += buffer;
+        }
+        close(pipefd[0]);
+        waitpid(pid, NULL, 0);
+        size_t header_end = output.find("\r\n\r\n");
+        return (header_end != std::string::npos) ? output.substr(header_end + 4) : output;
+    } 
+    else  // fork() failed
+    { 
+        std::cerr << "===>> Fork failed <<===" << std::endl;
+        return "500 Internal Server Error\n";
+    }
+}
+>>>>>>> 8f270e4 (waiting for taha ...)
 
 
 std::string current_time() {
@@ -13,7 +113,20 @@ std::string current_time() {
     return std::string(buf);
 }
 
+<<<<<<< HEAD
 Server::Server() {}
+=======
+void Server::server_error(const std::string& message, int client_socket) {
+   Response response(client_socket, *this);
+    response.send_error_response(500, "text/html", error_pages[500]);
+    throw std::runtime_error(message);  
+    close(client_socket);
+}
+
+Server::Server() {
+    std::cout << "Server created" << std::endl;
+}
+>>>>>>> 8f270e4 (waiting for taha ...)
 
 Server::~Server() {}
 
@@ -69,7 +182,7 @@ void Server::new_connection(int server_socket) {
     socklen_t sin_size = sizeof(client_addr);
     int client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &sin_size);
     if (client_socket < 0)
-        throw std::runtime_error("Error accepting connection");
+        server_error("Error accepting connection", server_socket);
     struct pollfd client_poll_fd;
     client_poll_fd.fd = client_socket;
     client_poll_fd.events = POLLIN;
@@ -86,7 +199,7 @@ std::string Server::read_request(int client_socket) {
     std::memset(buffer, 0, BUFFER_SIZE); 
     int bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, MSG_DONTWAIT);
     if (bytes_received < 0)
-        throw std::runtime_error("Error receiving data from client");
+        server_error("Error receiving data", client_socket);
 
     if (bytes_received == 0) {
         std::string final_request = partial_requests[client_socket];
@@ -135,7 +248,12 @@ bool Server::is_cgi(std::string path,std::string &extension)
     }
     return false;
 }
+<<<<<<< HEAD
 //zouhir add this
+=======
+
+
+>>>>>>> 8f270e4 (waiting for taha ...)
 void Server::send_cgi(std::string extension, std::string path, int client_socket, Response& response)
 {
 if (std::find(this->locations["/cgi-bin"].allowed_methods.begin(),
@@ -199,9 +317,9 @@ bool Server::handle_client(int client_socket) {
         path = default_file;
     }
 
-std::cout << "PATH--------------------->" << path << std::endl;
  if(!response.check_error(path))
         return true;
+
     std::string extension;
     if (is_cgi(uri,extension))
         send_cgi(extension, uri, client_socket, response);
@@ -234,9 +352,7 @@ void Server::start_server() {
                 else 
                     {
                         if(handle_client(poll_fds[i].fd))
-                            {poll_fds.erase(poll_fds.begin() + i);
-                            i--;
-                            }
+                            poll_fds.erase(poll_fds.begin() + i) , i--;
                     }
             }
         }
