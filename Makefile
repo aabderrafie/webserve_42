@@ -1,9 +1,5 @@
 CC = c++
-<<<<<<< HEAD
 CFLAGS = -Wall -Wextra -Werror -fsanitize=address -g3 -std=c++98
-=======
-CFLAGS = -Wall -Wextra -Werror  -fsanitize=address -g3 #-std=c++98
->>>>>>> 697ec79 (ppp...)
 NAME = webserver
 
 # Colors and effects
