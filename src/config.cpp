@@ -18,6 +18,8 @@ void Config::printConfig(){
             for (std::vector<std::string>::iterator it2 = it->second.allowed_methods.begin(); it2 != it->second.allowed_methods.end(); ++it2)
                 std::cout << *it2 << "\t";
             std::cout << std::endl;
+            std::cout << "Directory listing: " << it->second.directory_listing << std::endl;
+            std::cout << "Allow upload: " << it->second.allow_upload << std::endl;
             std::cout << "CGI-Extensions: \n";
             for (std::map<std::string, std::string>::iterator it2 = it->second.cgi.begin(); it2 != it->second.cgi.end(); ++it2)
                 std::cout << it2->first << " -> " << it2->second << "\n";

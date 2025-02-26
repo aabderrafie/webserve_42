@@ -385,7 +385,7 @@ std::vector<Server> initConfig( std::vector<block> blocks ) {
 			it->locations["/cgi-bin"] = loc;
 		}
 		if (it->locations["/cgi-bin"].root.empty()) {
-			it->locations["/cgi-bin"].root = "./files/html/cgi-bin";
+			it->locations["/cgi-bin"].root = "./files";
 		} if (it->locations["/cgi-bin"].default_file.empty()) {
 			it->locations["/cgi-bin"].default_file = "index.html";
 		} if (it->locations["/cgi-bin"].allowed_methods.empty()) {
