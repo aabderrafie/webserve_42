@@ -4,14 +4,6 @@
 
 
 
-
-std::string current_time() {
-    std::time_t now = std::time(NULL);
-    char buf[100];
-    std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
-    return std::string(buf);
-}
-
 void Server::server_error(const std::string& message, int client_socket) {
    Response response(client_socket, *this);
     response.send_error_response(500, "text/html", error_pages[500]);
@@ -19,9 +11,8 @@ void Server::server_error(const std::string& message, int client_socket) {
     close(client_socket);
 }
 
-Server::Server() {
-    std::cout << "Server created" << std::endl;
-}
+
+Server::Server() {}
 
 Server::~Server() {}
 
@@ -82,8 +73,7 @@ void Server::new_connection(int server_socket) {
     client_poll_fd.fd = client_socket;
     client_poll_fd.events = POLLIN;
     poll_fds.push_back(client_poll_fd);
-
-    std::cout << BLUE << "[" << current_time() << "] New client connected on socket " << client_socket << RESET << std::endl;
+    Message("New client connected on socket "+ tostring(client_socket), EMERALD);
 }
 
 
@@ -111,11 +101,8 @@ std::string Server::read_request(int client_socket) {
 
     std::string headers = partial_requests[client_socket].substr(0, header_end + 4);
     size_t content_length_pos = headers.find("Content-Length: ");
-    std::cout << "headers: " << headers << std::endl;
-    std::cout << "content_length_pos: " << content_length_pos << std::endl;
     if (content_length_pos != std::string::npos) {
         size_t content_length_end = headers.find("\r\n", content_length_pos);
-        std::cout << "content_length_end: " << content_length_end << std::endl;
         int content_length = std::atoi(headers.substr(content_length_pos + 16, content_length_end - content_length_pos - 16).c_str());
         size_t total_length = header_end + 4 + content_length;
         if (partial_requests[client_socket].size() < total_length)
@@ -124,6 +111,7 @@ std::string Server::read_request(int client_socket) {
     
     std::string full_request = partial_requests[client_socket];
     partial_requests.erase(client_socket);
+    Message("Received Full Request From Client" + tostring(client_socket), EMERALD);
     return full_request;
 }
 
@@ -131,7 +119,7 @@ bool Server::check_method(const std::string& method, const std::vector<std::stri
     return std::find(allowed_methods.begin(), allowed_methods.end(), method) != allowed_methods.end();
 }
 
-//zouhir add this
+
 bool Server::is_cgi(std::string path,std::string &extension)
 {
     size_t dot_pos = path.find_last_of('.');
@@ -143,7 +131,6 @@ bool Server::is_cgi(std::string path,std::string &extension)
     }
     return false;
 }
-
 
 void Server::send_cgi(std::string extension, std::string path, int client_socket, Response& response)
 {
@@ -168,6 +155,7 @@ if (std::find(this->locations["/cgi-bin"].allowed_methods.begin(),
     send(client_socket, response_.c_str(), response_.length(), 0);
 }
 
+
 bool Server::handle_client(int client_socket) {
 
     std::string body = read_request(client_socket);
@@ -180,16 +168,17 @@ bool Server::handle_client(int client_socket) {
     std::string root_uri = locations[uri].root;
     std::string path = root_uri + uri;
 
-    if(!check_method(method, locations["/"].allowed_methods)) 
-        return response.send_error_response(405, "text/html", error_pages[405]) , close(client_socket), true;
+    if(!check_method(method, locations["/"].allowed_methods))
+        return Message("Invalid method: " + method, RED), response.send_error_response(405, "text/html", error_pages[405]),close(client_socket), true;
 
-    std::cout << YELLOW << "[" << current_time() << "] Request method: " << method << ", Path: " << path << RESET << std::endl;
+    Message("Request for " + uri + " using method " + method, CYAN);
 
     if (isDirectory(path)) {
         if (!check_method(method, locations[uri].allowed_methods)) 
             return response.send_error_response(405, "text/html", error_pages[405]), true;
         if (locations[uri].directory_listing)
-            return response.list_directory_contents(path), true;
+            return Message("Listing directory contents for " + uri, CORAL), response.list_directory_contents(path), true;
+
         else {
             if (!path.empty() && path[path.length() - 1] != '/')
                 path += '/';

@@ -30,5 +30,4 @@ Config::Config(){
     parser p;
     p.parse("./config/full.conf");
     servers = initConfig(p.getConfig());
-    printConfig();
 }

@@ -1,52 +1,10 @@
 #include "Request.hpp"
 
-// int extractSessionID(const std::string& ref) {
-//     std::string session_id;
-//     size_t pos = ref.find("session_id=");
-//     if (pos != std::string::npos) {
-//         pos += 11;
-//         session_id = ref.substr(pos);
-//         size_t semicolon_pos = session_id.find(";");
-//         if (semicolon_pos != std::string::npos) {
-//             session_id.erase(semicolon_pos);
-//         }
-//     }
-//     // return std::stoi(session_id);
-//     return std::atoi(session_id.c_str());
-// }
-
-// bool validateSessionID( int _ID ) {
-//     std::ifstream file("sessions.txt");
-//     if (file.is_open()) {
-//         std::string line;
-//         std::cout << "loading sessions file.." << std::endl;
-//         while (std::getline(file, line)) {
-//             size_t start_pos = line.find("session_id=") + std::string("session_id=").length();
-//             size_t end_pos = line.find(';');
-            
-//             if (start_pos != std::string::npos && end_pos != std::string::npos) {
-//                 std::string session_id_str = line.substr(start_pos, end_pos - start_pos);
-//                 int session_id = std::stoi(session_id_str);
-//                 if (_ID == session_id)
-//                     return true;
-//             } else {
-//                 std::cerr << "Invalid session ID format in file: " << line << std::endl;
-//             }
-//         }
-//         file.close();
-//     } else {
-//         std::cerr << "Unable to open sessions file for reading" << std::endl;
-//     }
-//     return false;
-// }
 
 Request::Request(const string &body)
 {
     isMultipart = false;
     isUrlEncoded = false;
-    // std::cout << "------------------------------" << std::endl;
-    // std::cout << "Request body: " << body << std::endl;
-    // std::cout << "------------------------------" << std::endl;
     if(body.find("Content-Type: application/x-www-form-urlencoded") != std::string::npos)
         isUrlEncoded = true;
 
@@ -78,7 +36,6 @@ Request::Request(const string &body)
             parseUrlEncodedData(line);
     }
 
-    //////////////
 
     size_t method_end = body.find(' ');
     method = body.substr(0, method_end);
@@ -166,7 +123,7 @@ int Request::getContentLength() {
 
 std::string Request::execute_cgi(const std::string& interpreter , std::string root_cgi) 
 {
-    std::cout << "Executing CGI script: " << path << std::endl;
+        Message("Executing CGI script: " + interpreter, MAGENTA);
 
   std::string path_ = root_cgi + this->path;
     int pipefd[2];
@@ -217,7 +174,6 @@ std::string Request::execute_cgi(const std::string& interpreter , std::string ro
     else if (pid > 0) 
     {  
         close(pipefd[1]);  
-        std::cout << "Parent process" << std::endl;
         if (method == "POST") 
         {
             close(input_pipe[0]); 
@@ -257,7 +213,7 @@ std::string Request::execute_cgi(const std::string& interpreter , std::string ro
     } 
     else 
     { 
-        std::cerr << "===>> Fork failed <<===" << std::endl;
+        Message("fork failed", RED);
         return "500 Internal Server Error\n";
     }
 }

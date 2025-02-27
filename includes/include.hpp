@@ -51,3 +51,5 @@
 
   bool isDirectory(const std::string& path);
  std::string tostring(int value);
+ std::string current_time();
+ void Message(const std::string &message, std::string color) ;
