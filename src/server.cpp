@@ -152,13 +152,11 @@ if (std::find(this->locations["/cgi-bin"].allowed_methods.begin(),
               response.request.getMethod()) == this->locations["/cgi-bin"].allowed_methods.end()) {
     return response.send_error_response(405, "text/html", error_pages[405]);
 }
-    // std::cout << this->locations["/cgi-bin"].allowed_methods[0] << std::endl;
-  
+
     std::string interpreter = this->locations["/cgi-bin"].cgi[extension];
     std::string script_path = this->locations["/cgi-bin"].root + path;
     std::string cgi_output = response.request.execute_cgi(interpreter, this->locations["/cgi-bin"].root);
 
-    // Convert size_t to string using std::ostringstream (C++98 compatible)
     std::ostringstream oss;
     oss << cgi_output.length();
     std::string content_length = oss.str();
