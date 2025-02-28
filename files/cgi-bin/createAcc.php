@@ -6,12 +6,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $userEmail = $_COOKIE['email'] ?? ''; 
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
-    // Debugging statements
-    // error_log("Email: " . $email);
-    // error_log("Password: " . $password);
-    // error_log("Session ID: " . $userSessionId);    
     if (!empty($email) && !empty($password)) {
-        // $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
         $_SESSION['user_email'] = $userEmail;
         $_SESSION['user_session_id'] = $userSessionId;
         $data = "SessionID: $userSessionId, Email: $email, Password: $password\n";

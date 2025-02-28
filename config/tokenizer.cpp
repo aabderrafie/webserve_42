@@ -59,9 +59,9 @@ void Tokenizer::tokenize(const std::string& configContent) {
             token.type = "directive";
         } else
             token.type = "value";
-        if (delayed == "symbol" && token.type == "value") throw std::runtime_error("Error: unexpected value");
-        if (delayed == "value" && token.type == "directive") throw std::runtime_error("Error: missign semicolon");
-        if (delayed == "directive" && token.value == ";") throw std::runtime_error("Error: missign value");
+        if (delayed == "symbol" && token.type == "value") throw std::runtime_error("unexpected value");
+        if (delayed == "value" && token.type == "directive") throw std::runtime_error("missign semicolon");
+        if (delayed == "directive" && token.value == ";") throw std::runtime_error("missign value");
         tokens.push_back(token);
         delayed = token.type;
     }

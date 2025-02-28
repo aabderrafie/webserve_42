@@ -3,9 +3,14 @@
 #include "Response.hpp"
 #include "../includes/include.hpp"
 
-int main() {
+int main(int ac, char **av) {
     try {
-        Config config;
+        if (ac != 2)
+            throw std::runtime_error("Usage: ./webserv <config_file.conf>");
+        std::string filename(av[1]);
+        if (filename.size() < 5 || filename.substr(filename.size() - 5) != ".conf")
+            throw std::runtime_error("Invalid extension");
+        Config config(av[1]);
         std::cout << BLUE << "⚡ Loading configuration..." << RESET << std::endl;
         MultiServer server(config);
         std::cout << GREEN << "✓ Configuration loaded successfully!" << RESET << std::endl;

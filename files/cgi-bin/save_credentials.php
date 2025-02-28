@@ -3,22 +3,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     session_start();
     $userSessionId = session_id();
     setcookie('sessionID', $userSessionId, 0, '/', '', false, true);
-    $userEmail = $_COOKIE['email'] ?? ''; 
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
     if (!empty($email) && !empty($password)) {
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        $_SESSION['user_email'] = $userEmail;
         $_SESSION['user_session_id'] = $userSessionId;
         $data = "SessionID: $userSessionId, Email: $email, Password: $hashedPassword\n";
-        file_put_contents('/home/taha/Documents/Webserv/files/credentials.txt', $data, FILE_APPEND | LOCK_EX);
+        file_put_contents('../../credentials.txt', $data, FILE_APPEND | LOCK_EX);
         $message = "Credentials and cookies saved successfully!";
     } else {
         $message = "Please fill all the fields.";
     }
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
