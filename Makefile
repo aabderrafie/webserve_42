@@ -12,7 +12,7 @@ PURPLE = \033[1;35m
 RESET = \033[0m
 BOLD = \033[1m
 
-src = $(wildcard src/*.cpp) $(wildcard config/*.cpp) $(wildcard includes/*.cpp) 
+src = $(wildcard src/*.cpp) $(wildcard config/*.cpp)
 obj = $(patsubst %.cpp,obj/%.o,$(src))
 
 all: $(NAME)
