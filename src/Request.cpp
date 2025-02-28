@@ -120,99 +120,116 @@ int Request::getContentLength() {
 }
 
 
-
-std::string Request::execute_cgi(const std::string& interpreter , std::string root_cgi) 
+std::string Request::execute_cgi(const std::string& interpreter, std::string root_cgi) 
 {
-        Message("Executing CGI script: " + interpreter, MAGENTA);
 
-  std::string path_ = root_cgi + this->path;
-    int pipefd[2];
-    if (pipe(pipefd) == -1) {
-        perror("pipe failed");
+    Message("Executing CGI script: " + interpreter, MAGENTA);
+
+    std::string path_ = root_cgi + this->path;
+
+    std::ostringstream input_filename_oss;
+    std::ostringstream output_filename_oss;
+    input_filename_oss << "/tmp/cgi_input_" << time(NULL) << "_";
+    output_filename_oss << "/tmp/cgi_output_" << time(NULL) << "_";
+
+    std::string input_filename = input_filename_oss.str();
+    std::string output_filename = output_filename_oss.str();
+
+    int input_fd = open(input_filename.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0644);
+    if (input_fd == -1) 
+    {
+        perror("Failed to create input file");
         return "500 Internal Server Error\n";
     }
-    int input_pipe[2];  
-    if (method == "POST" && pipe(input_pipe) == -1) {
-        perror("pipe failed");
+
+    int output_fd = open(output_filename.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0644);
+    if (output_fd == -1) 
+    {
+        perror("Failed to create output file");
+        close(input_fd);
         return "500 Internal Server Error\n";
+    }
+
+    if (method == "POST") 
+    {
+        ssize_t bytes_written = write(input_fd, post_data.c_str(), post_data.length());
+        if (bytes_written == -1) 
+        {
+            perror("Failed to write POST data to input file");
+            close(input_fd);
+            close(output_fd);
+            return "500 Internal Server Error\n";
+        }
     }
     pid_t pid = fork();
-    if (pid == 0)  
+    if (pid == 0) 
     { 
-        close(pipefd[0]); 
-        std::vector<std::string> env_vars ;
+        if (method == "POST")
+        {
+            close(input_fd);
+            input_fd = open(input_filename.c_str(), O_RDONLY);
+            if (input_fd == -1) {
+                perror("Failed to reopen input file");
+                // exit(1);
+                return "500 Internal Server Error\n";
+            }
+            dup2(input_fd, STDIN_FILENO);
+        }
+        dup2(output_fd, STDOUT_FILENO);
+        close(input_fd);
+        close(output_fd);
+
+        std::vector<std::string> env_vars;
         std::ostringstream oss;
-        oss << post_data.length();
-        
+        oss << post_data.length(); 
+
         env_vars.push_back("REQUEST_METHOD=" + method);
         env_vars.push_back("QUERY_STRING=" + query_string);
         env_vars.push_back("CONTENT_TYPE=" + content_type);
         env_vars.push_back("CONTENT_LENGTH=" + oss.str());
         env_vars.push_back("SCRIPT_FILENAME=" + path_);
-        env_vars.push_back("REDIRECT_STATUS=200");  
-    
+        env_vars.push_back("REDIRECT_STATUS=200");
+
         std::vector<char*> envp;
         for (size_t i = 0; i < env_vars.size(); ++i)
             envp.push_back(const_cast<char*>(env_vars[i].c_str()));
         envp.push_back(NULL);
-
-        if (method == "POST") {
-            close(input_pipe[1]);  
-            dup2(input_pipe[0], STDIN_FILENO);
-            close(input_pipe[0]);  
-        }
-        dup2(pipefd[1], STDOUT_FILENO);
-        close(pipefd[1]);
         std::vector<char*> args;
         args.push_back(const_cast<char*>(interpreter.c_str()));
         args.push_back(const_cast<char*>(path_.c_str()));
         args.push_back(NULL);
         execve(interpreter.c_str(), args.data(), envp.data());
         perror("execve failed");
-        exit(1);
-    } 
+        //exit(1);
+        return "500 Internal Server Error\n";
+    }
     else if (pid > 0) 
-    {  
-        close(pipefd[1]);  
-        if (method == "POST") 
-        {
-            close(input_pipe[0]); 
-            size_t remaining = post_data.length();
-            const char* data_ptr = post_data.c_str();
-            while (remaining > 0) 
-            {
-                ssize_t result = write(input_pipe[1], data_ptr, remaining);
-                if (result == -1) 
-                {
-                    if (errno == EINTR) continue;  
-                    if (errno == EAGAIN || errno == EWOULDBLOCK) 
-                    {
-                        usleep(1000); 
-                        continue;
-                    }
-                    perror("write failed");
-                    break;
-                }
-                remaining -= result;
-                data_ptr += result;
-            }
-            close(input_pipe[1]);  
-        }
-        char buffer[BUFFER_SIZE];
+    {
+        close(input_fd);
+        close(output_fd);
+        waitpid(pid, NULL, 0);
         std::string output;
+        char buffer[BUFFER_SIZE];
         ssize_t bytes_read;
-        while ((bytes_read = read(pipefd[0], buffer, BUFFER_SIZE - 1)) > 0) 
+        int output_read_fd = open(output_filename.c_str(), O_RDONLY);
+        if (output_read_fd == -1) 
+        {
+            perror("Failed to open output file for reading");
+            return "500 Internal Server Error\n";
+        }
+        while ((bytes_read = read(output_read_fd, buffer, BUFFER_SIZE - 1)) > 0) 
         {
             buffer[bytes_read] = '\0';
             output += buffer;
         }
-        close(pipefd[0]);
-        waitpid(pid, NULL, 0);
+        close(output_read_fd);
+        // unlink(input_filename.c_str());
+        // unlink(output_filename.c_str());
         size_t header_end = output.find("\r\n\r\n");
         return (header_end != std::string::npos) ? output.substr(header_end + 4) : output;
-    } 
-    else 
-    { 
+    }
+    else
+    {  
         Message("fork failed", RED);
         return "500 Internal Server Error\n";
     }
