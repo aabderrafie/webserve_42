@@ -2,7 +2,6 @@ CC = c++
 CFLAGS = -Wall -Wextra -Werror -fsanitize=address -g3 -std=c++98
 NAME = webserver
 
-# Colors and effects
 GREEN = \033[1;32m
 YELLOW = \033[1;33m
 BLUE = \033[1;34m

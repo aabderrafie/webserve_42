@@ -25,12 +25,6 @@ bool Response::is_valid_url(const std::string& url) {
     return true;
 }
 
-
-
-
-#include <fstream>
-#include <sstream>
-
 void Response::list_directory_contents(const std::string& dir_path) {
     DIR* dir;
     struct dirent* ent;
@@ -242,7 +236,7 @@ void Response::handle_delete_request() {
 
     if (!file_exists(uploads)) 
         return send_error_response(404, "text/html", delete_error), Message("File not found", RED), void();
-    if (remove(uploads.c_str()) != 0)
+    if (std::remove(uploads.c_str()) != 0)
         return send_error_response(500, "text/html", delete_error), Message("Error deleting file", RED), void();
   
     set_status(200);
