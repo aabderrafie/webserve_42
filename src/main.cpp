@@ -8,7 +8,6 @@ int main() {
         Config config;
         std::cout << BLUE << "⚡ Loading configuration..." << RESET << std::endl;
         MultiServer server(config);
-        config.printConfig();
         std::cout << GREEN << "✓ Configuration loaded successfully!" << RESET << std::endl;
         std::cout << YELLOW << "🚀 Starting server..." << RESET << std::endl;
         server.start_servers();

@@ -1,5 +1,7 @@
 #pragma once
 #include "../includes/include.hpp"
+#include <limits.h>
+#include <sys/wait.h>
 using namespace std;
 class Response;//zouhir add this line
 
@@ -23,7 +25,7 @@ class Request {
 
     public:
         std::string execute_cgi(const std::string& interpreter , std::string root_cgi);//zouhir add this function
-    std::string  deleeted;
+        std::string  deleeted;
         Request(){};
         Request(const string &body);
         void parseRequestLine(const string& line);

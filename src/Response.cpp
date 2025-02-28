@@ -74,7 +74,6 @@ void Response::list_directory_contents(const std::string& dir_path) {
     set_content_type("text/html");
     set_body(html_template);
     send_response();
-    std::cout << "Directory listing sent" << std::endl;
 }
 
 std::string Response::read_html_file(const std::string& file_path) {
@@ -94,9 +93,24 @@ void Response::send_error_response(int status, const std::string& content_type, 
     send_response();
 }
 
+std::string Response::get_status_message(int status) {
+    switch (status) {
+        case 200: return "OK";
+        case 201: return "Created";
+        case 400: return "Bad Request";
+        case 403: return "Forbidden";
+        case 404: return "Not Found";
+        case 405: return "Method Not Allowed";
+        case 413: return "Payload Too Large";
+        case 414: return "URI Too Long";
+        case 500: return "Internal Server Error";
+        default: return "Unknown";
+    }
+}
+
 void Response::send_response() {
     std::ostringstream response;
-    response << "HTTP/1.1 " << status << "\r\n";
+   response << "HTTP/1.1 " << status << " " << get_status_message(status) << "\r\n";
     response << "Content-Type: " << content_type << "\r\n";
     response << "Content-Length: " << body.size() << "\r\n";
     response << "Connection: close\r\n";
@@ -110,22 +124,22 @@ void Response::send_response() {
 bool Response::check_error(const std::string& path) {
     std::string uri = request.getPath();
     if (request.getContentLength() > server.client_max_body_size )
-        return send_error_response(413, "text/html", server.error_pages[413]) , false;
+        return send_error_response(413, "text/html", server.error_pages[413]) , Message("Payload too large", RED), false;
 
     if (!is_valid_url(uri))
-       return  send_error_response(400, "text/html", server.error_pages[400]) , false;
+       return  send_error_response(400, "text/html", server.error_pages[400]) , Message("Invalid URL", RED), false;
 
 
     if (uri.find("..") != std::string::npos)
-        return send_error_response(403, "text/html", server.error_pages[403]) , false;
+        return send_error_response(403, "text/html", server.error_pages[403]) ,  Message("Forbidden", RED), false;
 
 
     if (uri.length() > 2048)
-        return send_error_response(414, "text/html", server.error_pages[414]) , false;
+        return send_error_response(414, "text/html", server.error_pages[414]) , Message("URI too long", RED), false;
 
     std::ifstream file(path.c_str(), std::ios::binary);
     if (!file.is_open() ) 
-       return send_error_response(404, "text/html", server.error_pages[404]) , false;
+       return send_error_response(404, "text/html", server.error_pages[404]) , Message("File not found", RED), false;
 
     else    
         return true;
@@ -161,7 +175,7 @@ std::map<std::string, std::string> parse_post_data(const std::string& body) {
 
 void Response::upload_file(std::string& uploaded_file_path) 
 {
-    std::string post_data = request.getPostData();//body>>
+    std::string post_data = request.getPostData();
     std::string boundary = request.getBoundary();
 
     size_t pos = 0;
@@ -186,11 +200,10 @@ void Response::upload_file(std::string& uploaded_file_path)
             std::ofstream out_file(uploaded_file_path.c_str(), std::ios::binary);
             if (out_file) {
                 out_file.write(file_content.c_str(), file_content.size());
+                Message("File uploaded successfully", GREEN);
                 out_file.close();
-                std::cout << "Saved file: " << uploaded_file_path << std::endl;
-            } else {
-                std::cerr << "Failed to save file: " << uploaded_file_path << std::endl;
-            }
+            } else 
+                return send_error_response(500, "text/html", server.error_pages[500]), throw std::runtime_error("Failed to upload file") , void();
         }
     }
 }
@@ -205,9 +218,12 @@ void Response::handle_post_request(const std::string &body) {
     if(!uploads.empty() && uploads[uploads.size() - 1] != '/')
         uploads += '/';
     uploads += "upload/";
-    if (request.getIsMultipart())
+    if (request.getIsMultipart() ){
+        if(!server.locations["/upload"].allow_upload)
+            return  send_error_response(403, "text/html", server.error_pages[403]),Message("Upload not allowed", RED), void();
         upload_file(uploads);
-    set_status(200);
+    }
+    set_status(201);
     set_content_type("text/html");
     set_body(read_html_file(body));
     send_response();
@@ -225,11 +241,10 @@ void Response::handle_delete_request() {
     std::string delete_error = root + "/delete-failure.html";
 
     if (!file_exists(uploads)) 
-        return send_error_response(404, "text/html", delete_error), void();
+        return send_error_response(404, "text/html", delete_error), Message("File not found", RED), void();
     if (remove(uploads.c_str()) != 0)
-        return send_error_response(500, "text/html", delete_error), void();
+        return send_error_response(500, "text/html", delete_error), Message("Error deleting file", RED), void();
   
-
     set_status(200);
     set_content_type("text/html");
     set_body(read_html_file(delete_path));

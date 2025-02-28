@@ -50,4 +50,6 @@
 #define EMERALD      "\033[1;38;5;46m"  // Bold emerald green
 
   bool isDirectory(const std::string& path);
-    std::string tostring(int value);
+ std::string tostring(int value);
+ std::string current_time();
+ void Message(const std::string &message, std::string color) ;

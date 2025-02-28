@@ -1,52 +1,10 @@
 #include "Request.hpp"
 
-// int extractSessionID(const std::string& ref) {
-//     std::string session_id;
-//     size_t pos = ref.find("session_id=");
-//     if (pos != std::string::npos) {
-//         pos += 11;
-//         session_id = ref.substr(pos);
-//         size_t semicolon_pos = session_id.find(";");
-//         if (semicolon_pos != std::string::npos) {
-//             session_id.erase(semicolon_pos);
-//         }
-//     }
-//     // return std::stoi(session_id);
-//     return std::atoi(session_id.c_str());
-// }
-
-// bool validateSessionID( int _ID ) {
-//     std::ifstream file("sessions.txt");
-//     if (file.is_open()) {
-//         std::string line;
-//         std::cout << "loading sessions file.." << std::endl;
-//         while (std::getline(file, line)) {
-//             size_t start_pos = line.find("session_id=") + std::string("session_id=").length();
-//             size_t end_pos = line.find(';');
-            
-//             if (start_pos != std::string::npos && end_pos != std::string::npos) {
-//                 std::string session_id_str = line.substr(start_pos, end_pos - start_pos);
-//                 int session_id = std::stoi(session_id_str);
-//                 if (_ID == session_id)
-//                     return true;
-//             } else {
-//                 std::cerr << "Invalid session ID format in file: " << line << std::endl;
-//             }
-//         }
-//         file.close();
-//     } else {
-//         std::cerr << "Unable to open sessions file for reading" << std::endl;
-//     }
-//     return false;
-// }
 
 Request::Request(const string &body)
 {
     isMultipart = false;
     isUrlEncoded = false;
-    // std::cout << "------------------------------" << std::endl;
-    // std::cout << "Request body: " << body << std::endl;
-    // std::cout << "------------------------------" << std::endl;
     if(body.find("Content-Type: application/x-www-form-urlencoded") != std::string::npos)
         isUrlEncoded = true;
 
@@ -78,7 +36,6 @@ Request::Request(const string &body)
             parseUrlEncodedData(line);
     }
 
-    //////////////
 
     size_t method_end = body.find(' ');
     method = body.substr(0, method_end);
@@ -160,4 +117,120 @@ int Request::getContentLength() {
        //return std::stoi(headers["Content-Length"]);
         return std::atoi(headers["Content-Length"].c_str());
     return -1;
+}
+
+
+std::string Request::execute_cgi(const std::string& interpreter, std::string root_cgi) 
+{
+
+    Message("Executing CGI script: " + interpreter, MAGENTA);
+
+    std::string path_ = root_cgi + this->path;
+
+    std::ostringstream input_filename_oss;
+    std::ostringstream output_filename_oss;
+    input_filename_oss << "/tmp/cgi_input_" << time(NULL) << "_";
+    output_filename_oss << "/tmp/cgi_output_" << time(NULL) << "_";
+
+    std::string input_filename = input_filename_oss.str();
+    std::string output_filename = output_filename_oss.str();
+
+    int input_fd = open(input_filename.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0644);
+    if (input_fd == -1) 
+    {
+        perror("Failed to create input file");
+        return "500 Internal Server Error\n";
+    }
+
+    int output_fd = open(output_filename.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0644);
+    if (output_fd == -1) 
+    {
+        perror("Failed to create output file");
+        close(input_fd);
+        return "500 Internal Server Error\n";
+    }
+
+    if (method == "POST") 
+    {
+        ssize_t bytes_written = write(input_fd, post_data.c_str(), post_data.length());
+        if (bytes_written == -1) 
+        {
+            perror("Failed to write POST data to input file");
+            close(input_fd);
+            close(output_fd);
+            return "500 Internal Server Error\n";
+        }
+    }
+    pid_t pid = fork();
+    if (pid == 0) 
+    { 
+        if (method == "POST")
+        {
+            close(input_fd);
+            input_fd = open(input_filename.c_str(), O_RDONLY);
+            if (input_fd == -1) {
+                perror("Failed to reopen input file");
+                // exit(1);
+                return "500 Internal Server Error\n";
+            }
+            dup2(input_fd, STDIN_FILENO);
+        }
+        dup2(output_fd, STDOUT_FILENO);
+        close(input_fd);
+        close(output_fd);
+
+        std::vector<std::string> env_vars;
+        std::ostringstream oss;
+        oss << post_data.length(); 
+
+        env_vars.push_back("REQUEST_METHOD=" + method);
+        env_vars.push_back("QUERY_STRING=" + query_string);
+        env_vars.push_back("CONTENT_TYPE=" + content_type);
+        env_vars.push_back("CONTENT_LENGTH=" + oss.str());
+        env_vars.push_back("SCRIPT_FILENAME=" + path_);
+        env_vars.push_back("REDIRECT_STATUS=200");
+
+        std::vector<char*> envp;
+        for (size_t i = 0; i < env_vars.size(); ++i)
+            envp.push_back(const_cast<char*>(env_vars[i].c_str()));
+        envp.push_back(NULL);
+        std::vector<char*> args;
+        args.push_back(const_cast<char*>(interpreter.c_str()));
+        args.push_back(const_cast<char*>(path_.c_str()));
+        args.push_back(NULL);
+        execve(interpreter.c_str(), args.data(), envp.data());
+        perror("execve failed");
+        //exit(1);
+        return "500 Internal Server Error\n";
+    }
+    else if (pid > 0) 
+    {
+        close(input_fd);
+        close(output_fd);
+        waitpid(pid, NULL, 0);
+        std::string output;
+        char buffer[BUFFER_SIZE];
+        ssize_t bytes_read;
+        int output_read_fd = open(output_filename.c_str(), O_RDONLY);
+        if (output_read_fd == -1) 
+        {
+            perror("Failed to open output file for reading");
+            return "500 Internal Server Error\n";
+        }
+        while ((bytes_read = read(output_read_fd, buffer, BUFFER_SIZE - 1)) > 0) 
+        {
+            buffer[bytes_read] = '\0';
+            output += buffer;
+        }
+        close(output_read_fd);
+        // unlink(input_filename.c_str());
+        // unlink(output_filename.c_str());
+        size_t header_end = output.find("\r\n\r\n");
+        return (header_end != std::string::npos) ? output.substr(header_end + 4) : output;
+    }
+    else
+    {  
+        Message("fork failed", RED);
+        return "500 Internal Server Error\n";
+    }
 }
