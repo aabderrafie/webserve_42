@@ -25,6 +25,8 @@ block parser::parseBlock(std::vector<Token>::iterator& current, std::vector<Toke
 		ret.block_name = current->value;
 	else {
 		ret.block_name = (++current)->value;
+		if (current->value[0] != '/')
+			throw std::runtime_error("invalid location name");
 		if (current->value == "{")
 			throw std::runtime_error("expected location name");
 	}
