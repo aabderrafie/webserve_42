@@ -6,7 +6,7 @@
 int main(int ac, char **av) {
     try {
         if (ac != 2)
-            throw std::runtime_error("Invalid number of arguments");
+            throw std::runtime_error("Usage: ./webserv <config_file.conf>");
         std::string filename(av[1]);
         if (filename.size() < 5 || filename.substr(filename.size() - 5) != ".conf")
             throw std::runtime_error("Invalid extension");
