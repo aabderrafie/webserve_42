@@ -183,6 +183,8 @@ bool Server::handle_client(int client_socket) {
             if (!path.empty() && path[path.length() - 1] != '/')
                 path += '/';
             path += locations[uri].default_file;
+            if(locations[uri].have_redirect)
+                path = locations[uri].redirect;
         }
     }
     else {
