@@ -28,8 +28,8 @@ void Config::printConfig(){
     }
 }
 
-Config::Config(){
+Config::Config(std::string path){
     parser p;
-    p.parse("./config/full.conf");
+    p.parse(path);
     servers = initConfig(p.getConfig());
 }

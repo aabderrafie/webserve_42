@@ -7,8 +7,8 @@
 class Server;
 
 class Config {
-public:
-    std::vector<Server> servers;
-    Config();
+    public:
     void printConfig();
+    Config(std::string path);
+    std::vector<Server> servers;
 };
