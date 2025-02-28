@@ -3,7 +3,7 @@
 std::string readFile(const std::string &filePath) {
 	std::ifstream file(filePath.c_str());
 	if (!file.is_open())
-		throw std::runtime_error("Error: Unable to open configuration file: " + filePath);
+		throw std::runtime_error("Unable to open configuration file: " + filePath);
 	std::ostringstream contentStream;
 	contentStream << file.rdbuf();
 	return (contentStream.str());
