@@ -200,6 +200,7 @@ void Response::upload_file(std::string& uploaded_file_path)
             std::ofstream out_file(uploaded_file_path.c_str(), std::ios::binary);
             if (out_file) {
                 out_file.write(file_content.c_str(), file_content.size());
+                Message("File uploaded successfully", GREEN);
                 out_file.close();
             } else 
                 return send_error_response(500, "text/html", server.error_pages[500]), throw std::runtime_error("Failed to upload file") , void();

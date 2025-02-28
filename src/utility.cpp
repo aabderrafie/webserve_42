@@ -25,6 +25,5 @@ std::string current_time() {
 }
 
 void Message(const std::string &message, std::string color) {
-    std::cout << message << std::endl;
     std::cout << color << "[" << current_time() << "] " << message << RESET << std::endl;
 }

@@ -13,321 +13,297 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2a2a72 0%, #009ffd 100%);
             min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            color: #fff;
             display: flex;
             justify-content: center;
             align-items: center;
-            position: relative;
-            overflow: hidden;
-            color: white;
             padding: 20px;
         }
 
-        /* Top-left user container */
         .top-left {
             position: absolute;
             top: 20px;
             left: 20px;
-            z-index: 1000; /* Ensure it's above other elements */
         }
 
         .user-container {
-            padding: 10px 20px;
-            border-radius: 25px;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: linear-gradient(45deg, #009ffd, #2a2a72);
+            font-weight: 600;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
         }
 
         .user-container:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        /* Top-right buttons */
-        .top-right {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            z-index: 1000; /* Ensure buttons are above other elements */
-        }
-
-        .user-label {
-            font-size: 1.1em;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-        }
-
-        .logout-button, .login-button {
-            padding: 10px 20px;
-            border-radius: 25px;
-            background: linear-gradient(45deg, #FF416C, #FF4B2B);
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-            box-shadow: 0 4px 15px rgba(255, 65, 108, 0.3);
-            transition: all 0.3s ease;
-            display: inline-block;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .logout-button::before, .login-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: all 0.3s ease;
-        }
-
-        .logout-button:hover, .login-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 20px rgba(255, 65, 108, 0.4);
-        }
-
-        .logout-button:hover::before, .login-button:hover::before {
-            left: 100%;
+            transform: scale(1.03);
         }
 
         .background-animation {
             position: fixed;
             width: 100vw;
             height: 100vh;
-            z-index: 0; /* Ensure it stays behind other elements */
-        }
-
-        @keyframes subtle-float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-        }
-
-        body.dark-theme .container {
-            background: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.1);
-        }
-
-        h1 {
-            font-size: 4em;
-            margin-bottom: 30px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s ease;
-        }
-
-        .creator {
-            font-size: 1.5em;
-            margin-bottom: 40px;
-            opacity: 0.8;
+            z-index: -1;
         }
 
         .circle {
             position: absolute;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            animation: subtle-float 8s ease-in-out infinite alternate;
-            backdrop-filter: blur(5px);
-            z-index: 1; /* Ensure circles stay behind other elements */
+            background: rgba(255, 255, 255, 0.05);
+            animation: subtle-float 6s ease-in-out infinite alternate;
         }
 
-        .circle:nth-child(1) {
-            width: 150px;
-            height: 150px;
-            top: 10%;
-            left: 10%;
-            animation-delay: -2s;
+        @keyframes subtle-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
 
-        .circle:nth-child(2) {
-            width: 100px;
-            height: 100px;
-            top: 20%;
-            right: 15%;
-            animation-delay: -4s;
-        }
-
-        .circle:nth-child(3) {
-            width: 200px;
-            height: 200px;
-            bottom: 15%;
-            right: 25%;
-            animation-delay: -6s;
-        }
+        .circle:nth-child(1) { width: 120px; height: 120px; top: 15%; left: 5%; }
+        .circle:nth-child(2) { width: 80px; height: 80px; top: 25%; right: 10%; }
+        .circle:nth-child(3) { width: 160px; height: 160px; bottom: 20%; left: 15%; }
 
         .container {
             position: relative;
             z-index: 10;
+            width: 95%; /* Increased from 90% */
+            max-width: 1400px; /* Increased from 1200px */
+            padding: 40px; /* Increased from 30px */
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             text-align: center;
-            width: 90%;
-            max-width: 1200px;
-            padding: 60px 40px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 30px;
-            backdrop-filter: blur(15px);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
         }
 
-        body.dark-theme .container {
-            background: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.1);
+        h1 {
+            font-size: 3.5em; /* Slightly larger */
+            margin-bottom: 10px;
+            color: #fff;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .creator {
+            font-size: 1.4em; /* Slightly larger */
+            opacity: 0.9;
+            margin-bottom: 25px;
         }
 
         .team-members {
             display: flex;
             justify-content: center;
-            gap: 60px;
-            margin-top: 40px;
+            flex-wrap: wrap;
+            gap: 35px; /* Slightly increased */
+            margin-bottom: 50px; /* Increased from 40px */
         }
 
         .team-member {
-            text-align: center;
             transition: transform 0.3s ease;
+            width: 240px; /* Increased from 220px */
         }
 
         .team-member:hover {
-            transform: translateY(-10px);
+            transform: translateY(-5px);
         }
 
         .team-member-circle {
-            width: 220px;
-            height: 220px;
+            width: 160px; /* Increased from 150px */
+            height: 160px;
             border-radius: 50%;
             background-size: cover;
-            background-position: center;
-            border: 6px solid rgba(255,255,255,0.7);
-            margin-bottom: 20px;
-            box-shadow: 0 12px 25px rgba(0,0,0,0.3);
-            transition: transform 0.3s ease;
-        }
-
-        body.dark-theme .team-member-circle {
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .team-member:hover .team-member-circle {
-            transform: rotate(5deg);
+            border: 4px solid rgba(255, 255, 255, 0.8);
+            margin: 0 auto 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
 
         .team-member-name {
-            font-size: 1.3em;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            font-size: 1.2em; /* Slightly larger */
+            font-weight: 600;
+        }
+
+        .team-member-social {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .social-icon {
+            width: 32px; /* Increased from 30px */
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .social-icon:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .social-icon svg {
+            width: 20px; /* Increased from 18px */
+            height: 20px;
+        }
+
+        .feature-cards {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 25px; /* Increased from 20px */
+            margin: 40px 0; /* Increased from 30px */
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 20px; /* Increased from 15px */
+            width: 220px; /* Increased from 200px */
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .feature-icon {
+            font-size: 2em; /* Increased from 1.8em */
+            color: #00ddeb;
+            margin-bottom: 12px; /* Increased from 10px */
+        }
+
+        .feature-title {
+            font-size: 1.2em; /* Increased from 1.1em */
+            font-weight: 600;
+        }
+
+        .feature-description {
+            font-size: 0.9em; /* Increased from 0.85em */
+            opacity: 0.9;
+        }
+
+        .config-section {
+            margin: 40px 0; /* Increased from 30px */
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 12px;
+            padding: 25px; /* Increased from 20px */
+        }
+
+        .config-title {
+            font-size: 1.8em; /* Increased from 1.5em */
+            color: #00ddeb;
+            margin-bottom: 20px; /* Increased from 15px */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px; /* Increased from 8px */
+        }
+
+        .config-toggle {
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: #00ddeb;
+            font-size: 1.1em; /* Increased from 1em */
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px;
+            margin: 0 auto;
+        }
+
+        .config-content {
+            display: none;
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px; /* Increased from 15px */
+            border-radius: 8px;
+            color: #b0ffa0;
+            font-size: 0.9em; /* Increased from 0.85em */
+            line-height: 1.6;
+            text-align: left;
+            max-width: 700px; /* Increased from 600px */
+            margin: 0 auto;
         }
 
         .button-container {
             display: flex;
             justify-content: center;
             flex-wrap: wrap;
-            gap: 25px;
-            margin-top: 50px;
+            gap: 20px; /* Increased from 15px */
+            margin-top: 40px; /* Increased from 30px */
         }
 
         .method-button {
+            padding: 14px 25px; /* Increased from 12px 20px */
+            border-radius: 25px;
+            color: #fff;
             text-decoration: none;
-            padding: 15px 30px;
-            border-radius: 30px;
-            color: white;
-            font-weight: bold;
+            font-weight: 600;
             transition: all 0.3s ease;
-            display: inline-block;
-            position: relative;
-            overflow: hidden;
-            font-size: 1.1em;
-            min-width: 180px;
+            min-width: 160px; /* Increased from 140px */
             text-align: center;
         }
 
-        .method-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: all 0.3s ease;
-        }
-
         .method-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transform: scale(1.03);
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
         }
 
-        .method-button:hover::before {
-            left: 100%;
-        }
+        .get-button { background: linear-gradient(45deg, #00b09b, #96c93d); }
+        .post-button { background: linear-gradient(45deg, #1e90ff, #4169e1); }
+        .upload-button { background: linear-gradient(45deg, #ffa500, #ff4500); }
+        .cgi-button { background: linear-gradient(45deg, #00b09b, #1e90ff); }
+        .Login { background: linear-gradient(45deg, #ff4500, #dc143c); }
+        .Logout { background: linear-gradient(45deg, #dc143c, #ff4500); }
 
-        .get-button { 
-            background: linear-gradient(45deg, #4CAF50, #2ECC71);
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-        }
-
-        .post-button { 
-            background: linear-gradient(45deg, #2196F3, #3F51B5);
-            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
-        }
-
-        .upload-button { 
-            background: linear-gradient(45deg, #FFC107, #FF9800);
-            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
-        }
-
-        .cgi-button { 
-            background: linear-gradient(45deg, #4CAF50, #2196F3);
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-        }
-
-        .Login { 
-            background: linear-gradient(45deg, #bd640b, #f31c00);
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-        }
-
-        .Logout { 
-            background: linear-gradient(45deg, #f31c00, #bd640b);
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        @media (max-width: 768px) {
+            .team-members, .feature-cards {
+                flex-direction: column;
+                align-items: center;
+            }
+            h1 { font-size: 2.5em; }
+            .container { padding: 25px; }
         }
     </style>
 </head>
 <body>
     <script>
-        // Check if the email cookie is set
         function getCookie(name) {
             let value = "; " + document.cookie;
             let parts = value.split("; " + name + "=");
             if (parts.length === 2) return parts.pop().split(";").shift();
         }
 
+        function toggleConfig() {
+            const configContent = document.getElementById('configContent');
+            const toggleBtn = document.getElementById('toggleConfig');
+            if (configContent.style.display === 'none') {
+                configContent.style.display = 'block';
+                toggleBtn.innerHTML = '<svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg> Hide';
+            } else {
+                configContent.style.display = 'none';
+                toggleBtn.innerHTML = '<svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z" transform="rotate(-90 8 8)"/></svg> Show';
+            }
+        }
+
         const email = getCookie('email');
     </script>
 
-    <!-- Top-left USER container -->
     <div class="top-left">
         <script>
             if (email) {
-                const decodedEmail = decodeURIComponent(email);
-                document.write('<div class="user-container">USER: ' + decodedEmail + '</div>');
+                document.write('<div class="user-container">USER: ' + decodeURIComponent(email) + '</div>');
             }
         </script>
     </div>
-
-    <!-- Top-right buttons -->
-    <!-- <div class="top-right">
-        <script>
-            if (email) {
-                document.write('<a href="logout.html" class="logout-button">Logout</a>');
-            }
-        </script>
-    </div> -->
 
     <div class="background-animation">
         <div class="circle"></div>
@@ -337,20 +313,98 @@
 
     <div class="container">
         <h1>WebServer 1337</h1>
-        <div class="creator">Created By</div>
-        
+        <div class="creator">A High-Performance HTTP Server</div>
+
         <div class="team-members">
-            <div class="team-member">
-                <div class="team-member-circle" style="background-image: url('https://cdn.intra.42.fr/users/db27e31f9927ca8116093c00fcdaba9b/aaskal.jpg')"></div>
-                <div class="team-member-name">Abderrafia Askal</div>
-            </div>
             <div class="team-member">
                 <div class="team-member-circle" style="background-image: url('https://cdn.intra.42.fr/users/c0aa88e9d1588ac8d3e57791392b4bb9/tlasfar.jpg')"></div>
                 <div class="team-member-name">Taha Lasfar</div>
+                <div class="team-member-social">
+                    <a href="https://github.com/NoXei" class="social-icon" target="_blank">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.934-5.479 6.252z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <div class="team-member">
+                <div class="team-member-circle" style="background-image: url('https://cdn.intra.42.fr/users/db27e31f9927ca8116093c00fcdaba9b/aaskal.jpg')"></div>
+                <div class="team-member-name">Abderrafia Askal</div>
+                <div class="team-member-social">
+                    <a href="https://github.com/aabderrafie" class="social-icon" target="_blank">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.934-5.479 6.252z"/>
+                        </svg>
+                    </a>
+                </div>
             </div>
             <div class="team-member">
                 <div class="team-member-circle" style="background-image: url('https://avatars.githubusercontent.com/u/105161749?v=4')"></div>
                 <div class="team-member-name">Zouhir Bakkas</div>
+                <div class="team-member-social">
+                    <a href="https://github.com/zbakkas" class="social-icon" target="_blank">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.934-5.479 6.252z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="feature-cards">
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <div class="feature-title">Lightning Fast</div>
+                <div class="feature-description">Optimized with non-blocking I/O</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔧</div>
+                <div class="feature-title">Configurable</div>
+                <div class="feature-description">Flexible options for all needs</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <div class="feature-title">Secure</div>
+                <div class="feature-description">Security-first design</div>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <div class="config-title">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c-1.4-.413-1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/>
+                </svg>
+                Server Configuration
+            </div>
+            <button id="toggleConfig" class="config-toggle" onclick="toggleConfig()">
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z" transform="rotate(-90 8 8)"/>
+                </svg> Show
+            </button>
+            <div id="configContent" class="config-content">
+                server {<br>
+                host 127.0.0.1;<br>
+                port 8080 4242 1337;<br>
+                client_max_body_size 10000M;<br>
+                server_name test.com;<br>
+                error_page 404 ./files/error_pages/404.html;<br>
+                <br>
+                location / {<br>
+                allowed_methods GET POST DELETE;<br>
+                root_directory ./files/html;<br>
+                }<br>
+                <br>
+                location /upload {<br>
+                allowed_methods GET POST;<br>
+                allow_upload true;<br>
+                root_directory ./files;<br>
+                }<br>
+                <br>
+                location /cgi-bin {<br>
+                allowed_methods GET POST;<br>
+                cgi .py /usr/bin/python3;<br>
+                }<br>
+                }
             </div>
         </div>
 
@@ -359,23 +413,15 @@
             <a href="post-form.html" class="method-button post-button">Try POST</a>
             <a href="upload.html" class="method-button upload-button">Try UPLOAD</a>
             <a href="cgi.html" class="method-button cgi-button">Try CGI</a>
+            <script>
+                const buttonContainer = document.querySelector('.button-container');
+                if (email) {
+                    buttonContainer.innerHTML += '<a href="logout.html" class="method-button Logout">Logout</a>';
+                } else {
+                    buttonContainer.innerHTML += '<a href="Sign_in.html" class="method-button Login">Try Login</a>';
+                }
+            </script>
         </div>
-        <script>
-            const buttonContainer = document.querySelector('.button-container');
-            if (email) {
-                const logoutButton = document.createElement('a');
-                logoutButton.href = 'logout.html';
-                logoutButton.className = 'method-button Logout';
-                logoutButton.textContent = 'Logout';
-                buttonContainer.appendChild(logoutButton);
-            } else {
-                const loginButton = document.createElement('a');
-                loginButton.href = 'Sign_in.html';
-                loginButton.className = 'method-button Login';
-                loginButton.textContent = 'Try Login';
-                buttonContainer.appendChild(loginButton);
-            }
-        </script>
     </div>
 </body>
 </html>
