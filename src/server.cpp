@@ -3,14 +3,12 @@
 #include <fstream>
 
 
-
 void Server::server_error(const std::string& message, int client_socket) {
    Response response(client_socket, *this);
     response.send_error_response(500, "text/html", error_pages[500]);
     throw std::runtime_error(message);  
     close(client_socket);
 }
-
 
 Server::Server() {}
 
@@ -86,6 +84,7 @@ std::string Server::read_request(int client_socket) {
     if (bytes_received < 0)
         server_error("Error receiving data", client_socket);
 
+    // Client closed connection
     if (bytes_received == 0) {
         std::string final_request = partial_requests[client_socket];
         partial_requests.erase(client_socket);
@@ -95,10 +94,11 @@ std::string Server::read_request(int client_socket) {
     buffer[bytes_received] = '\0';
     partial_requests[client_socket] += std::string(buffer, bytes_received);
 
+// Check if we have received the full request
     size_t header_end = partial_requests[client_socket].find("\r\n\r\n");
     if (header_end == std::string::npos) 
         return ""; 
-
+// Check if we have received the full request
     std::string headers = partial_requests[client_socket].substr(0, header_end + 4);
     size_t content_length_pos = headers.find("Content-Length: ");
     if (content_length_pos != std::string::npos) {
@@ -108,7 +108,7 @@ std::string Server::read_request(int client_socket) {
         if (partial_requests[client_socket].size() < total_length)
             return "";
     }
-    
+    // We have received the full request
     std::string full_request = partial_requests[client_socket];
     partial_requests.erase(client_socket);
     Message("Received Full Request From Client" + tostring(client_socket), EMERALD);
@@ -167,7 +167,7 @@ bool Server::handle_client(int client_socket) {
     std::string uri = response.request.getPath();
     std::string root_uri = locations[uri].root;
     std::string path = root_uri + uri;
-
+    std::cout << "Method: " << method << std::endl;
     if(!check_method(method, locations["/"].allowed_methods))
         return Message("Invalid method: " + method, RED), response.send_error_response(405, "text/html", error_pages[405]),close(client_socket), true;
 
@@ -184,7 +184,7 @@ bool Server::handle_client(int client_socket) {
                 path += '/';
             path += locations[uri].default_file;
             if(locations[uri].have_redirect)
-            path = locations[uri].redirect;
+                path = locations[uri].redirect;
         }
     }
     else {

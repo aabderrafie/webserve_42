@@ -114,7 +114,6 @@ void Request::parseUrlEncodedData(const string& body) {
 
 int Request::getContentLength() {
     if(headers.find("Content-Length") != headers.end())
-       //return std::stoi(headers["Content-Length"]);
         return std::atoi(headers["Content-Length"].c_str());
     return -1;
 }
@@ -170,7 +169,6 @@ std::string Request::execute_cgi(const std::string& interpreter, std::string roo
             input_fd = open(input_filename.c_str(), O_RDONLY);
             if (input_fd == -1) {
                 perror("Failed to reopen input file");
-                // exit(1);
                 return "500 Internal Server Error\n";
             }
             dup2(input_fd, STDIN_FILENO);
@@ -199,8 +197,7 @@ std::string Request::execute_cgi(const std::string& interpreter, std::string roo
         args.push_back(const_cast<char*>(path_.c_str()));
         args.push_back(NULL);
         execve(interpreter.c_str(), args.data(), envp.data());
-        perror("execve failed");
-        //exit(1);
+        Message("execve failed", RED);
         return "500 Internal Server Error\n";
     }
     else if (pid > 0) 
@@ -223,8 +220,8 @@ std::string Request::execute_cgi(const std::string& interpreter, std::string roo
             output += buffer;
         }
         close(output_read_fd);
-        // unlink(input_filename.c_str());
-        // unlink(output_filename.c_str());
+        unlink(input_filename.c_str());
+        unlink(output_filename.c_str());
         size_t header_end = output.find("\r\n\r\n");
         return (header_end != std::string::npos) ? output.substr(header_end + 4) : output;
     }
