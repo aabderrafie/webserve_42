@@ -25,6 +25,8 @@ block parser::parseBlock(std::vector<Token>::iterator& current, std::vector<Toke
 		ret.block_name = current->value;
 	else {
 		ret.block_name = (++current)->value;
+		if (current->value[0] != '/')
+			throw std::runtime_error("invalid location name");
 		if (current->value == "{")
 			throw std::runtime_error("expected location name");
 	}
@@ -176,6 +178,13 @@ void configureLocation( block& ref, Location& loc ) {
 			if (*it2->second.begin() == "true") loc.allow_upload = true;
 			else if (*it2->second.begin() == "false") loc.allow_upload = false;
 			else throw std::runtime_error("allow_upload: invalid argument");
+		} else if (it2->first == "redirect") {
+			if (it2->second.size() > 1)
+				throw std::runtime_error("redirect: too many redirections");
+			if (!isValidPath(*it2->second.begin()))
+				throw std::runtime_error("redirect: invalid argument");
+			loc.have_redirect = true;
+			loc.redirect = it2->second[0];
 		}
 	}
 }
