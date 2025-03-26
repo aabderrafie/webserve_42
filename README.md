@@ -94,9 +94,6 @@ The server supports at least one CGI implementation:
 4. Push to the branch
 5. Create a pull request
 
-## License
-[Specify your license here, e.g., MIT License]
-
 ## Acknowledgments
 - 42 Network
 - HTTP RFC specifications
