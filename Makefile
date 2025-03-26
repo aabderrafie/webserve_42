@@ -39,8 +39,13 @@ fclean: clean
 
 re: fclean all
 
+docker:
+	@echo "$(CYAN)🛠️  Stopping and removing containers...$(RESET)"
+	@docker-compose down -v > /dev/null 2>&1
+	@echo "$(CYAN)🧹 Pruning system...$(RESET)"
+	@docker system prune -af > /dev/null 2>&1
+	@docker volume prune -f > /dev/null 2>&1
+	@echo "$(CYAN)🚀 Rebuilding and starting containers...$(RESET)"
+	@docker-compose up -d --build
 42: all clean
 	@echo "$(GREEN)▶️  Running the program...$(RESET)"
-	@./$(NAME)
-
-.PHONY: all clean fclean re 42 header

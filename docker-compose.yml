@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  webserver:
+    container_name: webserver
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    image: webserver:42
+    ports:
+      - "8080:80"
+      - "1337:1337"
+      - "9090:9090"
+      - "8443:443"
+    restart: unless-stopped
+    networks:
+      - webnet
+
+networks:
+  webnet:
+    driver: bridge
