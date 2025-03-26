@@ -1,68 +1,103 @@
+# Webserv: HTTP Server Project
 
----
+## Overview
+Webserv is a custom HTTP server implementation in C++ 98, designed to provide a deep understanding of web server functionality and HTTP protocol intricacies.
 
-# Webserv  
+## Project Description
+This project involves creating a fully functional web server that can:
+- Handle HTTP requests
+- Serve static websites
+- Support multiple server configurations
+- Implement non-blocking I/O operations
+- Handle CGI (Common Gateway Interface) scripts
 
-## Overview  
-Webserv is a custom HTTP server built from scratch in **C++98**. The project aims to provide a deep understanding of HTTP protocols, non-blocking I/O, and web server architecture. It allows serving static files, processing HTTP requests, and handling multiple connections simultaneously.  
+## Features
+- Supports HTTP 1.1 protocol
+- Non-blocking server architecture
+- Configurable through a dedicated configuration file
+- Supports multiple ports and server configurations
+- Implements GET, POST, and DELETE HTTP methods
+- CGI script execution
+- File upload capabilities
+- Custom error page handling
 
-## Features  
+## Requirements
+- C++ 98 compiler
+- No external libraries (except standard C++ libraries)
+- Operating System: Linux, macOS, or Windows with Docker
 
-### Mandatory Features  
-- **Configuration File Support**: The server takes a configuration file to define its behavior.  
-- **Non-blocking I/O**: Uses `poll()` (or equivalent) to handle multiple clients efficiently.  
-- **Multiple Clients Handling**: The server can process multiple connections at the same time.  
-- **HTTP Methods**: Implements at least **GET**, **POST**, and **DELETE** methods.  
-- **Static File Serving**: Supports serving static web pages (HTML, CSS, images, etc.).  
-- **Directory Listing**: Optionally displays files in a directory when no default file is found.  
-- **File Upload**: Clients can upload files to a specified directory.  
-- **Error Pages**: Provides customizable error pages for different HTTP status codes.  
-- **Port & Host Configuration**: Allows setting up multiple servers with different host:port configurations.  
-- **Signal Handling**: Properly manages system signals to avoid crashes.  
+## Installation
 
-### Bonus Features  
-- **CGI Execution**: Supports running CGI scripts (e.g., PHP, Python).  
-- **Session Management**: Implements cookies and basic session handling.  
-- **Multiple CGI Handlers**: Supports various CGI languages for dynamic content generation.  
-- **Load Balancing**: Distributes requests among multiple server instances.  
+### Linux Users
+```bash
+git clone https://github.com/aabderrafie/webserve_42.git
+cd webserve_42
+make
+```
 
-## Installation & Usage  
+### macOS or Windows Users
+1. Ensure Docker is installed and running
+2. Build the project:
+```bash
+make docker
+```
 
-1. **Clone the Repository**  
-   ```sh
-   git clone https://github.com/aabderrafie/webserv.git
-   cd webserv
-   ```
+## Configuration
+The server is configured using a configuration file similar to NGINX. You can specify:
+- Server ports and hosts
+- Server names
+- Default error pages
+- Client body size limit
+- Route configurations
+  - Accepted HTTP methods
+  - URL redirects
+  - File and directory serving
+  - Directory listing
+  - CGI script execution
+  - File upload handling
 
-2. **Compile the Program**  
-   ```sh
-   make
-   ```
+## Usage
+```bash
+./webserv [configuration_file]
+```
+If no configuration file is provided, a default configuration will be used.
 
-3. **Run the Server**  
-   ```sh
-   ./webserv [config_file]
-   ```
+## Testing
+- Use telnet for basic HTTP testing
+- Compare behavior with NGINX
+- Implement stress tests to ensure server resilience
 
-4. **Test with a Web Browser**  
-   Open a browser and navigate to `http://localhost:8080/` or use `curl`:  
-   ```sh
-   curl -X GET http://localhost:8080/
-   ```
+## Supported CGI
+The server supports at least one CGI implementation:
+- PHP-CGI
+- Python
+- Other CGI-compatible scripting languages
 
-5. **Stop the Server**  
-   Press `Ctrl+C` to terminate the process.  
+## Bonus Features
+- Cookies and session management
+- Multiple CGI support
 
-## Configuration  
-A sample configuration file should define:  
-- Server names and ports.  
-- Root directory for serving files.  
-- Allowed HTTP methods per route.  
-- Default error pages.  
-- Directory listing options.  
-- CGI execution settings.  
+## Development Notes
+- Follows C++ 98 standard
+- Uses non-blocking I/O with poll() (or equivalent)
+- Handles client disconnections gracefully
+- Supports multiple simultaneous client connections
 
-## License  
-This project is licensed under the **MIT License**. See the LICENSE file for details.  
+## Limitations
+- Does not implement the entire HTTP RFC
+- Designed for educational purposes
 
----
+## Contributing
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a pull request
+
+## License
+[Specify your license here, e.g., MIT License]
+
+## Acknowledgments
+- 42 Network
+- HTTP RFC specifications
+- NGINX documentation
